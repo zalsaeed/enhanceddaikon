@@ -459,7 +459,7 @@ public abstract class DaikonVariableInfo
      */
     /*@RequiresNonNull("#1.clazz")*/
     protected void addClassVars(final ClassInfo cinfo, boolean dontPrintInstanceVars,
-                                Class<?> type, String offset, int depth) {
+                                Class<?> type, String offset, int depth) throws Exception{
 
         //DaikonVariableInfo corresponding to the "this" object
         DaikonVariableInfo thisInfo;
@@ -491,13 +491,69 @@ public abstract class DaikonVariableInfo
 
         // Get the fields
         // System.out.printf ("getting fields for %s%n", type);
-        Field[] fields = type.getDeclaredFields();
+        //Field[] fields = type.getDeclaredFields();
+        
+        //-------------------------------------------------------------------------------------------with the exception
+        //added by Ziyad 
+        
+        List<Field> fields = new ArrayList<Field>();
+		Class<?> c = type;
+		while (c != null && c != Object.class) {
+			fields.addAll(Arrays.asList(c.getDeclaredFields()));
+			c = c.getSuperclass(); //TODO I think this will ignore one superclass if a given class has two parents
+		}
+		
 
+		//Go over all available fields and obtain their fields if they are objects (not primitives).
+		List<Field> nested_fields = new ArrayList<Field>();
+		
+		for(Field field:fields) {
+			Object myInstance = field.get(type); 
+			    //Check if a field is a collection (could contain list of interesting objects)
+			    if(myInstance instanceof Collection) {
+			    	System.out.println("We have a collection: " + myInstance.toString() + " of type " +  field.getType().getTypeName());
+
+			    	//TODO Use it if you want to know the type of the objects the list holds
+			    	Type genericFieldType = field.getGenericType();
+			    	System.out.println("My print " + genericFieldType);
+			    	
+			    	if(genericFieldType instanceof ParameterizedType){
+			    	    ParameterizedType aType = (ParameterizedType) genericFieldType;
+			    	    Type[] fieldArgTypes = aType.getActualTypeArguments();
+			    	    System.out.println("Field args types: " + fieldArgTypes);
+			    	    for(Type fieldArgType : fieldArgTypes){
+			    	        Class fieldArgClass = (Class) fieldArgType;
+			    	        if (!fieldArgClass.isPrimitive()){
+			    	        	System.out.println("Content of collection is not primitive." + fieldArgClass.getTypeName());
+			    	        	//Go over each object (e.g. in a list) and get its fields. 
+					    	    for (Iterator<?> iter = ((Iterable) myInstance).iterator(); iter.hasNext(); ) { 
+						    	    Object element = iter.next();
+						    	    c = element.getClass();
+						    	    nested_fields.addAll(Arrays.asList(c.getDeclaredFields()));
+						    	}
+			    	        }
+			    	        
+			    	    }
+			    	}
+			    	
+			    }
+			    else { //The field is not a collection
+			    	if (!field.getType().isPrimitive()){
+			    		c = myInstance.getClass();
+				    	nested_fields.addAll(Arrays.asList(c.getDeclaredFields()));
+			    	}
+			    }
+		}
+		
+		fields.addAll(nested_fields);
+        
+		//-----------------------------------------------------------------------------------------
+		
         // if (fields.length > 50)
         //    System.out.printf ("%d fields in %s%n", fields.length, type);
 
         debug_vars.log ("%s: [%s] %d dontPrintInstanceVars = %b, "
-                        + "inArray = %b%n", type, offset, fields.length,
+                        + "inArray = %b%n", type, offset, fields.size(),
                         dontPrintInstanceVars, isArray);
 
 
