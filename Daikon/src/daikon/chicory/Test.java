@@ -16,6 +16,7 @@ class Test {
 
   public static void main (String[] args) {
 
+	  
     Test t = new Test();
     t.t1 = 5;
     int i = t.sample(0);

@@ -1,0 +1,15 @@
+/Cmd.class
+/CmdAssume.class
+/CmdCheck.class
+/CmdRaw.class
+/CmdUndoAssume.class
+/InvariantLemma.class
+/Lemma.class
+/LemmaStack.class
+/Session.class
+/SessionManager$Worker.class
+/SessionManager.class
+/SimpUtil.class
+/SimplifyError.class
+/SimplifyException.class
+/TimeoutException.class
