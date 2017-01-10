@@ -490,7 +490,7 @@ public abstract class DaikonVariableInfo
         }
 
         // Get the fields
-        System.out.printf ("--" + "getting fields for %s%n", type);
+        //System.out.printf ("getting fields for %s%n", type);
         Field[] fields = type.getDeclaredFields();
         
         //-------------------------------------------------------------------------------------------with the exception

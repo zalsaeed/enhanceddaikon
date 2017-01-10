@@ -51,9 +51,8 @@ public class ChicoryPremain {
   public static void premain (String agentArgs, Instrumentation inst)
     throws IOException {
 
-    // System.out.format ("In premain, agentargs ='%s', " +
+    //System.out.format ("In premain, agentargs ='%s', " +
     //                   "Instrumentation = '%s'%n", agentArgs, inst);
-
 
     // Parse our arguments using Chicory's argument parser
     Options options = new Options (Chicory.synopsis, Chicory.class,
