@@ -413,6 +413,7 @@ public class Runtime
         assert !initSet.contains(className) : className + " already exists in initSet";
 
         //System.out.println("initialized ---> " + name);
+        System.out.println("initialized ---> " + className);
         initSet.add(className);
     }
 
@@ -576,6 +577,7 @@ public class Runtime
     /*@EnsuresNonNull("dtrace")*/
     public static void setDtrace(String filename, boolean append)
     {
+    	//TODO: This is the best entry point that I can see. 
         System.out.printf("entered daikon.chicory.Runtime.setDtrace(%s, %b)...%n", filename, append);
 
         if (no_dtrace)

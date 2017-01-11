@@ -1906,6 +1906,7 @@ public class Instrument implements ClassFileTransformer {
           Constant c = pgen.getConstant(con_index);
           String att_name = ((ConstantUtf8) c).getBytes();
           out.format ("Attribute Index: %s Name: %s%n", con_index, att_name);
+          System.out.printf("Attribute Index: %s Name: %s%n", con_index, att_name);
       }
   }
 

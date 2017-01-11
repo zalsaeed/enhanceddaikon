@@ -47,9 +47,9 @@ public abstract class DaikonVariableInfo
     protected final boolean isArray;
 
     /** Print debug information about the variables **/
-    static SimpleLog debug_vars = new SimpleLog (false);
+    static SimpleLog debug_vars = new SimpleLog ("debug_vars.txt", true);
 
-    private static SimpleLog debug_array = new SimpleLog (true);
+    private static SimpleLog debug_array = new SimpleLog ("debug_array.txt", true);
 
     /**default string for comparability info**/
     private static final String compareInfoDefaultString = "22";
@@ -122,6 +122,7 @@ public abstract class DaikonVariableInfo
     public DaikonVariableInfo(String theName, String typeName, String repTypeName)
     {
         this(theName, typeName, repTypeName, false);
+        
     }
 
     /**
@@ -131,6 +132,9 @@ public abstract class DaikonVariableInfo
      */
     public DaikonVariableInfo(String theName, String typeName, String repTypeName, boolean arr)
     {
+    	//TODO remove the two lines below to make logging enabling/disabling universal 
+    	debug_array.enabled = true;
+    	debug_vars.enabled = true;
         // Intern the names because there will be many of the
         // same variable names at different program points within
         // the same class.
@@ -463,7 +467,8 @@ public abstract class DaikonVariableInfo
 
         //DaikonVariableInfo corresponding to the "this" object
         DaikonVariableInfo thisInfo;
-
+        
+        System.out.printf("addClassVars: %s : %s : %s: [%s]%n", this, cinfo, type, offset);
         debug_vars.log ("addClassVars: %s : %s : %s: [%s]%n", this, cinfo, type, offset);
 
         //must be at the first level of recursion (not lower) to print "this" field
@@ -496,18 +501,20 @@ public abstract class DaikonVariableInfo
         //-------------------------------------------------------------------------------------------with the exception
         //added by Ziyad 
         
-//        List<Field> fields = new ArrayList<Field>();
-//		Class<?> c = type;
-//		while (c != null && c != Object.class) {
-//			fields.addAll(Arrays.asList(c.getDeclaredFields()));
-//			c = c.getSuperclass(); //TODO I think this will ignore one superclass if a given class has two parents
-//		}
-//		
-//
+        //Getting all superclass's fields
+        List<Field> myFields = new ArrayList<Field>();
+		Class<?> c = type;
+		while (c != null && c != Object.class) {
+			myFields.addAll(Arrays.asList(c.getDeclaredFields()));
+			c = c.getSuperclass(); //TODO I think this will ignore one superclass if a given class has two parents
+		}
+		
+		
+
 //		//Go over all available fields and obtain their fields if they are objects (not primitives).
 //		List<Field> nested_fields = new ArrayList<Field>();
 //		
-//		for(Field field:fields) {
+//		for(Field field:myFields) {
 //			Object myInstance = field.get(type); 
 //			    //Check if a field is a collection (could contain list of interesting objects)
 //			    if(myInstance instanceof Collection) {
@@ -545,7 +552,7 @@ public abstract class DaikonVariableInfo
 //			    }
 //		}
 //		
-//		fields.addAll(nested_fields);
+//		myFields.addAll(nested_fields);
         
 		//-----------------------------------------------------------------------------------------
 		
@@ -616,11 +623,20 @@ public abstract class DaikonVariableInfo
 
             if (!isFieldVisible (cinfo.clazz, classField))
             {
+            	//TODO mute this ...
+            	System.out.printf("--field not visible %s %n", classField);
                 debug_vars.log ("--field not visible%n");
                 continue;
             }
 
             Class<?> fieldType = classField.getType();
+            
+            if(classField.getType().isPrimitive()){
+            	System.out.printf("      classfield type [Primitive]: %s %n", classField.getType());
+            }else{
+            	System.out.printf("      classfield type [non-Primitve]: %s %n", classField.getType());
+            }
+            
 
             StringBuffer buf = new StringBuffer();
             DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
@@ -833,8 +849,10 @@ public abstract class DaikonVariableInfo
      */
     protected DaikonVariableInfo addDeclVar(Field field, String offset,
                                 StringBuffer buf)
-    {
-        debug_vars.log ("enter addDeclVar(field):%n");
+    {   //TODO this is walking with the application as it is being executed ...     
+    	//System.out.printf("enter addDeclVar(field):%n");
+    	//System.out.printf("  field: %s, offset: %s%n", field, offset);
+    	debug_vars.log ("enter addDeclVar(field):%n");
         debug_vars.log ("  field: %s, offset: %s%n", field, offset);
         String arr_str = "";
         if (isArray)

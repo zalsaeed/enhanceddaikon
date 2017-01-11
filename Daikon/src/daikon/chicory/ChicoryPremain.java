@@ -129,15 +129,16 @@ public class ChicoryPremain {
           = loader.loadClass ("daikon.chicory.Instrument").newInstance();
         @SuppressWarnings("unchecked")
         Class<Instrument> c = (Class<Instrument>) transformer.getClass();
-        // System.out.printf ("Classloader of tranformer = %s%n",
-        //                    c.getClassLoader());
+//        System.out.printf ("Classloader of tranformer = %s%n",
+//                           c.getClassLoader());
       } catch (Exception e) {
         throw new RuntimeException ("Unexpected error loading Instrument", e);
       }
     }
 
     // Instrument transformer = new Instrument();
-    inst.addTransformer ((ClassFileTransformer) transformer);
+    // transformer is simply a daikon.chicory.Instrument instance
+    inst.addTransformer ((ClassFileTransformer) transformer); 
   }
 
   /**
@@ -284,6 +285,7 @@ public class ChicoryPremain {
    */
   // /*@RequiresNonNull("ChicoryPremain.pureMethods")*/
   /*@RequiresNonNull("pureMethods")*/
+  //This method not in use as of this implementation (Ziyad)
   public static boolean isMethodPure(Member member)
   {
     assert shouldDoPurity() : "Can't query for purity if no purity analysis was executed";
@@ -303,6 +305,7 @@ public class ChicoryPremain {
    */
   // /*@RequiresNonNull("ChicoryPremain.pureMethods")*/
   /*@RequiresNonNull("pureMethods")*/
+  //This method is not in use as of this implementation (Ziyad)
   public static Set<String> getPureMethods()
   {
     return Collections.unmodifiableSet(pureMethods);
