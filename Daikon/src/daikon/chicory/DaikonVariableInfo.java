@@ -562,6 +562,17 @@ public abstract class DaikonVariableInfo
         debug_vars.log ("%s: [%s] %d dontPrintInstanceVars = %b, "
                         + "inArray = %b%n", type, offset, fields.length,
                         dontPrintInstanceVars, isArray);
+        
+//        for (Field cField :fields) {
+//        	if(cField.getType().isAssignableFrom(Collection.class)){
+//        		System.out.println("This is a collection: " + cField.getName());
+//        	}
+//        	if(cField.getType().isPrimitive()){
+//            	System.out.printf("      classfield type [Primitive]: %s %n", cField.getType());
+//            }else{
+//            	System.out.printf("      classfield type [non-Primitve]: %s %n", cField.getType());
+//            }
+//        }
 
 
         for (Field classField : fields) {
@@ -623,29 +634,96 @@ public abstract class DaikonVariableInfo
 
             if (!isFieldVisible (cinfo.clazz, classField))
             {
-            	//TODO mute this ...
-            	System.out.printf("--field not visible %s %n", classField);
                 debug_vars.log ("--field not visible%n");
                 continue;
             }
 
-            Class<?> fieldType = classField.getType();
+            List<Field> fieldsOfClassFields = new ArrayList<Field>();
+            
             
             if(classField.getType().isPrimitive()){
+            	//Filed is primitive, then simply add it as how Chicory was basically doing it. 
             	System.out.printf("      classfield type [Primitive]: %s %n", classField.getType());
+
+            	Class<?> fieldType = classField.getType();
+
+                StringBuffer buf = new StringBuffer();
+                DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+
+                debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+
+                String newOffset = buf.toString();
+                newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+                              newOffset, depth);
+
+            	
             }else{
-            	System.out.printf("      classfield type [non-Primitve]: %s %n", classField.getType());
+            	//filed is not primitive them see if it is a Collection or an object
+            	//TODO for simplicity I'm only dealing with a list now ... Make sure all other collection types are covered 
+            	if(classField.getType().isAssignableFrom(List.class)){
+            		System.out.printf("      classfield type [non-Primitve - and List]: %s %n ", 
+            				classField.getType());
+            		
+            		
+            		//Do nothing fancy at the moment ... [Basic Chicory functionality] 
+            		Class <?> l = classField.getClass();
+            		System.out.println(classField.getName() + " : " + l.getName());
+            		
+            		//TODO find a way to access a list elements without having to have the instance.  
+            		
+//            		for (Iterator<?> iter = ((Iterable) l.getClassLoader()).iterator(); iter.hasNext(); ) { 
+//			    	    Object element = iter.next();
+//			    	    c = element.getClass();
+//			    	    System.out.println(c.getDeclaredFields());
+//            		}
+            		
+            		Class<?> fieldType = classField.getType();
+
+                    StringBuffer buf = new StringBuffer();
+                    DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+
+                    debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+
+                    String newOffset = buf.toString();
+                    newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+                                  newOffset, depth);
+            		
+            	}else {
+            		System.out.printf("      classfield type [non-Primitve - Single Object]: %s %n", 
+                			classField.getType());
+            		fieldsOfClassFields = getObjectFileds(cinfo , classField.getDeclaringClass(), offset, depth);
+            		
+            		Class<?> fieldType = classField.getType();
+
+                    StringBuffer buf = new StringBuffer();
+                    DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+
+                    debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+
+                    String newOffset = buf.toString();
+                    newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+                                  newOffset, depth);
+                    
+                    for(Field nestedField:fieldsOfClassFields){
+                    	Class<?> nFieldType = nestedField.getType();
+
+                        StringBuffer nBuf = new StringBuffer();
+                        DaikonVariableInfo nNewChild = thisInfo.addDeclVar(nestedField, offset, buf);
+
+                        debug_vars.indent ("--Created DaikonVariable %s%n", nNewChild);
+
+                        String nNewOffset = nBuf.toString();
+                        nNewChild.addChildNodes(cinfo, nFieldType, nestedField.getName(),
+                                      nNewOffset, depth);
+
+                    	
+                    }
+            		
+            		
+            	}
+            		
             }
             
-
-            StringBuffer buf = new StringBuffer();
-            DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
-
-            debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
-
-            String newOffset = buf.toString();
-            newChild.addChildNodes(cinfo, fieldType, classField.getName(),
-                          newOffset, depth);
             debug_vars.exdent();
         }
 
@@ -658,6 +736,7 @@ public abstract class DaikonVariableInfo
         // from static methods
         if (ChicoryPremain.shouldDoPurity() && !dontPrintInstanceVars)
         {
+        	//TODO see if this is get called ...
             ClassInfo typeInfo = null;
 
             try
@@ -742,6 +821,16 @@ public abstract class DaikonVariableInfo
         debug_vars.log ("exit addClassVars%n");
     }
 
+    private List<Field> getObjectFileds(ClassInfo cinfo, Class<?> type, String offset, int depth) {
+    	
+    	List<Field> myFields = new ArrayList<Field>();
+    	
+    	//Only collection the Objec's fields (don't care about collections)
+    	myFields.addAll(Arrays.asList(type.getDeclaredFields()));
+    	
+    	return myFields;
+    }
+    
     /**
      * Adds the decl info for a single parameter as a child of this node.
      * Also adds "derived" variables
