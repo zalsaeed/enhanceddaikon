@@ -639,90 +639,104 @@ public abstract class DaikonVariableInfo
             }
 
             List<Field> fieldsOfClassFields = new ArrayList<Field>();
+        	System.out.printf("      classfield type: %s %n", classField.getType());
+
+        	Class<?> fieldType = classField.getType();
+
+            StringBuffer buf = new StringBuffer();
+            DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+
+            debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+
+            String newOffset = buf.toString();
+            newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+                          newOffset, depth);            
             
-            
-            if(classField.getType().isPrimitive()){
-            	//Filed is primitive, then simply add it as how Chicory was basically doing it. 
-            	System.out.printf("      classfield type [Primitive]: %s %n", classField.getType());
-
-            	Class<?> fieldType = classField.getType();
-
-                StringBuffer buf = new StringBuffer();
-                DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
-
-                debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
-
-                String newOffset = buf.toString();
-                newChild.addChildNodes(cinfo, fieldType, classField.getName(),
-                              newOffset, depth);
-
-            	
-            }else{
-            	//filed is not primitive them see if it is a Collection or an object
-            	//TODO for simplicity I'm only dealing with a list now ... Make sure all other collection types are covered 
-            	if(classField.getType().isAssignableFrom(List.class)){
-            		System.out.printf("      classfield type [non-Primitve - and List]: %s %n ", 
-            				classField.getType());
-            		
-            		
-            		//Do nothing fancy at the moment ... [Basic Chicory functionality] 
-            		Class <?> l = classField.getClass();
-            		System.out.println(classField.getName() + " : " + l.getName());
-            		
-            		//TODO find a way to access a list elements without having to have the instance.  
-            		
-//            		for (Iterator<?> iter = ((Iterable) l.getClassLoader()).iterator(); iter.hasNext(); ) { 
-//			    	    Object element = iter.next();
-//			    	    c = element.getClass();
-//			    	    System.out.println(c.getDeclaredFields());
-//            		}
-            		
-            		Class<?> fieldType = classField.getType();
-
-                    StringBuffer buf = new StringBuffer();
-                    DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
-
-                    debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
-
-                    String newOffset = buf.toString();
-                    newChild.addChildNodes(cinfo, fieldType, classField.getName(),
-                                  newOffset, depth);
-            		
-            	}else {
-            		System.out.printf("      classfield type [non-Primitve - Single Object]: %s %n", 
-                			classField.getType());
-            		fieldsOfClassFields = getObjectFileds(cinfo , classField.getDeclaringClass(), offset, depth);
-            		
-            		Class<?> fieldType = classField.getType();
-
-                    StringBuffer buf = new StringBuffer();
-                    DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
-
-                    debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
-
-                    String newOffset = buf.toString();
-                    newChild.addChildNodes(cinfo, fieldType, classField.getName(),
-                                  newOffset, depth);
-                    
-                    for(Field nestedField:fieldsOfClassFields){
-                    	Class<?> nFieldType = nestedField.getType();
-
-                        StringBuffer nBuf = new StringBuffer();
-                        DaikonVariableInfo nNewChild = thisInfo.addDeclVar(nestedField, offset, buf);
-
-                        debug_vars.indent ("--Created DaikonVariable %s%n", nNewChild);
-
-                        String nNewOffset = nBuf.toString();
-                        nNewChild.addChildNodes(cinfo, nFieldType, nestedField.getName(),
-                                      nNewOffset, depth);
-
-                    	
-                    }
-            		
-            		
-            	}
-            		
+            if (!classField.getType().isPrimitive() && !classField.getType().isAssignableFrom(List.class)){
+            	System.out.printf("            This is my object: %s %n", classField.getName());
             }
+//            if(classField.getType().isPrimitive()){
+//            	//Filed is primitive, then simply add it as how Chicory was basically doing it. 
+//            	System.out.printf("      classfield type [Primitive]: %s %n", classField.getType());
+//
+//            	Class<?> fieldType = classField.getType();
+//
+//                StringBuffer buf = new StringBuffer();
+//                DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+//
+//                debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+//
+//                String newOffset = buf.toString();
+//                newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+//                              newOffset, depth);
+//
+//            	
+//            }else{
+//            	//filed is not primitive them see if it is a Collection or an object
+//            	//TODO for simplicity I'm only dealing with a list now ... Make sure all other collection types are covered 
+//            	if(classField.getType().isAssignableFrom(List.class)){
+//            		System.out.printf("      classfield type [non-Primitve - and List]: %s %n ", 
+//            				classField.getType());
+//            		
+//            		
+//            		//Do nothing fancy at the moment ... [Basic Chicory functionality] 
+//            		Class <?> l = classField.getClass();
+//            		System.out.println(classField.getName() + " : " + l.getName());
+//            		
+//            		//TODO find a way to access a list elements without having to have the instance.  
+//            		
+////            		for (Iterator<?> iter = ((Iterable) l.getClassLoader()).iterator(); iter.hasNext(); ) { 
+////			    	    Object element = iter.next();
+////			    	    c = element.getClass();
+////			    	    System.out.println(c.getDeclaredFields());
+////            		}
+//            		
+//            		Class<?> fieldType = classField.getType();
+//
+//                    StringBuffer buf = new StringBuffer();
+//                    DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+//
+//                    debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+//
+//                    String newOffset = buf.toString();
+//                    newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+//                                  newOffset, depth);
+//            		
+//            	}else {
+//            		System.out.printf("      classfield type [non-Primitve - Single Object]: %s %n", 
+//                			classField.getType());
+//            		fieldsOfClassFields = getObjectFileds(cinfo , classField.getDeclaringClass(), offset, depth);
+//            		
+//            		Class<?> fieldType = classField.getType();
+//
+//                    StringBuffer buf = new StringBuffer();
+//                    DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+//
+//                    debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
+//
+//                    String newOffset = buf.toString();
+//                    newChild.addChildNodes(cinfo, fieldType, classField.getName(),
+//                                  newOffset, depth);
+//                    
+//                    for(Field nestedField:fieldsOfClassFields){
+//                    	Class<?> nFieldType = nestedField.getType();
+//
+//                        StringBuffer nBuf = new StringBuffer();
+//                        DaikonVariableInfo nNewChild = thisInfo.addDeclVar(nestedField, offset, buf);
+//
+//                        debug_vars.indent ("--Created DaikonVariable %s%n", nNewChild);
+//
+//                        String nNewOffset = nBuf.toString();
+//                        nNewChild.addChildNodes(cinfo, nFieldType, nestedField.getName(),
+//                                      nNewOffset, depth);
+//
+//                    	
+//                    }
+//            		
+//            		
+//            	}
+//            		
+//            }
             
             debug_vars.exdent();
         }
