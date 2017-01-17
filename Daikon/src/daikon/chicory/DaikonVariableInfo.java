@@ -465,10 +465,11 @@ public abstract class DaikonVariableInfo
     protected void addClassVars(final ClassInfo cinfo, boolean dontPrintInstanceVars,
                                 Class<?> type, String offset, int depth) {
 
+    	System.out.printf("\t\tenter >>>>> [Chicory.DaikonVariableInfo.assClassVars]%s : %s : %s: [%s]%n", this, cinfo, type, offset);
         //DaikonVariableInfo corresponding to the "this" object
         DaikonVariableInfo thisInfo;
         
-        System.out.printf("addClassVars: %s : %s : %s: [%s]%n", this, cinfo, type, offset);
+        //System.out.printf("\t\taddClassVars: %s : %s : %s: [%s]%n", this, cinfo, type, offset);
         debug_vars.log ("addClassVars: %s : %s : %s: [%s]%n", this, cinfo, type, offset);
 
         //must be at the first level of recursion (not lower) to print "this" field
@@ -639,7 +640,7 @@ public abstract class DaikonVariableInfo
             }
 
             List<Field> fieldsOfClassFields = new ArrayList<Field>();
-        	System.out.printf("      classfield type: %s %n", classField.getType());
+        	System.out.printf("\t\tclassfield type: %s %n", classField.getType());
 
         	Class<?> fieldType = classField.getType();
 
@@ -649,7 +650,7 @@ public abstract class DaikonVariableInfo
             debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
 
             String newOffset = buf.toString();
-            System.out.printf("      buf: %s %n", newOffset);
+            System.out.printf("\t\tbuf: %s %n", newOffset);
             newChild.addChildNodes(cinfo, fieldType, classField.getName(),
                           newOffset, depth);    
             
@@ -755,12 +756,13 @@ public abstract class DaikonVariableInfo
             }
         }
         debug_vars.log ("exit addClassVars%n");
+        System.out.println("\t\texit <<<<< [Chicory.DaikonVariableInfo.assClassVars]");
     }
 
     private void getCollectionFileds(Field field, String offset, StringBuffer buff) {
     	   	
        
- 	   System.out.println("\t\t\tThis is my List: " + field.getName());
+ 	   //System.out.println("\t\t\tThis is my List: " + field.getName());
  	   
  	   //Signature --> addChildNodes(final ClassInfo cinfo, Class<?> type, String theName,String offset, int depthRemaining)
  	   //Class --> newChild.addChildNodes(cinfo, fieldType, classField.getName(),newOffset, depth);
@@ -771,15 +773,15 @@ public abstract class DaikonVariableInfo
 
         if (cinfo != null) {
             value = cinfo.staticMap.get(field.getDeclaringClass().getName());
-            System.out.println("\t\t\tThe name value: " + value);
+            //System.out.println("\t\t\tThe name value: " + value);
             
             String className = cinfo.class_name;
-            System.out.println("\t\t\tOwner class name: " + className);
+            //System.out.println("\t\t\tOwner class name: " + className);
             
             // If the class has already been statically initialized, get its hash
-            System.out.println("\t\t\tAll instrumented classes: " + Runtime.initSet);
+            //System.out.println("\t\t\tAll instrumented classes: " + Runtime.initSet);
             if (Runtime.isInitialized(className)) { //not returning true!!!!
-            	System.out.println("\t\t\tThe name value: " + value);
+            	//System.out.println("\t\t\tThe name value: " + value);
                 try {
                     value = Integer.toString(System.identityHashCode(field.get(null)));
                 } catch(Exception e) {}
@@ -787,7 +789,7 @@ public abstract class DaikonVariableInfo
             try {
                 value = Integer.toString(System.identityHashCode(field.get(null)));
             } catch(Exception e) {}
-            System.out.println("\t\t\tagain value: " + value);
+            //System.out.println("\t\t\tagain value: " + value);
             
         }
     	
@@ -905,6 +907,7 @@ public abstract class DaikonVariableInfo
     	//System.out.printf("  field: %s, offset: %s%n", field, offset);
     	debug_vars.log ("enter addDeclVar(field):%n");
         debug_vars.log ("  field: %s, offset: %s%n", field, offset);
+        System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addDeclVar(field)]: field: %s offset: %s%n", field, offset);
         String arr_str = "";
         if (isArray)
             arr_str = "[]";
@@ -993,7 +996,7 @@ public abstract class DaikonVariableInfo
 
         if (!ignore){
             newField.checkForDerivedVariables(type, theName, offset);
-            System.out.println("\t\t[addDeclVar] getting derived vars: ");
+            //System.out.printf("\t\t\tAddiing derived variables: type: %s name: %s offset: %s", type, theName, offset);
         }
 
         buf.append(offset);
@@ -1004,6 +1007,7 @@ public abstract class DaikonVariableInfo
         }
 
         debug_vars.log ("exit addDeclVar(field)%n");
+        System.out.printf("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addDeclVar(field)]%n");
         return newField;
     }
 
@@ -1425,8 +1429,8 @@ public abstract class DaikonVariableInfo
 //     }
 
 	   
-	   System.out.printf("            enter addChildNodes:%n");
-	   System.out.printf("            name: %s, offset: %s type:%s%n", theName, offset, getTypeName());
+	   System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addChildNodes()]%n");
+	   System.out.printf("\t\t\tname: %s, offset: %s type:%s%n", theName, offset, getTypeName());
 	   
        debug_vars.log ("enter addChildNodes:%n");
        debug_vars.log ("  name: %s, offset: %s%n", theName, offset);
@@ -1534,7 +1538,7 @@ public abstract class DaikonVariableInfo
        // regular old class type
        else
        {
-    	   System.out.printf("            **Depth Remaining = %d%n", depthRemaining);
+    	   System.out.printf("\t\t\t**Depth Remaining = %d%n", depthRemaining);
            debug_vars.log ("**Depth Remaining = %d%n", depthRemaining);
 
            if (depthRemaining <= 0)
@@ -1546,6 +1550,7 @@ public abstract class DaikonVariableInfo
                addClassVars(cinfo, false, type, offset + theName + ".", depthRemaining - 1);
        }
        debug_vars.log ("exit addChildNodes%n");
+       System.out.printf("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addChildNodes()]%n");
    }
 
    /**

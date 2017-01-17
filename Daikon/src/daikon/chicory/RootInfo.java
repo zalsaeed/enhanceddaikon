@@ -31,6 +31,8 @@ public class RootInfo extends DaikonVariableInfo
      */
     public static RootInfo enter_process (MethodInfo mi, int depth)
     {
+    	System.out.println("\tenter >>>>> [Chicory.RootInfo.enter_process()]");
+    	System.out.printf("\tBuilding enter tree for %s%n", mi);
         debug_vars.clear ("Building enter tree for %s:%s%n", mi.method_name, mi);
 
         RootInfo root = new RootInfo();
@@ -59,6 +61,8 @@ public class RootInfo extends DaikonVariableInfo
                            depth);
 
         debug_vars.log ("exit enter_process%n");
+        
+        System.out.println("\texit <<<<< [Chicory.RootInfo.enter_process()]");
 
         return root;
     }
@@ -68,6 +72,8 @@ public class RootInfo extends DaikonVariableInfo
      */
     public static RootInfo exit_process(MethodInfo mi, int depth)
     {
+    	System.out.println("\tenter >>>>> [Chicory.RootInfo.exit_process()]");
+    	System.out.printf("\tBuilding exit tree for %s%n", mi);
         debug_vars.clear ("Building exit tree for %s%n", mi);
 
         RootInfo root = new RootInfo();
@@ -115,6 +121,7 @@ public class RootInfo extends DaikonVariableInfo
         }
 
         debug_vars.log ("exit exit_process%n");
+        System.out.println("\texit <<<<< [Chicory.RootInfo.exit_process()]");
 
         return root;
     }

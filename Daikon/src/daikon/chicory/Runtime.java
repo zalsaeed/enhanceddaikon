@@ -234,14 +234,17 @@ public class Runtime
      */
     public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int mi_index,
                                           Object[] args) {
+    	System.out.println("\nenter >>>>> [Chicory.Runtime.enter()]");
     	
     	if(obj!= null){
-    		System.out.println("[Runtime] reciver -> " + obj.getClass().getName());
+    		System.out.println("[Chicory.Runtime.enter()] Given reciver obj -> " + obj.getClass().getName());
     		for(Field f:obj.getClass().getDeclaredFields()){
     			System.out.println("  Fields: " + f.getName());
     		}
     		//if(obj.getClass())
     		
+    	}else {
+    		System.out.println("[Chicory.Runtime.enter()] given reciver obj is NULL");
     	}
     	if (debug) {
           MethodInfo mi = methods.get(mi_index);
@@ -308,6 +311,8 @@ public class Runtime
       } finally {
         in_dtrace = false;
       }
+      
+      System.out.println("exit >>>>> [Chicory.Runtime.enter()]");
     }
 
     /**
@@ -428,7 +433,7 @@ public class Runtime
         assert !initSet.contains(className) : className + " already exists in initSet";
 
         //System.out.println("initialized ---> " + name);
-        System.out.println("initialized ---> " + className);
+        System.out.println("[Chicory.Runtime.initNotify()] initialized ---> " + className);
         initSet.add(className);
     }
 
@@ -452,6 +457,7 @@ public class Runtime
       // Processing of the new_classes list must be
       // very careful, as the call to get_reflection or printDeclClass
       // may load other classes (which then get added to the list).
+    	System.out.println("\nenter >>>>> [Chicory.Runtime.process_new_class()]");
       while (true) {
 
         // Get the first class in the list (if any)
@@ -464,6 +470,8 @@ public class Runtime
         }
         if (class_info == null)
           break;
+        
+        System.out.println ("    processing class " + class_info.class_name);
 
         if (debug)
           System.out.println ("processing class " + class_info.class_name);
@@ -484,6 +492,7 @@ public class Runtime
         decl_writer.printDeclClass (class_info, comp_info);
 
       }
+      System.out.println("exit <<<<< [Chicory.Runtime.process_new_class()]");
     }
 
     /** Increment the number of records that have been printed. **/
