@@ -3,6 +3,7 @@ package daikon.chicory;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.*;
 import java.net.Socket;
 import java.util.*;
@@ -115,7 +116,7 @@ public class Runtime
      * Which static initializers have been run.
      * Each element of the Set is a fully qualified class name.
      **/
-    private static Set<String> initSet = new HashSet<String>();
+    static Set<String> initSet = new HashSet<String>();
 
     /** Class of information about each active call **/
     private static class CallInfo {
@@ -233,8 +234,16 @@ public class Runtime
      */
     public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int mi_index,
                                           Object[] args) {
-
-      if (debug) {
+    	
+    	if(obj!= null){
+    		System.out.println("[Runtime] reciver -> " + obj.getClass().getName());
+    		for(Field f:obj.getClass().getDeclaredFields()){
+    			System.out.println("  Fields: " + f.getName());
+    		}
+    		//if(obj.getClass())
+    		
+    	}
+    	if (debug) {
           MethodInfo mi = methods.get(mi_index);
           System.out.printf("%smethod_entry %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
           method_indent = method_indent.concat("  ");
@@ -410,6 +419,12 @@ public class Runtime
      */
     public static void initNotify(String className)
     {
+    	//To inspect who is calling this method ...
+//    	StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+//    	for (StackTraceElement s:stackTraceElements){
+//    		System.out.println("Who called me? " + s.getClassName() + " : " + s.getLineNumber() + s.getMethodName());
+//    	}
+    	
         assert !initSet.contains(className) : className + " already exists in initSet";
 
         //System.out.println("initialized ---> " + name);

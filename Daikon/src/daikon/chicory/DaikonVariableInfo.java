@@ -649,8 +649,16 @@ public abstract class DaikonVariableInfo
             debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
 
             String newOffset = buf.toString();
+            System.out.printf("      buf: %s %n", newOffset);
             newChild.addChildNodes(cinfo, fieldType, classField.getName(),
-                          newOffset, depth);            
+                          newOffset, depth);    
+            
+            if(Collection.class.isAssignableFrom(classField.getType())){
+            	System.out.println("\t\tThis is my list, calling my method ...");
+            	getCollectionFileds(classField, offset, buf);
+            	
+            	
+            }
             
             debug_vars.exdent();
         }
@@ -749,14 +757,40 @@ public abstract class DaikonVariableInfo
         debug_vars.log ("exit addClassVars%n");
     }
 
-    private List<Field> getObjectFileds(ClassInfo cinfo, Class<?> type, String offset, int depth) {
+    private void getCollectionFileds(Field field, String offset, StringBuffer buff) {
+    	   	
+       
+ 	   System.out.println("\t\t\tThis is my List: " + field.getName());
+ 	   
+ 	   //Signature --> addChildNodes(final ClassInfo cinfo, Class<?> type, String theName,String offset, int depthRemaining)
+ 	   //Class --> newChild.addChildNodes(cinfo, fieldType, classField.getName(),newOffset, depth);
+
+ 	    ClassInfo cinfo = Runtime.getClassInfoFromClass(field.getDeclaringClass());
+        String value = null;
+        boolean isPrimitive = true;
+
+        if (cinfo != null) {
+            value = cinfo.staticMap.get(field.getDeclaringClass().getName());
+            System.out.println("\t\t\tThe name value: " + value);
+            
+            String className = cinfo.class_name;
+            System.out.println("\t\t\tOwner class name: " + className);
+            
+            // If the class has already been statically initialized, get its hash
+            System.out.println("\t\t\tAll instrumented classes: " + Runtime.initSet);
+            if (Runtime.isInitialized(className)) { //not returning true!!!!
+            	System.out.println("\t\t\tThe name value: " + value);
+                try {
+                    value = Integer.toString(System.identityHashCode(field.get(null)));
+                } catch(Exception e) {}
+            }
+            try {
+                value = Integer.toString(System.identityHashCode(field.get(null)));
+            } catch(Exception e) {}
+            System.out.println("\t\t\tagain value: " + value);
+            
+        }
     	
-    	List<Field> myFields = new ArrayList<Field>();
-    	
-    	//Only collection the Objec's fields (don't care about collections)
-    	myFields.addAll(Arrays.asList(type.getDeclaredFields()));
-    	
-    	return myFields;
     }
     
     /**
@@ -957,8 +991,10 @@ public abstract class DaikonVariableInfo
 
         addChild(newField);
 
-        if (!ignore)
+        if (!ignore){
             newField.checkForDerivedVariables(type, theName, offset);
+            System.out.println("\t\t[addDeclVar] getting derived vars: ");
+        }
 
         buf.append(offset);
 
@@ -1196,12 +1232,14 @@ public abstract class DaikonVariableInfo
            addChild(child);
 
            boolean ignore = child.check_for_dup_names();
+           
+
 
            // CLASSNAME var
            if (!ignore) {
                DaikonVariableInfo childClass
                    = new DaikonClassInfo(offset + theName + "[]" + class_suffix, classClassName + "[]", stringClassName + "[]", offset + theName + "[]", true);
-
+               
                child.addChild(childClass);
            }
        }
@@ -1392,6 +1430,38 @@ public abstract class DaikonVariableInfo
 	   
        debug_vars.log ("enter addChildNodes:%n");
        debug_vars.log ("  name: %s, offset: %s%n", theName, offset);
+       
+//       if(Collection.class.isAssignableFrom(type)){
+//    	   System.out.println("\tThis is my List: " + type);
+//    	   
+//    	   //Signature --> addChildNodes(final ClassInfo cinfo, Class<?> type, String theName,String offset, int depthRemaining)
+//    	   //Class --> newChild.addChildNodes(cinfo, fieldType, classField.getName(),newOffset, depth);
+//
+//    	   //ClassInfo cinfo = Runtime.getClassInfoFromClass(field.getDeclaringClass());
+//           String value = null;
+//           boolean isPrimitive = true;
+//
+//           if (cinfo != null) {
+//               value = cinfo.staticMap.get(theName);
+//               System.out.println("\tThe name value: " + value);
+//               
+//               String className = cinfo.class_name;
+//               System.out.println("\tOwner class name: " + className);
+//
+////               if (DaikonVariableInfo.dkconfig_constant_infer) {
+////                   if (value == null) {
+////                       isPrimitive = false;
+////                       String className = field.getDeclaringClass().getName();
+////                       // If the class has already been statically initialized, get its hash
+////                       if (Runtime.isInitialized(className)) {
+////                           try {
+////                               value = Integer.toString(System.identityHashCode(field.get(null)));
+////                           } catch(Exception e) {}
+////                       }
+////                   }
+////               }
+//           }
+//       }
 
        if (type.isPrimitive())
            return;

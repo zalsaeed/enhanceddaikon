@@ -1304,6 +1304,7 @@ public class Instrument implements ClassFileTransformer {
           out.format ("Modified code: %s%n", c.mgen.getMethod().getCode());
         }
 
+       // System.out.printf("[Instrument] Modified code: %s%n", c.mgen.getMethod().getCode());
     // The following implements:
     //     this_invocation_nonce = Runtime.nonce++;
 
