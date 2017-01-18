@@ -277,25 +277,25 @@ public class Runtime
 
         // If sampling, check to see if we are capturing this sample
         boolean capture = true;
-        if (sample_start > 0) {
-          if (mi.call_cnt <= sample_start)
-            ;
-          else if (mi.call_cnt <= (sample_start*10))
-            capture = (mi.call_cnt % 10) == 0;
-          else if (mi.call_cnt <= (sample_start*100))
-            capture = (mi.call_cnt % 100) == 0;
-          else if (mi.call_cnt <= (sample_start*1000))
-            capture = (mi.call_cnt % 1000) == 0;
-          else
-            capture = (mi.call_cnt % 10000) == 0;
-          Thread t = Thread.currentThread();
-          Stack<CallInfo> callstack = thread_to_callstack.get (t);
-          if (callstack == null) {
-              callstack = new Stack<CallInfo>();
-              thread_to_callstack.put (t, callstack);
-          }
-          callstack.push (new CallInfo (nonce, capture));
-        }
+//        if (sample_start > 0) { //This is (sample_start) always 0 unless specified otherwise ...
+//          if (mi.call_cnt <= sample_start)
+//            ;
+//          else if (mi.call_cnt <= (sample_start*10))
+//            capture = (mi.call_cnt % 10) == 0;
+//          else if (mi.call_cnt <= (sample_start*100))
+//            capture = (mi.call_cnt % 100) == 0;
+//          else if (mi.call_cnt <= (sample_start*1000))
+//            capture = (mi.call_cnt % 1000) == 0;
+//          else
+//            capture = (mi.call_cnt % 10000) == 0;
+//          Thread t = Thread.currentThread();
+//          Stack<CallInfo> callstack = thread_to_callstack.get (t);
+//          if (callstack == null) {
+//              callstack = new Stack<CallInfo>();
+//              thread_to_callstack.put (t, callstack);
+//          }
+//          callstack.push (new CallInfo (nonce, capture));
+//        }
 
         if (capture) {
           mi.capture_cnt++;
