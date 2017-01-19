@@ -140,6 +140,15 @@ public class Runtime
    * sample_start is 0, then all calls will be recorded.
    */
   public static int sample_start = 0;
+  
+  /**
+   * A list of life instance that Chicory encountered during running the 
+   * targeted application. This is will be used to see if we should construct 
+   * the ppt for a method/class or not. From now on we will only construct ppt
+   * for classes as soon as we have an example life instances of it. This is to 
+   * help us reconstruct a collection from the reflected objects. 
+   */
+  public static List<Object> observed_objects = new ArrayList<Object>();
 
     // Constructor
     private Runtime()
@@ -238,81 +247,85 @@ public class Runtime
     	
     	if(obj!= null){
     		System.out.println("[Chicory.Runtime.enter()] Given reciver obj -> " + obj.getClass().getName());
-    		for(Field f:obj.getClass().getDeclaredFields()){
-    			System.out.println("  Fields: " + f.getName());
+    		if(!observed_objects.contains(obj)){
+    			observed_objects.add(obj);
     		}
-    		//if(obj.getClass())
+    		for(Object o:observed_objects){
+    			System.out.println("In list: " + o.getClass().getName());
+    		}
     		
     	}else {
     		System.out.println("[Chicory.Runtime.enter()] given reciver obj is NULL");
     	}
+    	
     	if (debug) {
-          MethodInfo mi = methods.get(mi_index);
-          System.out.printf("%smethod_entry %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
-          method_indent = method_indent.concat("  ");
-      }
-
-      if (dontProcessPpts())
-        return;
-
-      // Make sure that the in_dtrace flag matches the stack trace
-      // check_in_dtrace();
-
-      // Ignore this call if we are already processing a dtrace record
-      if (in_dtrace)
-        return;
-
-      // Note that we are processing a dtrace record until we return
-      in_dtrace = true;
-      try {
-        int num_new_classes = 0;
-        synchronized (new_classes) {
-          num_new_classes = new_classes.size();
-        }
-        if (num_new_classes > 0)
-          process_new_classes();
-
-        MethodInfo mi = methods.get(mi_index);
-        mi.call_cnt++;
-
-        // If sampling, check to see if we are capturing this sample
-        boolean capture = true;
-//        if (sample_start > 0) { //This is (sample_start) always 0 unless specified otherwise ...
-//          if (mi.call_cnt <= sample_start)
-//            ;
-//          else if (mi.call_cnt <= (sample_start*10))
-//            capture = (mi.call_cnt % 10) == 0;
-//          else if (mi.call_cnt <= (sample_start*100))
-//            capture = (mi.call_cnt % 100) == 0;
-//          else if (mi.call_cnt <= (sample_start*1000))
-//            capture = (mi.call_cnt % 1000) == 0;
-//          else
-//            capture = (mi.call_cnt % 10000) == 0;
-//          Thread t = Thread.currentThread();
-//          Stack<CallInfo> callstack = thread_to_callstack.get (t);
-//          if (callstack == null) {
-//              callstack = new Stack<CallInfo>();
-//              thread_to_callstack.put (t, callstack);
-//          }
-//          callstack.push (new CallInfo (nonce, capture));
-//        }
-
-        if (capture) {
-          mi.capture_cnt++;
-          // long start = System.currentTimeMillis();
-          dtrace_writer.methodEntry(mi, nonce, obj, args);
-          // long duration = System.currentTimeMillis() - start;
-          //System.out.println ("Enter " + mi + " " + duration + "ms"
-          //                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
-        } else {
-          //System.out.println ("skipped " + mi
-          //                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
-        }
-      } finally {
-        in_dtrace = false;
-      }
-      
-      System.out.println("exit >>>>> [Chicory.Runtime.enter()]");
+    		MethodInfo mi = methods.get(mi_index);
+    		System.out.printf("%smethod_entry %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
+    		method_indent = method_indent.concat("  ");
+    	}
+    	if (dontProcessPpts())
+    		return;
+    	// Make sure that the in_dtrace flag matches the stack trace
+    	// check_in_dtrace();
+    	
+    	// Ignore this call if we are already processing a dtrace record
+    	
+    	if (in_dtrace)
+    		return;
+    	// Note that we are processing a dtrace record until we return
+    	in_dtrace = true;
+    	try {
+    		int num_new_classes = 0;
+		    synchronized (new_classes) {
+		      num_new_classes = new_classes.size();
+		      for(ClassInfo ci:new_classes){
+		    	  System.out.println("Currently in new Classes: " + ci.class_name);
+		      }
+		    }
+		    if (num_new_classes > 0)
+		      process_new_classes();
+		
+		    MethodInfo mi = methods.get(mi_index);
+		    mi.call_cnt++;
+		
+		    // If sampling, check to see if we are capturing this sample
+		    boolean capture = true;
+		//        if (sample_start > 0) { //This is (sample_start) always 0 unless specified otherwise ...
+		//          if (mi.call_cnt <= sample_start)
+		//            ;
+		//          else if (mi.call_cnt <= (sample_start*10))
+		//            capture = (mi.call_cnt % 10) == 0;
+		//          else if (mi.call_cnt <= (sample_start*100))
+		//            capture = (mi.call_cnt % 100) == 0;
+		//          else if (mi.call_cnt <= (sample_start*1000))
+		//            capture = (mi.call_cnt % 1000) == 0;
+		//          else
+		//            capture = (mi.call_cnt % 10000) == 0;
+		//          Thread t = Thread.currentThread();
+		//          Stack<CallInfo> callstack = thread_to_callstack.get (t);
+		//          if (callstack == null) {
+		//              callstack = new Stack<CallInfo>();
+		//              thread_to_callstack.put (t, callstack);
+		//          }
+		//          callstack.push (new CallInfo (nonce, capture));
+		//        }
+		    
+		    if (capture) {
+		    	mi.capture_cnt++;
+		    	
+		    	// long start = System.currentTimeMillis();
+		    	dtrace_writer.methodEntry(mi, nonce, obj, args);
+		    	// long duration = System.currentTimeMillis() - start;
+		    	//System.out.println ("Enter " + mi + " " + duration + "ms"
+		    	//                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
+		    	} else {
+		    		//System.out.println ("skipped " + mi
+		    		//                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
+		    	}
+		    } finally {
+		    	in_dtrace = false;
+		    }
+    	System.out.println("exit >>>>> [Chicory.Runtime.enter()]");
     }
 
     /**
@@ -328,63 +341,76 @@ public class Runtime
      */
     public static synchronized void exit(/*@Nullable*/ Object obj, int nonce, int mi_index,
                             Object[] args, Object ret_val, int exitLineNum) {
+    	
+    	System.out.println("\nenter >>>>> [Chicory.Runtime.exit()]");
+    	
+    	if(obj !=null){
+    		System.out.println("[Chicory.Runtime.exit()] Given reciver obj -> " + obj.getClass().getName());
+    		    		
+    	}else{
+    		System.out.println("[Chicory.Runtime.exit()] Given reciver is NULL");
+    		
+    	}
+    	
+    	if (debug) {
+	          MethodInfo mi = methods.get(mi_index);
+	          method_indent = method_indent.substring(2);
+	          System.out.printf("%smethod_exit  %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
+	      }
+
+	      if (dontProcessPpts())
+	        return;
+
+	      // Make sure that the in_dtrace flag matches the stack trace
+	      // check_in_dtrace();
+
+	      // Ignore this call if we are already processing a dtrace record
+	      if (in_dtrace)
+	        return;
+
+	      // Note that we are processing a dtrace record until we return
+	      in_dtrace = true;
+	      try {
+
+	        int num_new_classes = 0;
+	        synchronized (new_classes) {
+	          num_new_classes = new_classes.size();
+	        }
+	        if (num_new_classes > 0)
+	          process_new_classes();
+
+	        // Skip this call if it was not sampled at entry to the method
+	        if (sample_start > 0) {
+	          CallInfo ci = null;
+	          @SuppressWarnings("nullness") // map: key was put in map by enter()
+	          /*@NonNull*/ Stack<CallInfo> callstack
+	              = thread_to_callstack.get (Thread.currentThread());
+	          while (!callstack.empty()) {
+	            ci = callstack.pop();
+	            if (ci.nonce == nonce)
+	              break;
+	          }
+	          if (ci == null) {
+	            System.out.printf ("no enter for exit %s%n", methods.get(mi_index));
+	            return;
+	          } else if (!ci.captured) {
+	            return;
+	          }
+	        }
+
+	        // Write out the infromation for this method
+	        MethodInfo mi = methods.get(mi_index);
+	        // long start = System.currentTimeMillis();
+	        dtrace_writer.methodExit(mi, nonce, obj, args, ret_val,
+	                                 exitLineNum);
+	        // long duration = System.currentTimeMillis() - start;
+	        // System.out.println ("Exit " + mi + " " + duration + "ms");
+	      } finally {
+	        in_dtrace = false;
+	      }
+
+    	System.out.println("exit >>>>> [Chicory.Runtime.exit()]");
       
-      if (debug) {
-          MethodInfo mi = methods.get(mi_index);
-          method_indent = method_indent.substring(2);
-          System.out.printf("%smethod_exit  %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
-      }
-
-      if (dontProcessPpts())
-        return;
-
-      // Make sure that the in_dtrace flag matches the stack trace
-      // check_in_dtrace();
-
-      // Ignore this call if we are already processing a dtrace record
-      if (in_dtrace)
-        return;
-
-      // Note that we are processing a dtrace record until we return
-      in_dtrace = true;
-      try {
-
-        int num_new_classes = 0;
-        synchronized (new_classes) {
-          num_new_classes = new_classes.size();
-        }
-        if (num_new_classes > 0)
-          process_new_classes();
-
-        // Skip this call if it was not sampled at entry to the method
-        if (sample_start > 0) {
-          CallInfo ci = null;
-          @SuppressWarnings("nullness") // map: key was put in map by enter()
-          /*@NonNull*/ Stack<CallInfo> callstack
-              = thread_to_callstack.get (Thread.currentThread());
-          while (!callstack.empty()) {
-            ci = callstack.pop();
-            if (ci.nonce == nonce)
-              break;
-          }
-          if (ci == null) {
-            System.out.printf ("no enter for exit %s%n", methods.get(mi_index));
-            return;
-          } else if (!ci.captured) {
-            return;
-          }
-        }
-
-        // Write out the infromation for this method
-        MethodInfo mi = methods.get(mi_index);
-        // long start = System.currentTimeMillis();
-        dtrace_writer.methodExit(mi, nonce, obj, args, ret_val,
-                                 exitLineNum);
-        // long duration = System.currentTimeMillis() - start;
-        // System.out.println ("Exit " + mi + " " + duration + "ms");
-      } finally {
-        in_dtrace = false;
-      }
     }
 
     /**
@@ -447,6 +473,25 @@ public class Runtime
     {
         return initSet.contains(className);
     }
+    
+    public static List<ClassInfo> classes_ready_to_process(){
+    	List<ClassInfo> set_of_classes = new ArrayList<ClassInfo>();
+        synchronized (new_classes) {
+          if (new_classes.size() > 0) {
+        	  for(Object o:observed_objects)
+        	  {
+        		  for(ClassInfo ci:new_classes){
+        			  if(o.getClass().getName() == ci.class_name){
+        				  System.out.println("Yes, they are te same ...................................");
+        		          set_of_classes.add(ci);
+        		          new_classes.remove (ci);
+        			  }
+        		  }
+        	  }
+          }
+        }
+    	return set_of_classes;
+    }
 
     /**
      * Writes out decl information for any new classes and removes
@@ -458,14 +503,77 @@ public class Runtime
       // very careful, as the call to get_reflection or printDeclClass
       // may load other classes (which then get added to the list).
     	System.out.println("\nenter >>>>> [Chicory.Runtime.process_new_class()]");
+    	
+//    	if(first_class){
+//    		while (true) {
+//    			
+//    			        // Get the first class in the list (if any)
+//    			        ClassInfo class_info = null;
+//    			        synchronized (new_classes) {
+//    			          if (new_classes.size() > 0) {
+//    			        	  class_info = new_classes.get(0);
+//    				          new_classes.remove (0);
+//    			          }
+//    			        }
+//    			        if (class_info == null)
+//    			          break;
+//    			        
+//    			        System.out.println ("    processing class " + class_info.class_name);
+//    			
+//    			        if (debug)
+//    			          System.out.println ("processing class " + class_info.class_name);
+//    			        if (first_class) {
+//    			          decl_writer.printHeaderInfo (class_info.class_name);
+//    			          first_class = false;
+//    			        }
+//    			        class_info.initViaReflection();
+//    			        // class_info.dump (System.out);
+//    			
+//    			        // Create tree structure for all method entries/exits in the class
+//    			        for (MethodInfo mi: class_info.method_infos)
+//    			        {
+//    			            mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
+//    			            mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
+//    			        }
+//    			
+//    			        decl_writer.printDeclClass (class_info, comp_info);
+//    			
+//    			      }
+//    	}else {
+//    		List<ClassInfo> classes_to_process = classes_ready_to_process();
+//        	for(ClassInfo class_info:classes_to_process){
+//        		System.out.println ("    processing class " + class_info.class_name);
+//
+//                if (debug)
+//                  System.out.println ("processing class " + class_info.class_name);
+//                if (first_class) {
+//                  decl_writer.printHeaderInfo (class_info.class_name);
+//                  first_class = false;
+//                }
+//                class_info.initViaReflection();
+//                // class_info.dump (System.out);
+//
+//                // Create tree structure for all method entries/exits in the class
+//                for (MethodInfo mi: class_info.method_infos)
+//                {
+//                    mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
+//                    mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
+//                }
+//
+//                decl_writer.printDeclClass (class_info, comp_info);
+//        		
+//        	}
+//    		
+//    	}
+    	
       while (true) {
 
         // Get the first class in the list (if any)
         ClassInfo class_info = null;
         synchronized (new_classes) {
           if (new_classes.size() > 0) {
-            class_info = new_classes.get (0);
-            new_classes.remove (0);
+        	  class_info = new_classes.get(0);
+	          new_classes.remove (0);
           }
         }
         if (class_info == null)

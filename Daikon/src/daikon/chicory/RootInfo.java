@@ -132,6 +132,7 @@ public class RootInfo extends DaikonVariableInfo
      */
     public static RootInfo getObjectPpt(ClassInfo cinfo, int depth)
     {
+    	System.out.printf("enter >>>>> [Chicory.RootInfo.getObjectPpt()] cinfo: %s%n", cinfo);
         debug_vars.clear ("enter getObjectPpt: %s%n", cinfo);
 
         RootInfo root = new RootInfo();
@@ -143,6 +144,7 @@ public class RootInfo extends DaikonVariableInfo
                 cinfo.clazz, /*offset = */ "", depth);
 
         debug_vars.log ("exit getObjectPpt%n");
+        System.out.printf("exit <<<<< [Chicory.RootInfo.getObjectPpt()]%n");
 
         return root;
     }
