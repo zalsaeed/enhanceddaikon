@@ -63,6 +63,10 @@ public class ClassInfo {
   public List<MethodInfo> get_method_infos() {
     return (method_infos);
   }
+  
+  public ClassLoader getClassLoader (){
+	  return loader;
+  }
 
   /**
    * Gets the reflection object Class for this class, and the Method objects

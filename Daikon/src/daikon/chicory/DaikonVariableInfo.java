@@ -495,6 +495,7 @@ public abstract class DaikonVariableInfo
             thisInfo = this;
         }
 
+        
         // Get the fields
         //System.out.printf ("getting fields for %s%n", type);
         Field[] fields = type.getDeclaredFields();

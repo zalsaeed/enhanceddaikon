@@ -219,7 +219,7 @@ public class Chicory {
    * classpath is passed to the new jvm
    */
   void start_target (String premain_args, String[] target_args) {
-
+	  
     // Default the trace file name to the <target-program-name>.dtrace.gz
     if (dtrace_file == null) {
       String target_class = target_args[0].replaceFirst (".*[/.]", "");
@@ -292,6 +292,7 @@ public class Chicory {
     String dtraceLim, terminate;
     dtraceLim = System.getProperty(traceLimString);
     terminate = System.getProperty(traceLimTermString);
+    
 
     // Run Daikon if we're in online mode
     StreamRedirectThread daikon_err = null;
@@ -351,8 +352,7 @@ public class Chicory {
         daikon_out = new StreamRedirectThread("stdout", daikonStdOut, System.out);
         daikon_out.start();
     }
-
-
+    
 
     // Build the command line to execute the target with the javaagent
     List<String> cmdlist = new ArrayList<String>();
@@ -390,9 +390,13 @@ public class Chicory {
       System.out.printf ("\nExecuting target program: %s\n",
                          args_to_string(cmdlist));
     String[] cmdline = cmdlist.toArray(new String[cmdlist.size()]);
+    //String[] ncmdline = cmdlist.toArray(new String[cmdlist.size()]);
+//    String[] ncmdline = null;
+//    ncmdline = cmdlist.toArray(new String[cmdlist.size()]);
 
     // Execute the command, sending all output to our streams
     java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+    		
     Process chicory_proc = null;
     try {
       chicory_proc = rt.exec(cmdline);
@@ -402,13 +406,42 @@ public class Chicory {
                         cmdline);
       System.exit(1);
     }
+    
+    
 
     @SuppressWarnings("nullness") // getOutputStream is non-null because we didn't redirect it.
     StreamRedirectThread stdin_thread
       = new StreamRedirectThread("stdin", System.in, chicory_proc.getOutputStream(), false);
+    StreamRedirectThread nstdin_thread = stdin_thread;    
     stdin_thread.start();
-
+    System.out.println("One.................................>");
     int targetResult = redirect_wait (chicory_proc);
+    System.out.println("One.................................<");
+    
+
+    stdin_thread = new StreamRedirectThread("stdin", System.in, chicory_proc.getOutputStream(), false);
+    System.out.println("exit one ->" + targetResult);
+    System.out.println("Two.................................");
+    stdin_thread.start();
+    targetResult = redirect_wait (chicory_proc);
+    
+    
+//    java.lang.Runtime nrt = java.lang.Runtime.getRuntime();
+//    Process chicory_seond = null;
+//    try {
+//    	chicory_seond = nrt.exec(ncmdline);
+//    }
+//    catch (Exception e) {
+//      System.out.printf("Exception '%s' while executing '%s'\n", e,
+//    		  ncmdline);
+//      System.exit(1);
+//    }
+//    
+//    StreamRedirectThread new_thread
+//    = new StreamRedirectThread("stdin", System.in, chicory_seond.getOutputStream(), false);
+//    System.out.println("Two.................................");
+//    new_thread.start();
+//    int secondTargetResult = redirect_wait (chicory_seond);
 
     if (daikon) {
       // Terminate if target didn't end properly
@@ -437,6 +470,7 @@ public class Chicory {
                              + "target to finish", e);
         }
       }
+      
 
       // Make sure all output is forwarded before we finish
       try {
@@ -458,8 +492,10 @@ public class Chicory {
       if (targetResult != 0) {
         System.out.printf ("Warning: Target exited with %d status\n", targetResult);
       }
-      System.exit (targetResult);
+      System.out.println("Thread terminated safely!");
+      //System.exit (targetResult);
     }
+    
   }
 
 

@@ -50,9 +50,15 @@ public class ChicoryPremain {
    */
   public static void premain (String agentArgs, Instrumentation inst)
     throws IOException {
+	  
+	    System.out.println("enter >>>> [ChicoryPremain.premain()]");
+  	StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+  	for (StackTraceElement s:stackTraceElements){
+  		System.out.println("Who called me? " + s.getClassName() + " : " + s.getLineNumber() + s.getMethodName());
+  	}
 
-    //System.out.format ("In premain, agentargs ='%s', " +
-    //                   "Instrumentation = '%s'%n", agentArgs, inst);
+    System.out.format ("In premain, agentargs ='%s', " +
+                       "Instrumentation = '%s'%n", agentArgs, inst);
 
     // Parse our arguments using Chicory's argument parser
     Options options = new Options (Chicory.synopsis, Chicory.class,
@@ -117,7 +123,7 @@ public class ChicoryPremain {
     // (It looks like these can be called even if Runtime.dtrace is null...)
     Runtime.decl_writer = new DeclWriter (Runtime.dtrace);
     Runtime.dtrace_writer = new DTraceWriter (Runtime.dtrace);
-
+        
     // Setup the transformer
     Object transformer = null;
     if (Chicory.default_bcel) {
@@ -127,10 +133,11 @@ public class ChicoryPremain {
       try {
         transformer
           = loader.loadClass ("daikon.chicory.Instrument").newInstance();
+        
         @SuppressWarnings("unchecked")
         Class<Instrument> c = (Class<Instrument>) transformer.getClass();
-//        System.out.printf ("Classloader of tranformer = %s%n",
-//                           c.getClassLoader());
+        System.out.printf ("Classloader of tranformer = %s%n",
+                     c.getClassLoader());
       } catch (Exception e) {
         throw new RuntimeException ("Unexpected error loading Instrument", e);
       }
@@ -138,9 +145,10 @@ public class ChicoryPremain {
 
     // Instrument transformer = new Instrument();
     // transformer is simply a daikon.chicory.Instrument instance
-    inst.addTransformer ((ClassFileTransformer) transformer); 
+    inst.addTransformer ((ClassFileTransformer) transformer);
+    System.out.println("exit <<<< [ChicoryPremain.premain()]");
   }
-
+  
   /**
    * Reads purity file.  Each line should contain exactly one method.
    * Care must be taken to supply the correct format.
@@ -336,7 +344,7 @@ public class ChicoryPremain {
     public static final SimpleLog debug = new SimpleLog (Chicory.verbose);
 
     public ChicoryLoader() throws IOException {
-
+    	System.out.println("enter >>>>> [ChicoryPremain.ChicoryLoader.<init>]");
       String bcel_classname = "org.apache.bcel.Constants";
       String plse_marker_classname = "org.apache.bcel.PLSEMarker";
 
@@ -355,7 +363,7 @@ public class ChicoryPremain {
         Runtime.chicoryLoaderInstantiationError = true;
         System.exit(1);
       }
-
+      
       // No need to do anything if only our versions of bcel are present
       if (bcel_urls.size() == plse_urls.size())
         return;
@@ -395,6 +403,7 @@ public class ChicoryPremain {
           bcel_index++;
         }
       }
+      System.out.println("exit <<<<< [ChicoryPremain.ChicoryLoader.<init>]");
     }
 
     /**
@@ -470,10 +479,12 @@ public class ChicoryPremain {
     protected Class<?> loadClass (/*@BinaryName*/ String name, boolean resolve)
       throws java.lang.ClassNotFoundException {
 
+    	System.out.println("enter >>>> [ChicoryPremina.ChicoryLoader.loadClass()");
       // If we are not loading from our jar, just use the normal mechanism
-      if (bcel_jar == null)
-        return super.loadClass (name, resolve);
-
+      if (bcel_jar == null){
+          System.out.println("exit <<<<< [ChicoryPremina.ChicoryLoader.loadClass()] -> name: " + name + " resolve?" + resolve);
+    	  return super.loadClass (name, resolve);
+      }
       // Load non-bcel files via the normal mechanism
       if (!name.startsWith ("org.apache.bcel")
           && (!name.startsWith ("daikon.chicory.Instrument"))) {
@@ -488,6 +499,7 @@ public class ChicoryPremain {
           resolveClass (c);
         return c;
       }
+      
 
       // Find our version of the class and return it.
       try {
