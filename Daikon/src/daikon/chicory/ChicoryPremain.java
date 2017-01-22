@@ -3,6 +3,7 @@ package daikon.chicory;
 //import harpoon.ClassFile.HMethod;
 
 import java.lang.instrument.*;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Member;
 import java.io.*;
 import java.io.File;
@@ -50,12 +51,6 @@ public class ChicoryPremain {
    */
   public static void premain (String agentArgs, Instrumentation inst)
     throws IOException {
-	  
-	    System.out.println("enter >>>> [ChicoryPremain.premain()]");
-  	StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-  	for (StackTraceElement s:stackTraceElements){
-  		System.out.println("Who called me? " + s.getClassName() + " : " + s.getLineNumber() + s.getMethodName());
-  	}
 
     System.out.format ("In premain, agentargs ='%s', " +
                        "Instrumentation = '%s'%n", agentArgs, inst);
@@ -89,6 +84,7 @@ public class ChicoryPremain {
     Runtime.ppt_omit_pattern    = Chicory.ppt_omit_pattern;
     Runtime.ppt_select_pattern  = Chicory.ppt_select_pattern;
     Runtime.sample_start        = Chicory.sample_start;
+    Runtime.firstRun			= Chicory.firstRun;
     DaikonVariableInfo.std_visibility = Chicory.std_visibility;
     DaikonVariableInfo.debug_vars.enabled = Chicory.debug;
     if (Chicory.comparability_file != null) {
@@ -100,6 +96,8 @@ public class ChicoryPremain {
         // Runtime.comp_info.dump();
       }
     }
+    
+    System.out.println("The first run flag is: " + Runtime.firstRun);
 
     if (Chicory.doPurity())
       {
@@ -142,12 +140,17 @@ public class ChicoryPremain {
         throw new RuntimeException ("Unexpected error loading Instrument", e);
       }
     }
+    
 
     // Instrument transformer = new Instrument();
     // transformer is simply a daikon.chicory.Instrument instance
     inst.addTransformer ((ClassFileTransformer) transformer);
     System.out.println("exit <<<< [ChicoryPremain.premain()]");
+    //System.out.println("Loader: " + inst.getInitiatedClasses(transformer.getClass().getClassLoader()));
+    //System.out.println(ManagementFactory.getRuntimeMXBean().getName());
   }
+  
+  
   
   /**
    * Reads purity file.  Each line should contain exactly one method.

@@ -1,12 +1,14 @@
 package daikon;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import daikon.chicory.*;
 import daikon.util.*;
+
 
 /*>>>
 import org.checkerframework.checker.nullness.qual.*;
@@ -149,7 +151,16 @@ public class Chicory {
   /** Synopsis for the chicory command line **/
   public static final String synopsis
     = "daikon.Chicory [options] target [target-args]";
+  
+  /**
+   * Flag to indicate to the runtime whether this is the first 
+   * run (specific for collecting decals) or the second one?
+   */
+  public static boolean firstRun = true;
 
+  /** List of all instrumented classes **/
+  public static List<ClassInfo> all_classes
+    = new ArrayList<ClassInfo>();
   /**
    * Entry point of Chicory <p>
    * @param args see usage for argument descriptions
@@ -358,10 +369,11 @@ public class Chicory {
     List<String> cmdlist = new ArrayList<String>();
     cmdlist.add ("java");
 
-    if (RemoteDebug)
+    if (RemoteDebug) //RemoteDebug
       {
         //-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4142,suspend=n
-        cmdlist.add("-Xdebug -Xrunjdwp:server=n,transport=dt_socket,address=8000,suspend=y");
+        cmdlist.add("-Xdebug -Xrunjdwp:server=n,transport=dt_socket,address=8998,suspend=y");
+        //      java -Xdebug -Xrunjdwp:transport=dt_socket,address=8998,server=y -jar myapp.jar
         //cmdlist.add("-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=8000 -Djava.compiler=NONE");
       }
 
@@ -389,14 +401,13 @@ public class Chicory {
     if (verbose)
       System.out.printf ("\nExecuting target program: %s\n",
                          args_to_string(cmdlist));
+    
+    //First run
     String[] cmdline = cmdlist.toArray(new String[cmdlist.size()]);
-    //String[] ncmdline = cmdlist.toArray(new String[cmdlist.size()]);
-//    String[] ncmdline = null;
-//    ncmdline = cmdlist.toArray(new String[cmdlist.size()]);
 
     // Execute the command, sending all output to our streams
     java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-    		
+
     Process chicory_proc = null;
     try {
       chicory_proc = rt.exec(cmdline);
@@ -408,25 +419,26 @@ public class Chicory {
     }
     
     
-
     @SuppressWarnings("nullness") // getOutputStream is non-null because we didn't redirect it.
     StreamRedirectThread stdin_thread
-      = new StreamRedirectThread("stdin", System.in, chicory_proc.getOutputStream(), false);
-    StreamRedirectThread nstdin_thread = stdin_thread;    
+    	= new StreamRedirectThread("stdin", System.in, chicory_proc.getOutputStream(), false);
+    
     stdin_thread.start();
+    
     System.out.println("One.................................>");
     int targetResult = redirect_wait (chicory_proc);
-    System.out.println("One.................................<");
+    System.out.println("One.................................<");  
     
-
-    stdin_thread = new StreamRedirectThread("stdin", System.in, chicory_proc.getOutputStream(), false);
-    System.out.println("exit one ->" + targetResult);
-    System.out.println("Two.................................");
-    stdin_thread.start();
-    targetResult = redirect_wait (chicory_proc);
+    for(ClassInfo ci:all_classes){
+    	System.out.println("ci: " + ci.class_name);
+    }
     
-    
+    //TODO activate this once you are ready to run it twice!
+//    //Second run
+//    String[] ncmdline = cmdlist.toArray(new String[cmdlist.size()]);
+//    
 //    java.lang.Runtime nrt = java.lang.Runtime.getRuntime();
+//    
 //    Process chicory_seond = null;
 //    try {
 //    	chicory_seond = nrt.exec(ncmdline);
@@ -438,7 +450,7 @@ public class Chicory {
 //    }
 //    
 //    StreamRedirectThread new_thread
-//    = new StreamRedirectThread("stdin", System.in, chicory_seond.getOutputStream(), false);
+//    	= new StreamRedirectThread("stdin", System.in, chicory_seond.getOutputStream(), false);
 //    System.out.println("Two.................................");
 //    new_thread.start();
 //    int secondTargetResult = redirect_wait (chicory_seond);
@@ -492,8 +504,9 @@ public class Chicory {
       if (targetResult != 0) {
         System.out.printf ("Warning: Target exited with %d status\n", targetResult);
       }
+      //TODO close for both runs when running it twice.
       System.out.println("Thread terminated safely!");
-      //System.exit (targetResult);
+      System.exit (targetResult);
     }
     
   }

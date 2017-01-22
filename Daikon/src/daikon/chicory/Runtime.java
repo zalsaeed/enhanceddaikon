@@ -2,6 +2,9 @@ package daikon.chicory;
 
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+
+import daikon.Chicory;
+
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.*;
@@ -48,8 +51,12 @@ public class Runtime
       = new LinkedList<ClassInfo>();
 
     /** List of all instrumented classes **/
-    public static final List<ClassInfo> all_classes
+    public final static List<ClassInfo> all_classes
       = new ArrayList<ClassInfo>();
+    
+    /** List of all observed dtraces records at enter/exit**/
+    public static List<TraceRecord> all_traces 
+    	= new ArrayList<TraceRecord>();
 
     /** flag that indicates when the first class has been processed**/
     static boolean first_class = true;
@@ -117,6 +124,9 @@ public class Runtime
      * Each element of the Set is a fully qualified class name.
      **/
     static Set<String> initSet = new HashSet<String>();
+    
+    //TODO delete it, used it to deboug the the number of traces written at entery
+    static int counter = 0;
 
     /** Class of information about each active call **/
     private static class CallInfo {
@@ -149,6 +159,25 @@ public class Runtime
    * help us reconstruct a collection from the reflected objects. 
    */
   public static List<Object> observed_objects = new ArrayList<Object>();
+  
+  /**
+   * to determin whether this is a first run or not. 
+   * Default: false
+   */
+  public static boolean firstRun = false;
+  
+  /**
+   * first method that we have seen in the whole application
+   * this is to invoke the process new class and traces writing 
+   * once we see the exit of this same method
+   */
+  public static int firstMethodObserved = 0;
+  
+  /**
+   * Flag to see if thei is our first time enrting a method ever
+   * or we have seen this before ...
+   */
+  public static boolean firstMethodEntered = true;
 
     // Constructor
     private Runtime()
@@ -233,7 +262,7 @@ public class Runtime
     }
 
     /**
-     * Called when a method is entered.
+     * My own entery method.
      *
      * @param obj - Receiver of the method that was entered.  Null if method is
      *              static
@@ -243,91 +272,23 @@ public class Runtime
      */
     public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int mi_index,
                                           Object[] args) {
+    	
     	System.out.println("\nenter >>>>> [Chicory.Runtime.enter()]");
     	
-    	if(obj!= null){
-    		System.out.println("[Chicory.Runtime.enter()] Given reciver obj -> " + obj.getClass().getName());
-    		if(!observed_objects.contains(obj)){
-    			observed_objects.add(obj);
-    		}
-    		for(Object o:observed_objects){
-    			System.out.println("In list: " + o.getClass().getName());
-    		}
-    		
-    	}else {
-    		System.out.println("[Chicory.Runtime.enter()] given reciver obj is NULL");
+    	if(firstMethodEntered){
+    		firstMethodEntered = false;
+    		firstMethodObserved = mi_index;
     	}
     	
-    	if (debug) {
-    		MethodInfo mi = methods.get(mi_index);
-    		System.out.printf("%smethod_entry %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
-    		method_indent = method_indent.concat("  ");
+    	synchronized (all_traces){
+    		all_traces.add(new TraceRecord(true, obj, nonce, mi_index, args));
     	}
-    	if (dontProcessPpts())
-    		return;
-    	// Make sure that the in_dtrace flag matches the stack trace
-    	// check_in_dtrace();
     	
-    	// Ignore this call if we are already processing a dtrace record
-    	
-    	if (in_dtrace)
-    		return;
-    	// Note that we are processing a dtrace record until we return
-    	in_dtrace = true;
-    	try {
-    		int num_new_classes = 0;
-		    synchronized (new_classes) {
-		      num_new_classes = new_classes.size();
-		      for(ClassInfo ci:new_classes){
-		    	  System.out.println("Currently in new Classes: " + ci.class_name);
-		      }
-		    }
-		    if (num_new_classes > 0)
-		      process_new_classes();
-		
-		    MethodInfo mi = methods.get(mi_index);
-		    mi.call_cnt++;
-		
-		    // If sampling, check to see if we are capturing this sample
-		    boolean capture = true;
-		//        if (sample_start > 0) { //This is (sample_start) always 0 unless specified otherwise ...
-		//          if (mi.call_cnt <= sample_start)
-		//            ;
-		//          else if (mi.call_cnt <= (sample_start*10))
-		//            capture = (mi.call_cnt % 10) == 0;
-		//          else if (mi.call_cnt <= (sample_start*100))
-		//            capture = (mi.call_cnt % 100) == 0;
-		//          else if (mi.call_cnt <= (sample_start*1000))
-		//            capture = (mi.call_cnt % 1000) == 0;
-		//          else
-		//            capture = (mi.call_cnt % 10000) == 0;
-		//          Thread t = Thread.currentThread();
-		//          Stack<CallInfo> callstack = thread_to_callstack.get (t);
-		//          if (callstack == null) {
-		//              callstack = new Stack<CallInfo>();
-		//              thread_to_callstack.put (t, callstack);
-		//          }
-		//          callstack.push (new CallInfo (nonce, capture));
-		//        }
-		    
-		    if (capture) {
-		    	mi.capture_cnt++;
-		    	
-		    	// long start = System.currentTimeMillis();
-		    	dtrace_writer.methodEntry(mi, nonce, obj, args);
-		    	// long duration = System.currentTimeMillis() - start;
-		    	//System.out.println ("Enter " + mi + " " + duration + "ms"
-		    	//                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
-		    	} else {
-		    		//System.out.println ("skipped " + mi
-		    		//                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
-		    	}
-		    } finally {
-		    	in_dtrace = false;
-		    }
+    	    	
     	System.out.println("exit >>>>> [Chicory.Runtime.enter()]");
+    	
     }
-
+    
     /**
      * Called when a method is exited.
      *
@@ -340,78 +301,263 @@ public class Runtime
      * @param exitLineNum - The line number at which this method exited
      */
     public static synchronized void exit(/*@Nullable*/ Object obj, int nonce, int mi_index,
-                            Object[] args, Object ret_val, int exitLineNum) {
+            Object[] args, Object ret_val, int exitLineNum) {
     	
     	System.out.println("\nenter >>>>> [Chicory.Runtime.exit()]");
     	
-    	if(obj !=null){
-    		System.out.println("[Chicory.Runtime.exit()] Given reciver obj -> " + obj.getClass().getName());
-    		    		
-    	}else{
-    		System.out.println("[Chicory.Runtime.exit()] Given reciver is NULL");
-    		
+	    
+    	//Hold the dtrace in a list for a later processing
+    	synchronized (all_traces){
+    		all_traces.add(new TraceRecord(false, obj, nonce, mi_index, args, ret_val, exitLineNum));
     	}
     	
-    	if (debug) {
-	          MethodInfo mi = methods.get(mi_index);
-	          method_indent = method_indent.substring(2);
-	          System.out.printf("%smethod_exit  %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
-	      }
+    	
+    	//TODO this should be executed in a different mmethod for readability 
+    	if(mi_index == firstMethodObserved){
+    		// Ignore this call if we are already processing a dtrace record
+    	    if (in_dtrace)
+    	        return;
 
-	      if (dontProcessPpts())
-	        return;
+    	      // Note that we are processing a dtrace record until we return
+    	      in_dtrace = true;
+    	      try {
 
-	      // Make sure that the in_dtrace flag matches the stack trace
-	      // check_in_dtrace();
+    	        int num_new_classes = 0;
+    	        synchronized (new_classes) {
+    	          num_new_classes = new_classes.size();
+    	        }
+    	        if (num_new_classes > 0)
+    	          process_new_classes();
 
-	      // Ignore this call if we are already processing a dtrace record
-	      if (in_dtrace)
-	        return;
-
-	      // Note that we are processing a dtrace record until we return
-	      in_dtrace = true;
-	      try {
-
-	        int num_new_classes = 0;
-	        synchronized (new_classes) {
-	          num_new_classes = new_classes.size();
-	        }
-	        if (num_new_classes > 0)
-	          process_new_classes();
-
-	        // Skip this call if it was not sampled at entry to the method
-	        if (sample_start > 0) {
-	          CallInfo ci = null;
-	          @SuppressWarnings("nullness") // map: key was put in map by enter()
-	          /*@NonNull*/ Stack<CallInfo> callstack
-	              = thread_to_callstack.get (Thread.currentThread());
-	          while (!callstack.empty()) {
-	            ci = callstack.pop();
-	            if (ci.nonce == nonce)
-	              break;
-	          }
-	          if (ci == null) {
-	            System.out.printf ("no enter for exit %s%n", methods.get(mi_index));
-	            return;
-	          } else if (!ci.captured) {
-	            return;
-	          }
-	        }
-
-	        // Write out the infromation for this method
-	        MethodInfo mi = methods.get(mi_index);
-	        // long start = System.currentTimeMillis();
-	        dtrace_writer.methodExit(mi, nonce, obj, args, ret_val,
-	                                 exitLineNum);
-	        // long duration = System.currentTimeMillis() - start;
-	        // System.out.println ("Exit " + mi + " " + duration + "ms");
-	      } finally {
-	        in_dtrace = false;
-	      }
+    	        // Write out the infromation for this method
+    	        
+    	        
+    	        for(TraceRecord tr:all_traces){
+    	        	//ge the method tree
+    	        	MethodInfo mi = methods.get(tr.index);
+    	        	
+    	        	if(tr.isEnter){ //this is an enternace of a method, call method enter
+    	    	        counter++;
+    	        		dtrace_writer.methodEntry(mi, tr.nonce, tr.obj, tr.args);
+    	        	}else{ //this is an exit of a method, call methodExit
+    	    	        counter++;
+    	        		dtrace_writer.methodExit(mi, tr.nonce, tr.obj, tr.args, tr.ret_val,
+                                tr.exitLineNumber);
+    	        	}
+    	        }
+    	      } finally {
+    	    	  in_dtrace = false;
+    	      }
+    	}
 
     	System.out.println("exit >>>>> [Chicory.Runtime.exit()]");
-      
+    	
     }
+    
+    /**
+     * Called when a method is entered.
+     *
+     * @param obj - Receiver of the method that was entered.  Null if method is
+     *              static
+     * @param nonce - Nonce identifying which enter/exit pair this is
+     * @param mi_index - Index in methods of the MethodInfo for this method
+     * @param args - Array of arguments to method
+     */
+ 
+//public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int mi_index,
+//                                          Object[] args) {
+//    	System.out.println("\nenter >>>>> [Chicory.Runtime.enter()]");
+//    	
+//    	//Check if the instance is already alive? to associate it 
+//    	//with the class name when instrumented. 
+//    	if(obj!= null){
+//    		System.out.println("[Chicory.Runtime.enter()] Given reciver obj -> " + obj.getClass().getName());
+//    		if(!observed_objects.contains(obj)){
+//    			observed_objects.add(obj);
+//    		}
+//    		for(Object o:observed_objects){
+//    			System.out.println("In list: " + o.getClass().getName());
+//    		}
+//    		
+//    	}else {
+//    		System.out.println("[Chicory.Runtime.enter()] given reciver obj is NULL");
+//    	}
+//    	
+//    	
+//    	
+//    	if (debug) {
+//    		MethodInfo mi = methods.get(mi_index);
+//    		System.out.printf("%smethod_entry %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
+//    		method_indent = method_indent.concat("  ");
+//    	}
+//    	
+//    	//The method is excluded by the user .. do nothing
+//    	if (dontProcessPpts())
+//    		return;
+//
+//    	// Make sure that the in_dtrace flag matches the stack trace
+//    	// check_in_dtrace();
+//    	
+//    	//Hold the dtrace in a list for a later processing
+//    	synchronized (all_traces){
+//    		all_traces.add(new TraceRecord(true, obj, nonce, mi_index, args));
+//    	}
+//    	
+//    	
+//    	// Ignore this call if we are already processing a dtrace record
+//    	if (in_dtrace)
+//    		return;
+//
+//    	// Note that we are processing a dtrace record until we return
+//    	in_dtrace = true;
+//    	try {
+//    		int num_new_classes = 0;
+//		    synchronized (new_classes) {
+//		      num_new_classes = new_classes.size();
+//		      for(ClassInfo ci:new_classes){
+//		    	  System.out.println("Currently in new Classes: " + ci.class_name);
+//		      }
+//		    }
+//		    //if new write its obtain its decal information
+//		    if (num_new_classes > 0)
+//		      process_new_classes();
+//		
+//		    //this is the method that we encountered and would like to get the its traces
+//		    MethodInfo mi = methods.get(mi_index);
+//		    mi.call_cnt++;
+//		
+//		    // If sampling, check to see if we are capturing this sample
+//		    boolean capture = true;
+//		//        if (sample_start > 0) { //This is (sample_start) always 0 unless specified otherwise ...
+//		//          if (mi.call_cnt <= sample_start)
+//		//            ;
+//		//          else if (mi.call_cnt <= (sample_start*10))
+//		//            capture = (mi.call_cnt % 10) == 0;
+//		//          else if (mi.call_cnt <= (sample_start*100))
+//		//            capture = (mi.call_cnt % 100) == 0;
+//		//          else if (mi.call_cnt <= (sample_start*1000))
+//		//            capture = (mi.call_cnt % 1000) == 0;
+//		//          else
+//		//            capture = (mi.call_cnt % 10000) == 0;
+//		//          Thread t = Thread.currentThread();
+//		//          Stack<CallInfo> callstack = thread_to_callstack.get (t);
+//		//          if (callstack == null) {
+//		//              callstack = new Stack<CallInfo>();
+//		//              thread_to_callstack.put (t, callstack);
+//		//          }
+//		//          callstack.push (new CallInfo (nonce, capture));
+//		//        }
+//		    
+//		    if (capture) {
+//		    	mi.capture_cnt++;
+//		    	counter++;
+//		    	
+//		    	// long start = System.currentTimeMillis();
+//		    	dtrace_writer.methodEntry(mi, nonce, obj, args);
+//		    	// long duration = System.currentTimeMillis() - start;
+//		    	//System.out.println ("Enter " + mi + " " + duration + "ms"
+//		    	//                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
+//		    	} else {
+//		    		//System.out.println ("skipped " + mi
+//		    		//                 + " " + mi.capture_cnt + "/" + mi.call_cnt);
+//		    	}
+//		    } finally {
+//		    	//release the writing flag for dtrace
+//		    	in_dtrace = false;
+//		    }
+//    	System.out.println("exit >>>>> [Chicory.Runtime.enter()]");
+//    }
+
+    /**
+     * Called when a method is exited.
+     *
+     * @param obj        -  Receiver of the method that was entered.  Null if method is
+     *                      static
+     * @param nonce       - Nonce identifying which enter/exit pair this is
+     * @param mi_index    - Index in methods of the MethodInfo for this method
+     * @param args        - Array of arguments to method
+     * @param ret_val     - Return value of method.  null if method is void
+     * @param exitLineNum - The line number at which this method exited
+     */
+//    public static synchronized void exit(/*@Nullable*/ Object obj, int nonce, int mi_index,
+//                            Object[] args, Object ret_val, int exitLineNum) {
+//    	
+//    	System.out.println("\nenter >>>>> [Chicory.Runtime.exit()]");
+//    	
+//    	if(obj !=null){
+//    		System.out.println("[Chicory.Runtime.exit()] Given reciver obj -> " + obj.getClass().getName());
+//    		    		
+//    	}else{
+//    		System.out.println("[Chicory.Runtime.exit()] Given reciver is NULL");
+//    		
+//    	}
+//    	
+//    	if (debug) {
+//	          MethodInfo mi = methods.get(mi_index);
+//	          method_indent = method_indent.substring(2);
+//	          System.out.printf("%smethod_exit  %s.%s%n", method_indent, mi.class_info.class_name, mi.method_name);
+//	    }
+//    	
+//    	if (dontProcessPpts())
+//	        return;
+//
+//	      // Make sure that the in_dtrace flag matches the stack trace
+//	      // check_in_dtrace();
+//    	
+//    	//Hold the dtrace in a list for a later processing
+//    	synchronized (all_traces){
+//    		all_traces.add(new TraceRecord(false, obj, nonce, mi_index, args, ret_val, exitLineNum));
+//    	}
+//
+//	      // Ignore this call if we are already processing a dtrace record
+//	    if (in_dtrace)
+//	        return;
+//
+//	      // Note that we are processing a dtrace record until we return
+//	      in_dtrace = true;
+//	      try {
+//
+//	        int num_new_classes = 0;
+//	        synchronized (new_classes) {
+//	          num_new_classes = new_classes.size();
+//	        }
+//	        if (num_new_classes > 0)
+//	          process_new_classes();
+//
+//	        // Skip this call if it was not sampled at entry to the method
+//	        if (sample_start > 0) {
+//	          CallInfo ci = null;
+//	          @SuppressWarnings("nullness") // map: key was put in map by enter()
+//	          /*@NonNull*/ Stack<CallInfo> callstack
+//	              = thread_to_callstack.get (Thread.currentThread());
+//	          while (!callstack.empty()) {
+//	            ci = callstack.pop();
+//	            if (ci.nonce == nonce)
+//	              break;
+//	          }
+//	          if (ci == null) {
+//	            System.out.printf ("no enter for exit %s%n", methods.get(mi_index));
+//	            return;
+//	          } else if (!ci.captured) {
+//	            return;
+//	          }
+//	        }
+//
+//	        // Write out the infromation for this method
+//	        MethodInfo mi = methods.get(mi_index);
+//	        counter++;
+//	        // long start = System.currentTimeMillis();
+//	        dtrace_writer.methodExit(mi, nonce, obj, args, ret_val,
+//	                                 exitLineNum);
+//	        // long duration = System.currentTimeMillis() - start;
+//	        // System.out.println ("Exit " + mi + " " + duration + "ms");
+//	      } finally {
+//	        in_dtrace = false;
+//	      }
+//
+//    	System.out.println("exit >>>>> [Chicory.Runtime.exit()]");
+//      
+//    }
 
     /**
      * Checks the in_dtrace flag by looking back up the stack trace.
@@ -576,6 +722,8 @@ public class Runtime
 	          new_classes.remove (0);
           }
         }
+        
+        //no more classes break the while loop
         if (class_info == null)
           break;
         
@@ -583,6 +731,8 @@ public class Runtime
 
         if (debug)
           System.out.println ("processing class " + class_info.class_name);
+        
+        //print the header of the .dtrace file 
         if (first_class) {
           decl_writer.printHeaderInfo (class_info.class_name);
           first_class = false;
@@ -818,6 +968,23 @@ public class Runtime
                         dtrace.println("# EOF (added by Runtime.addShutdownHook)");
                         dtrace.close();
                     }
+                    synchronized (Runtime.all_classes){
+                    	System.out.println("[Runtime.addShutdownHook()] this is the termination of the agent");
+                        Chicory.all_classes = new ArrayList<ClassInfo>(all_classes);
+//                        for(ClassInfo ci:Runtime.all_classes){
+//                        	System.out.println("Adding: " + ci.class_name);
+//                        	Chicory.all_classes.add(ci);
+//                        }
+                    }
+                    
+                    synchronized (all_traces){
+                    	System.out.println("All catched traces at entery point:");
+                    	int i = 1;
+                    	for (TraceRecord tr:all_traces){
+                    		System.out.println("Trace " + i++ + "\tEnterFlag: " + tr.isEnter + "\tmi_index: " + tr.index);
+                    	}
+                    }
+                    System.out.println("Counter: " + counter);
                 }
 
                 if (chicoryLoaderInstantiationError) {
