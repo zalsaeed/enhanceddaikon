@@ -15,7 +15,10 @@ public class TraceRecord {
 		this.obj = obj;
 		this.nonce = nonce;
 		this.index = index;
-		this.args = args;
+		this.args = new Object[args.length];
+		for(int i = 0 ; i < this.args.length ; i ++){ //deep copy
+			this.args[i] = args[i];
+		}
 	}
 	
 	public TraceRecord (boolean enter_flag, /*@Nullable*/ Object obj, int nonce, int mi_index,
@@ -25,10 +28,12 @@ public class TraceRecord {
 		this.obj = obj;
 		this.nonce = nonce;
 		this.index = mi_index;
-		this.args = args;
 		this.ret_val = ret_val;
 		this.exitLineNumber = exitLineNum;
-		
+		this.args = new Object[args.length];
+		for(int i = 0 ; i < this.args.length ; i ++){ //deep copy
+			this.args[i] = args[i];
+		}
 	}
 
 }
