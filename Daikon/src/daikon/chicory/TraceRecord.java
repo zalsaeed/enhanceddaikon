@@ -3,7 +3,7 @@ package daikon.chicory;
 public class TraceRecord {
 	
 	boolean isEnter = true;
-	Object obj;
+	ThisObjInfo obj;
 	int nonce;
 	int index;
 	Object[] args;
@@ -12,7 +12,12 @@ public class TraceRecord {
 	
 	public TraceRecord (boolean enter_flag, /*@Nullable*/ Object obj, int nonce, int index, Object[] args){
 		this.isEnter = enter_flag;
-		this.obj = obj;
+		if(obj != null){
+			this.obj = new ThisObjInfo(obj.getClass());
+		}
+		else{
+			this.obj = null;
+		}
 		this.nonce = nonce;
 		this.index = index;
 		this.args = new Object[args.length];
@@ -25,7 +30,12 @@ public class TraceRecord {
             Object[] args, Object ret_val, int exitLineNum){
 		
 		this.isEnter = enter_flag;
-		this.obj = obj;
+		if(obj != null){
+			this.obj = new ThisObjInfo(obj.getClass());
+		}
+		else{
+			this.obj = null;
+		}
 		this.nonce = nonce;
 		this.index = mi_index;
 		this.ret_val = ret_val;

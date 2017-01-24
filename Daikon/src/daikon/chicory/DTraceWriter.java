@@ -160,6 +160,7 @@ public class DTraceWriter extends DaikonWriter
             }
             else if (child instanceof ThisObjInfo)
             {
+            	System.out.println("I'm hereeeeee");
                 val = thisObj;
             }
             else if (child instanceof ParameterInfo)

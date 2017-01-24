@@ -315,11 +315,9 @@ public class Runtime
     	//TODO this should be executed in a different mmethod for readability 
     	if(mi_index == firstMethodObserved){
     		// Ignore this call if we are already processing a dtrace record
-    	    if (in_dtrace)
-    	        return;
-
+	    	    
+	
     	      // Note that we are processing a dtrace record until we return
-    	      in_dtrace = true;
     	      try {
 
     	        int num_new_classes = 0;
@@ -328,29 +326,34 @@ public class Runtime
     	        }
     	        if (num_new_classes > 0)
     	          process_new_classes();
-
-    	        // Write out the infromation for this method
     	        
-    	        
-    	        for(TraceRecord tr:all_traces){
-    	        	//ge the method tree
-    	        	MethodInfo mi = methods.get(tr.index);
-    	        	
-    	        	if(tr.isEnter){ //this is an enternace of a method, call method enter
-    	    	        counter++;
-    	        		dtrace_writer.methodEntry(mi, tr.nonce, tr.obj, tr.args);
-    	        	}else{ //this is an exit of a method, call methodExit
-    	    	        counter++;
-    	        		dtrace_writer.methodExit(mi, tr.nonce, tr.obj, tr.args, tr.ret_val,
-                                tr.exitLineNumber);
-    	        	}
-    	        }
     	      } finally {
-    	    	  in_dtrace = false;
     	      }
+
+    	        // Write out the information for this method
+    	        
+				for(TraceRecord tr:all_traces){
+					//ge the method tree
+					MethodInfo mi = methods.get(tr.index);
+					
+					if(tr.isEnter){ //this is an enternace of a method, call method enter
+				        counter++;
+						dtrace_writer.methodEntry(mi, tr.nonce, tr.obj, tr.args);
+					}else{ //this is an exit of a method, call methodExit
+				        counter++;
+						dtrace_writer.methodExit(mi, tr.nonce, tr.obj, tr.args, tr.ret_val,
+				                tr.exitLineNumber);
+					}
+					
+				}
+    	      
     	}
 
     	System.out.println("exit >>>>> [Chicory.Runtime.exit()]");
+    	
+    }
+    
+    public static void writeTrace(TraceRecord tr) {
     	
     }
     
