@@ -305,6 +305,12 @@ public class Runtime
     	
     	System.out.println("\nenter >>>>> [Chicory.Runtime.exit()]");
     	
+//    	if(obj != null){
+//    		System.out.println("in Obj: " + obj.getClass().getName());
+//    	}else{
+//    		System.out.println("in Obj: is null");
+//    	}
+    	
 	    
     	//Hold the dtrace in a list for a later processing
     	synchronized (all_traces){
@@ -334,15 +340,21 @@ public class Runtime
     	        
 				for(TraceRecord tr:all_traces){
 					//ge the method tree
-					MethodInfo mi = methods.get(tr.index);
+					synchronized (dtrace_writer){
+						
 					
-					if(tr.isEnter){ //this is an enternace of a method, call method enter
-				        counter++;
-						dtrace_writer.methodEntry(mi, tr.nonce, tr.obj, tr.args);
-					}else{ //this is an exit of a method, call methodExit
-				        counter++;
-						dtrace_writer.methodExit(mi, tr.nonce, tr.obj, tr.args, tr.ret_val,
-				                tr.exitLineNumber);
+						MethodInfo mi = methods.get(tr.index);
+						
+						if(tr.isEnter){ //this is an enternace of a method, call method enter
+					        counter++;
+					        Object temp_obj = tr.getObj();
+							dtrace_writer.methodEntry(mi, tr.nonce, temp_obj, tr.args);
+						}else{ //this is an exit of a method, call methodExit
+					        counter++;
+					        Object temp_obj = tr.getObj();
+							dtrace_writer.methodExit(mi, tr.nonce, temp_obj, tr.args, tr.ret_val,
+					                tr.exitLineNumber);
+						}
 					}
 					
 				}

@@ -2003,6 +2003,11 @@ public class Instrument implements ClassFileTransformer {
       return true;
     if (classname.equals ("daikon/PptTopLevel$PptType"))
       return true;
+    //if it is part of the xstream library also 
+    if (classname.startsWith("com/thoughtworks/xstream"))
+    	return true;
+    if (classname.startsWith("org/xmlpull"))
+    	return true;
     return false;
   }
 

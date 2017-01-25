@@ -65,6 +65,11 @@ public class DTraceWriter extends DaikonWriter
      */
     public void methodEntry(MethodInfo mi, int nonceVal, /*@Nullable*/ Object obj, Object[] args)
     {
+    	if(obj != null){
+    		System.out.println("enter >>> [Chicory.DTraceWrite.methodEntry()] -> obj: " + obj.getClass().getName());
+    	}else {
+    		System.out.println("enter >>> [Chicory.DTraceWrite.methodEntry()] -> obj: is NULL");
+    	}
         //don't print
         if (Runtime.dtrace_closed)
             return;
@@ -148,9 +153,17 @@ public class DTraceWriter extends DaikonWriter
             Object thisObj,
             Object ret_val)
     {
+    	if (thisObj != null){
+    		System.out.println("enter >>> [Chicory.DTraceWrite.travers()] -> thisObj: "
+        			+ thisObj.getClass().getName());
+    	}else {
+    		System.out.println("enter >>> [Chicory.DTraceWrite.travers()] -> thisObj: is null");
+    	}
+    	
         //go through all of the node's children
         for (DaikonVariableInfo child: root)
         {
+        	System.out.println("Child RepName: " + child.getRepTypeName());
 
             Object val;
 
@@ -160,7 +173,6 @@ public class DTraceWriter extends DaikonWriter
             }
             else if (child instanceof ThisObjInfo)
             {
-            	System.out.println("I'm hereeeeee");
                 val = thisObj;
             }
             else if (child instanceof ParameterInfo)
@@ -191,10 +203,18 @@ public class DTraceWriter extends DaikonWriter
     private void traverseValue(MethodInfo mi, DaikonVariableInfo curInfo,
                                Object val) {
 
+    	//TODO change here to pass values at this moment along with object 
         if (curInfo.dTraceShouldPrint()) {
           if (!(curInfo instanceof StaticObjInfo)) {
               outFile.println(curInfo.getName());
-              outFile.println(curInfo.getDTraceValueString(val));
+              String v = curInfo.getDTraceValueString(val);
+              if (val != null){
+            	  System.out.println("obj: " + val.getClass().getName() + " string of vals: " + v );
+              }
+              else {
+            	  System.out.println("obj: is null");
+              }
+              outFile.println(v);
           }
 
           if (debug_vars) {
@@ -206,6 +226,7 @@ public class DTraceWriter extends DaikonWriter
           }
         }
 
+        //TODO change here to travers the children values at this moment
         //go through all of the current node's children
         //and recurse on their values
         if (curInfo.dTraceShouldPrintChildren()) {
