@@ -11,16 +11,18 @@ public class TraceRecord {
 	Object[] args;
 	Object ret_val;
 	int exitLineNumber;
-	String version;
+	String objVersion;
+	String returnVersion;
 	XStream xstream = new XStream();
 	
+	
 	public TraceRecord (boolean enter_flag, /*@Nullable*/ Object obj, int nonce, int index, Object[] args){
-		xstream.setMode(XStream.ID_REFERENCES);
+		xstream.setMode(XStream.XPATH_ABSOLUTE_REFERENCES);
 		
 		this.isEnter = enter_flag;
 		if(obj != null){
 			xstream.alias(obj.getClass().getName(), obj.getClass());
-			this.version = xstream.toXML(obj);
+			this.objVersion = xstream.toXML(obj);
 			this.obj = obj;
 		}else {
 			this.obj = null;
@@ -35,18 +37,27 @@ public class TraceRecord {
 	
 	public TraceRecord (boolean enter_flag, /*@Nullable*/ Object obj, int nonce, int mi_index,
             Object[] args, Object ret_val, int exitLineNum){
-		xstream.setMode(XStream.ID_REFERENCES);
+		xstream.setMode(XStream.XPATH_ABSOLUTE_REFERENCES);
 		
 		this.isEnter = enter_flag;
 		if(obj != null){
 			xstream.alias(obj.getClass().getName(), obj.getClass());
-			this.version = xstream.toXML(obj);
+			this.objVersion = xstream.toXML(obj);
 			this.obj = obj;
 		}else {
 			this.obj = null;
-		}		this.nonce = nonce;
+		}		
+		this.nonce = nonce;
 		this.index = mi_index;
-		this.ret_val = ret_val;
+		
+		if(ret_val != null){
+			xstream.alias(ret_val.getClass().getName(), ret_val.getClass());
+			this.returnVersion = xstream.toXML(ret_val);
+			this.ret_val = ret_val;
+		}else {
+			this.ret_val = null;
+		}
+		
 		this.exitLineNumber = exitLineNum;
 		this.args = new Object[args.length];
 		for(int i = 0 ; i < this.args.length ; i ++){ //deep copy
@@ -56,9 +67,17 @@ public class TraceRecord {
 	
 	public Object getObj(){
 		if(this.obj != null){
-			return xstream.fromXML(version);
+			return xstream.fromXML(this.objVersion);
 		}else{
 			return this.obj; //null
+		}
+	}
+	
+	public Object getRetObj(){
+		if(this.ret_val != null){
+			return xstream.fromXML(this.returnVersion);
+		}else{
+			return this.ret_val; //null
 		}
 	}
 

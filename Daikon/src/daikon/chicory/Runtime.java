@@ -352,7 +352,8 @@ public class Runtime
 						}else{ //this is an exit of a method, call methodExit
 					        counter++;
 					        Object temp_obj = tr.getObj();
-							dtrace_writer.methodExit(mi, tr.nonce, temp_obj, tr.args, tr.ret_val,
+					        Object tempRetObj = tr.getRetObj();
+							dtrace_writer.methodExit(mi, tr.nonce, temp_obj, tr.args, tempRetObj,
 					                tr.exitLineNumber);
 						}
 					}
