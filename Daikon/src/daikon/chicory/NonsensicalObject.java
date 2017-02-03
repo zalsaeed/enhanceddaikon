@@ -9,7 +9,10 @@ package daikon.chicory;
  * A NonsensicalObject is used during data trace output for variables whose
  * value is "nonsensical" to print.  For instance, say class A has a field name.
  * If variable x is of type A is null, then we print "null" for x's value.  However,
- * we print "nonsensical" for x.name's value.
+ * we print "nonsensical" for x.name's value. 
+ * 
+ * This class implements the Singeltone design pattern. Meaning only one instance
+ * of it only will be instantiated through the application lifetime. 
  */
 public class NonsensicalObject
 {

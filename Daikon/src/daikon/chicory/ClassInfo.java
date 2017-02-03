@@ -19,7 +19,8 @@ import org.checkerframework.dataflow.qual.*;
  */
 public class ClassInfo {
 
-  /** binary name of the class **/
+
+/** binary name of the class **/
   public /*@BinaryNameForNonArray*/ String class_name;
 
   // set by initViaReflection()
@@ -74,13 +75,19 @@ public class ClassInfo {
    */
   /*@EnsuresNonNull("clazz")*/
   public void initViaReflection() {
-
+	  
+	  //By this time all classes are know to this instance. 
+	  System.out.println("\n\t\tenter >>>>> [Chicory.ClassInfo.initViaReflection()] for-> " 
+			  + class_name + " Loader-> " + loader.getClass().getName());
+	  
     // get the reflection class
     try {
       //clazz = Class.forName (class_name);
       //change class loading
 
         //TODO referring class?
+    	// this is like if I was saying x.getClass() for an instance of the 
+    	//current object.
       clazz = Class.forName (class_name, false, loader);
 
     } catch (Exception e) {
@@ -115,6 +122,7 @@ public class ClassInfo {
             }
         }
     }
+    System.out.println("\t\texit <<<<< [Chicory.ClassInfo.initViaReflection()] for-> " + class_name);
   }
 
   /**

@@ -66,13 +66,15 @@ public class DTraceWriter extends DaikonWriter
     public void methodEntry(MethodInfo mi, int nonceVal, /*@Nullable*/ Object obj, Object[] args)
     {
     	if(obj != null){
-    		System.out.println("enter >>> [Chicory.DTraceWrite.methodEntry()] -> obj: " + obj.getClass().getName());
+    		System.out.println("\n\tenter >>> [Chicory.DTraceWrite.methodEntry()] -> obj: " + obj.getClass().getName());
     	}else {
-    		System.out.println("enter >>> [Chicory.DTraceWrite.methodEntry()] -> obj: is NULL");
+    		System.out.println("\n\tenter >>> [Chicory.DTraceWrite.methodEntry()] -> obj: is NULL");
     	}
         //don't print
         if (Runtime.dtrace_closed)
             return;
+        
+        System.out.println("\t    [Chicory.DTraceWrite.methodEntry()] printing traces ...");
 
         Member member = mi.member;
 
@@ -89,12 +91,14 @@ public class DTraceWriter extends DaikonWriter
             stack.printStackTrace(System.out);
         }
         outFile.println(DaikonWriter.methodEntryName(member));
+        System.out.println("\t    "+DaikonWriter.methodEntryName(member));
         printNonce(nonceVal);
         traverse(mi, root, args, obj, nonsenseValue);
 
         outFile.println();
 
         Runtime.incrementRecords();
+        System.out.println("\texit <<< [Chicory.DTraceWrite.methodEntry()]");
     }
 
     /**
@@ -102,9 +106,16 @@ public class DTraceWriter extends DaikonWriter
      */
     public void methodExit(MethodInfo mi, int nonceVal, /*@Nullable*/ Object obj, Object[] args, Object ret_val, int lineNum)
     {
+    	if(obj != null){
+    		System.out.println("\n\tenter >>> [Chicory.DTraceWrite.methodExit()] -> obj: " + obj.getClass().getName());
+    	}else {
+    		System.out.println("\n\tenter >>> [Chicory.DTraceWrite.methodExit()] -> obj: is NULL");
+    	}
+    	
         if (Runtime.dtrace_closed)
             return;
 
+        System.out.println("\t    [Chicory.DTraceWrite.methodExit()] printing traces ...");
         Member member = mi.member;
 
         //gets the traversal pattern root for this method exit
@@ -126,11 +137,14 @@ public class DTraceWriter extends DaikonWriter
         outFile.println();
 
         Runtime.incrementRecords();
+        System.out.println("\texit <<< [Chicory.DTraceWrite.methodExit()]");
     }
 
     //prints an invocation nonce entry in the dtrace
     private void printNonce(int val)
     {
+    	System.out.println("\tthis_invocation_nonce");
+    	System.out.println("\t" + val);
         outFile.println("this_invocation_nonce");
         outFile.println(val);
     }
@@ -154,39 +168,43 @@ public class DTraceWriter extends DaikonWriter
             Object ret_val)
     {
     	if (thisObj != null){
-    		System.out.println("enter >>> [Chicory.DTraceWrite.travers()] -> thisObj: "
+    		System.out.println("\t\tenter >>> [Chicory.DTraceWrite.travers()] -> thisObj: "
         			+ thisObj.getClass().getName());
     	}else {
-    		System.out.println("enter >>> [Chicory.DTraceWrite.travers()] -> thisObj: is null");
+    		System.out.println("\t\tenter >>> [Chicory.DTraceWrite.travers()] -> thisObj: is null");
     	}
     	
         //go through all of the node's children
         for (DaikonVariableInfo child: root)
         {
-        	System.out.println("Child RepName: " + child.getRepTypeName());
+        	System.out.print("\t\t[Chicory.DTraceWrite.travers()] Child typeName: " + child.typeName);
 
             Object val;
 
             if (child instanceof ReturnInfo)
             {
+            	System.out.println(" of type-> RetuenInfo");
                 val = ret_val;
             }
             else if (child instanceof ThisObjInfo)
             {
+            	System.out.println(" of type-> ThisObjInfo");
                 val = thisObj;
             }
             else if (child instanceof ParameterInfo)
             {
+            	System.out.println(" of type-> ParameterInfo");
                 val = args[((ParameterInfo)child).getArgNum()];
             }
             else if (child instanceof FieldInfo)
             {
                // can only occur for static fields
                // non-static fields will appear as children of "this"
-
+            	System.out.println(" of type-> FieldInfo (meaning static)");
                val = child.getMyValFromParentVal(null);
             }
             else if (child instanceof StaticObjInfo) {
+            	System.out.println(" of type-> StaticObjInfo (val will be null)");
                 val = null;
             } else
             {
@@ -197,23 +215,30 @@ public class DTraceWriter extends DaikonWriter
 
             traverseValue(mi, child, val);
         }
+        System.out.println("\t\texit <<< [Chicory.DTraceWrite.travers()]");
     }
 
     //traverse from the traversal pattern data structure and recurse
     private void traverseValue(MethodInfo mi, DaikonVariableInfo curInfo,
                                Object val) {
+    	
+    	if(val != null){
+    		System.out.println("\t\t\tenter >>> [Chicory.DTraceWrite.traversValue()] mi-> " 
+        			+ mi + " curInfo-> " + curInfo.getName() + " val-> " + val.getClass().getName());
+    	}else{
+    		System.out.println("\t\t\tenter >>> [Chicory.DTraceWrite.traversValue()] mi-> " 
+        			+ mi + " curInfo-> " + curInfo.getName() + " val-> null");
+    	}
 
+    	
     	//TODO change here to pass values at this moment along with object 
         if (curInfo.dTraceShouldPrint()) {
           if (!(curInfo instanceof StaticObjInfo)) {
               outFile.println(curInfo.getName());
               String v = curInfo.getDTraceValueString(val);
-              if (val != null){
-            	  System.out.println("obj: " + val.getClass().getName() + " string of vals: " + v );
-              }
-              else {
-            	  System.out.println("obj: is null");
-              }
+              String single_line_value = v.replaceAll("[\r\n]+", " <|> ");
+              System.out.printf ("\t\t\t  --variable %s [%d]= %s%n",
+                      curInfo.getName(), curInfo.children.size(), single_line_value);
               outFile.println(v);
           }
 
@@ -230,11 +255,15 @@ public class DTraceWriter extends DaikonWriter
         //go through all of the current node's children
         //and recurse on their values
         if (curInfo.dTraceShouldPrintChildren()) {
+        	System.out.println("\t\t\t[Chicory.DTraceWrite.traversValue()] vvvv printing childrens values");
           for (DaikonVariableInfo child : curInfo) {
             Object childVal = child.getMyValFromParentVal(val);
             traverseValue(mi, child, childVal);
           }
         }
+        
+        System.out.println("\t\t\texit <<< [Chicory.DTraceWrite.traversValue()] mi-> " 
+    			+ mi + " curInfo-> " + curInfo.getName());
 
     }
 

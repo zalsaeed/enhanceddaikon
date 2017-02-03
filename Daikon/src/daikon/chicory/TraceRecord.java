@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.XStream;
 public class TraceRecord {
 	
 	boolean isEnter = true;
+	MethodInfo mi;
 	Object obj;
 	int nonce;
 	int index;
@@ -13,11 +14,21 @@ public class TraceRecord {
 	int exitLineNumber;
 	String objVersion;
 	String returnVersion;
+	String mi_xml;
 	XStream xstream = new XStream();
+	XStream mi_xstream = new XStream();
 	
 	
 	public TraceRecord (boolean enter_flag, /*@Nullable*/ Object obj, int nonce, int index, Object[] args){
-		xstream.setMode(XStream.XPATH_ABSOLUTE_REFERENCES);
+		//xstream.setMode(XStream.XPATH_ABSOLUTE_REFERENCES);
+		
+		//TODO make sure you clone the instance  of this ...
+		
+		MethodInfo temp_mi = Runtime.methods.get(index);
+		mi_xstream.alias(temp_mi.method_name, MethodInfo.class);
+		this.mi_xml = mi_xstream.toXML(temp_mi);
+		
+		//System.out.println(this.mi_xml);
 		
 		this.isEnter = enter_flag;
 		if(obj != null){
@@ -37,7 +48,11 @@ public class TraceRecord {
 	
 	public TraceRecord (boolean enter_flag, /*@Nullable*/ Object obj, int nonce, int mi_index,
             Object[] args, Object ret_val, int exitLineNum){
-		xstream.setMode(XStream.XPATH_ABSOLUTE_REFERENCES);
+		//xstream.setMode(XStream.XPATH_ABSOLUTE_REFERENCES);
+		
+		MethodInfo temp_mi = Runtime.methods.get(index);
+		mi_xstream.alias(temp_mi.method_name, MethodInfo.class);
+		this.mi_xml = mi_xstream.toXML(temp_mi);
 		
 		this.isEnter = enter_flag;
 		if(obj != null){
@@ -79,6 +94,11 @@ public class TraceRecord {
 		}else{
 			return this.ret_val; //null
 		}
+	}
+	
+	public MethodInfo getMI (){
+		this.mi = (MethodInfo) mi_xstream.fromXML(mi_xml);
+		return this.mi;
 	}
 
 }

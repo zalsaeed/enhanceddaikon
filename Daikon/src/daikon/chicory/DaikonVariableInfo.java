@@ -34,7 +34,7 @@ public abstract class DaikonVariableInfo
     implements Iterable<DaikonVariableInfo>, Comparable<DaikonVariableInfo>
 {
 
-    /** Enable experimental techniques on static constants. */
+	/** Enable experimental techniques on static constants. */
     public static boolean dkconfig_constant_infer = false;
 
     /** The variable name.  Sensible for all subtypes except RootInfo.  **/
@@ -132,9 +132,6 @@ public abstract class DaikonVariableInfo
      */
     public DaikonVariableInfo(String theName, String typeName, String repTypeName, boolean arr)
     {
-    	//TODO remove the two lines below to make logging enabling/disabling universal 
-    	debug_array.enabled = true;
-    	debug_vars.enabled = true;
         // Intern the names because there will be many of the
         // same variable names at different program points within
         // the same class.
@@ -184,8 +181,11 @@ public abstract class DaikonVariableInfo
         assert info.repTypeName != null : "Child's representation type name should not be null";
         assert info.compareInfoString != null : "Child's comparability information should not be null";
 
+        System.out.printf("\t\t\t\t\t[DaikonVariableInfo.addChild()] Adding: %s to %s%n", info , this);
         debug_vars.log ("Adding %s to %s", info, this);
         children.add(info);
+        System.out.printf("\t\t\t\t\t[DaikonVariableInfo.addChild()] new children.size() =  %s in %s%n", children.size(), this);
+        
     }
 
     /**
@@ -309,6 +309,7 @@ public abstract class DaikonVariableInfo
 
         Class<?> type = theValue.getClass();
 
+        //This assertion is not doing what it is claims of doing ... 
         assert !(type.isPrimitive()) : "Objects cannot be primitive";
 
         if (theValue instanceof Runtime.PrimitiveWrapper)
@@ -428,10 +429,16 @@ public abstract class DaikonVariableInfo
      */
     protected void addParameters(ClassInfo cinfo,
              Member method, List<String> argnames, String offset, int depth) {
-        Class<?>[] arguments = (method instanceof Constructor<?>)
+        
+    	System.out.println("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addParampter()] "
+        		+ "cinfo: " + cinfo.class_name + " method: " + method.getName()
+        		+ " offset: " + offset + " depth: " + depth);
+    	
+    	Class<?>[] arguments = (method instanceof Constructor<?>)
             ? ((Constructor<?>) method).getParameterTypes()
             : ((Method) method).getParameterTypes();
 
+            
         debug_vars.log ("enter addParameters%n");
         Iterator<String> argnamesiter = argnames.iterator();
         int param_offset = 0;
@@ -443,6 +450,7 @@ public abstract class DaikonVariableInfo
                 continue;
             if (type.getName().equals ("java.lang.DCompMarker"))
                 continue;
+            System.out.printf("\t\t\t\t[Chicory.DaikonVariableInfo.addParampter()] processing parameter '%s'%n", name);
             debug_vars.indent ("processing parameter '%s'%n", name);
             DaikonVariableInfo theChild = addDeclVar(cinfo, type,
                                          name, offset, depth, i, param_offset);
@@ -454,6 +462,8 @@ public abstract class DaikonVariableInfo
             debug_vars.exdent();
         }
         debug_vars.log ("exit addParameters%n");
+        System.out.println("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addParampter()] "
+        		+ "cinfo: " + cinfo.class_name);
     }
 
     /**
@@ -465,7 +475,11 @@ public abstract class DaikonVariableInfo
     protected void addClassVars(final ClassInfo cinfo, boolean dontPrintInstanceVars,
                                 Class<?> type, String offset, int depth) {
 
-    	System.out.printf("\t\tenter >>>>> [Chicory.DaikonVariableInfo.assClassVars]%s : %s : %s: [%s]%n", this, cinfo, type, offset);
+    	System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addClassVars] "
+    			+ "%s : %s : %s : [%s] isStatic: %s :"
+    			+ " shouldAddRuntimeClass: %s%n", 
+    			this, cinfo, type, offset, dontPrintInstanceVars,
+    			shouldAddRuntimeClass(type));
         //DaikonVariableInfo corresponding to the "this" object
         DaikonVariableInfo thisInfo;
         
@@ -473,9 +487,11 @@ public abstract class DaikonVariableInfo
         debug_vars.log ("addClassVars: %s : %s : %s: [%s]%n", this, cinfo, type, offset);
 
         //must be at the first level of recursion (not lower) to print "this" field
+        //if not isStatic and the first one on tree ...
         if (!dontPrintInstanceVars && offset.equals(""))
         {
             // "this" variable
+        	System.out.println();
             thisInfo = new ThisObjInfo(type);
             addChild(thisInfo);
 
@@ -492,7 +508,7 @@ public abstract class DaikonVariableInfo
             thisInfo = new StaticObjInfo(type);
             addChild (thisInfo);
         } else {
-            thisInfo = this;
+            thisInfo = this; 
         }
 
         
@@ -596,6 +612,8 @@ public abstract class DaikonVariableInfo
 
             if (!is_static && dontPrintInstanceVars)
             {
+            	//if the filed is not static but the class that contains it is 
+            	// then do nothing for this field ...
                 debug_vars.log ("--field !static and instance var %b%n",
                                 dontPrintInstanceVars);
                 continue;
@@ -618,6 +636,8 @@ public abstract class DaikonVariableInfo
             // Don't print arrays of the same static field
             if (is_static && isArray)
             {
+            	//if field is static but the containing object is array
+            	//then skip
                 debug_vars.log ("--field static and inArray%n");
                 continue;
             }
@@ -636,12 +656,14 @@ public abstract class DaikonVariableInfo
 
             if (!isFieldVisible (cinfo.clazz, classField))
             {
+            	//skip if field is not visible from within this current object
+            	//look at isFieldVisible method to undestand what is execluded.
                 debug_vars.log ("--field not visible%n");
                 continue;
             }
 
             List<Field> fieldsOfClassFields = new ArrayList<Field>();
-        	System.out.printf("\t\tclassfield type: %s %n", classField.getType());
+        	System.out.printf("\t\t\tclassfield type: %s %n", classField.getType());
 
         	Class<?> fieldType = classField.getType();
 
@@ -651,7 +673,7 @@ public abstract class DaikonVariableInfo
             debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
 
             String newOffset = buf.toString();
-            System.out.printf("\t\tbuf: %s %n", newOffset);
+            System.out.printf("\t\t\tbuf: %s %n", newOffset);
             newChild.addChildNodes(cinfo, fieldType, classField.getName(),
                           newOffset, depth);    
             
@@ -757,9 +779,19 @@ public abstract class DaikonVariableInfo
             }
         }
         debug_vars.log ("exit addClassVars%n");
-        System.out.println("\t\texit <<<<< [Chicory.DaikonVariableInfo.assClassVars]");
+        System.out.println("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.assClassVars]");
     }
 
+    /**
+     * @author zalsaeed
+     * 
+     * This class gets a Java Collection an returns its fields 
+     * to add them later as child nodes in for the current method
+     * 
+     * @param field
+     * @param offset
+     * @param buff
+     */
     private void getCollectionFileds(Field field, String offset, StringBuffer buff) {
     	   	
        
@@ -915,7 +947,7 @@ public abstract class DaikonVariableInfo
 
         boolean changedAccess = false;
 
-        //we want to access all fields...
+        //we want to access all fields,,, then return it back to its setup
         if (!field.isAccessible())
         {
             changedAccess = true;
@@ -1178,8 +1210,12 @@ public abstract class DaikonVariableInfo
     }
 
 
-    // Appends as auxiliary information:
-    // the package name of the declaring class
+    /**
+     * Appends as auxiliary information:
+     * the package name of the declaring class
+     * @param field
+     * @return
+     */
     private String appendAuxInfo(Field field)
     {
         // int modifiers = field.getModifiers();

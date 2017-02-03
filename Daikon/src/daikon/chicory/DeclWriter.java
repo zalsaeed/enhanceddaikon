@@ -126,8 +126,13 @@ public class DeclWriter extends DaikonWriter {
      */
     public void printDeclClass (ClassInfo cinfo, /*@Nullable*/ DeclReader comp_info)
     {
+    	System.out.println("\t\tenter >>>>> [Chicroy.DeclWriter.printDeclClass()] for-> "
+    			+ cinfo.class_name);
+    	
       if (Chicory.new_decl_format) {
         print_decl_class (cinfo, comp_info);
+        System.out.println("\t\texit <<<<< [Chicroy.DeclWriter.printDeclClass()] for-> "
+    			+ cinfo.class_name);
         return;
       }
 
@@ -164,6 +169,9 @@ public class DeclWriter extends DaikonWriter {
 
         printClassPpt (cinfo, cinfo.class_name + ":::CLASS", comp_info);
         printObjectPpt(cinfo, classObjectName(cinfo.clazz), comp_info);
+        
+        System.out.println("\t\texit <<<<< [Chicroy.DeclWriter.printDeclClass()] for-> "
+    			+ cinfo.class_name);
     }
 
     /**
@@ -290,7 +298,9 @@ public class DeclWriter extends DaikonWriter {
      */
     public void print_decl_class (ClassInfo cinfo, /*@Nullable*/ DeclReader comp_info) {
 
-      if (debug) System.out.println("Enter print_decl_class: " + cinfo);
+      
+    	System.out.println("\t\t\tenter >>>>> [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
+    	if (debug) System.out.println("Enter print_decl_class: " + cinfo);
 
       // Print all methods and constructors
       for (MethodInfo mi : cinfo.get_method_infos()) {
@@ -328,6 +338,7 @@ public class DeclWriter extends DaikonWriter {
       print_object_ppt (cinfo, classObjectName(cinfo.clazz), comp_info);
 
       if (debug) System.out.println("Exit print_decl_class");
+      System.out.println("\t\t\texit <<<<<< [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
     }
 
     /**
@@ -345,6 +356,9 @@ public class DeclWriter extends DaikonWriter {
     private void print_method (MethodInfo mi, RootInfo root, String name,
                                PptType ppt_type, /*@Nullable*/ DeclReader comp_info) {
 
+    	System.out.println("\t\t\t\tenter >>>> [Chicory.DeclWriter.print_method()] mi-> "
+    			+ mi.method_name + " root-> " + root.getName() + " name-> " + name 
+    			+ " ppt_type-> " + ppt_type.name());
       if (debug) System.out.println("Enter print_method: " + name);
 
       // reset dummy comparability value
@@ -372,6 +386,8 @@ public class DeclWriter extends DaikonWriter {
       outFile.println();
 
       if (debug) System.out.println("Exit print_method ");
+      System.out.println("\t\t\t\texit <<<<< [Chicory.DeclWriter.print_method()] mi-> "
+  			+ mi.method_name);
     }
 
     /**
@@ -381,6 +397,8 @@ public class DeclWriter extends DaikonWriter {
      */
     private void print_class_ppt (ClassInfo cinfo, String name,
                                   DeclReader comp_info) {
+    	System.out.println("\t\t\t\tenter >>>> [Chicory.DeclWriter.print_class_ppt()] cinfo-> "
+    			+ cinfo + " name-> " + name);
 
       if (debug) System.out.println("Enter print_class_ppt: " + cinfo);
 
@@ -404,6 +422,8 @@ public class DeclWriter extends DaikonWriter {
       }
 
       if (debug) System.out.println("Exit print_class_ppt");
+      System.out.println("\t\t\t\texit <<<<< [Chicory.DeclWriter.print_class_ppt()] cinfo-> "
+  			+ cinfo);
     }
 
     /**
@@ -413,6 +433,8 @@ public class DeclWriter extends DaikonWriter {
     private void print_object_ppt(ClassInfo cinfo, String name,
                                   DeclReader comp_info) {
 
+    	System.out.println("\t\t\t\tenter >>>>> [Chicory.DeclWriter.print_object_ppt()] cinfo-> "
+    			+ cinfo + " name-> " + name);
       if (debug) System.out.println("Enter print_object_ppt: " + cinfo);
 
       // reset dummy comparability value
@@ -449,6 +471,8 @@ public class DeclWriter extends DaikonWriter {
       outFile.println();
 
       if (debug) System.out.println("Exit print_object_ppt");
+      System.out.println("\t\t\t\texit <<<<< [Chicory.DeclWriter.print_object_ppt()] cinfo-> "
+  			+ cinfo);
     }
 
   /**
