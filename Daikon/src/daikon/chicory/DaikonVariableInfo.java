@@ -288,7 +288,7 @@ public abstract class DaikonVariableInfo
         String retString =getValueStringOfObject(theValue, hashArray) + DaikonWriter.lineSep;
 
         if (theValue instanceof NonsensicalObject)
-            retString += "2";
+        	retString += "2";
         else
             retString += "1";
 
@@ -592,6 +592,7 @@ public abstract class DaikonVariableInfo
 //            }
 //        }
 
+        System.out.println("\t\t\tFields of: " + type.getName());
 
         for (Field classField : fields) {
             boolean is_static = Modifier.isStatic (classField.getModifiers());
@@ -662,13 +663,14 @@ public abstract class DaikonVariableInfo
                 continue;
             }
 
-            List<Field> fieldsOfClassFields = new ArrayList<Field>();
-        	System.out.printf("\t\t\tclassfield type: %s %n", classField.getType());
+            //System.out.printf("\t\t\tclassfield type: %s %n", classField.getType());
+            
+            System.out.printf("\t\t\t\tprocessing: %s %n", classField.getName());
 
         	Class<?> fieldType = classField.getType();
 
             StringBuffer buf = new StringBuffer();
-            DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf);
+            DaikonVariableInfo newChild = thisInfo.addDeclVar(classField, offset, buf, type);
 
             debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
 
@@ -676,13 +678,6 @@ public abstract class DaikonVariableInfo
             System.out.printf("\t\t\tbuf: %s %n", newOffset);
             newChild.addChildNodes(cinfo, fieldType, classField.getName(),
                           newOffset, depth);    
-            
-            if(Collection.class.isAssignableFrom(classField.getType())){
-            	System.out.println("\t\tThis is my list, calling my method ...");
-            	getCollectionFileds(classField, offset, buf);
-            	
-            	
-            }
             
             debug_vars.exdent();
         }
@@ -853,6 +848,36 @@ public abstract class DaikonVariableInfo
         debug_vars.log ("exit addDeclVar(param)%n");
         return newChild;
     }
+    
+    /**
+     * @author zalsaeed
+     * 
+     * Added this method to store the info of a list elements in a chield. 
+     *
+     * @return The newly created DaikonVariableInfo object, whose
+     * parent is this.
+     */
+    protected DaikonVariableInfo addDeclVar(Class<?> type,
+           String name, String offset)
+    {
+        debug_vars.log ("enter addDeclVar(ListElement)%n");
+        // add this variable to the tree as a child of curNode
+        //TODO create the appropiate newChidl
+        
+        DaikonVariableInfo newChild = new ListElement(type, offset + name, name, 
+        		getRepName(type, false),
+                type.isArray());
+        
+        addChild(newChild);
+
+        //I'm not checking derived variable for now for simplicity 
+//        boolean ignore = newChild.check_for_dup_names();
+//        if (!ignore)
+//            newChild.checkForDerivedVariables(type, name, offset);
+
+        debug_vars.log ("exit addDeclVar(ListElement)%n");
+        return newChild;
+    }
 
 
     /**
@@ -934,8 +959,8 @@ public abstract class DaikonVariableInfo
      * parent is this.
      */
     protected DaikonVariableInfo addDeclVar(Field field, String offset,
-                                StringBuffer buf)
-    {   //TODO this is walking with the application as it is being executed ...     
+                                StringBuffer buf, Class<?> parentType)
+    {        
     	//System.out.printf("enter addDeclVar(field):%n");
     	//System.out.printf("  field: %s, offset: %s%n", field, offset);
     	debug_vars.log ("enter addDeclVar(field):%n");
@@ -1028,7 +1053,11 @@ public abstract class DaikonVariableInfo
         addChild(newField);
 
         if (!ignore){
-            newField.checkForDerivedVariables(type, theName, offset);
+        	/**
+        	 * @author zalsaeed
+        	 * changed this to call my own method
+        	 */
+            newField.checkForDerivedVariables(type, theName, offset, parentType);
             //System.out.printf("\t\t\tAddiing derived variables: type: %s name: %s offset: %s", type, theName, offset);
         }
 
@@ -1237,6 +1266,28 @@ public abstract class DaikonVariableInfo
     }
 
     /**
+     * @author zalsaeed
+     * This is my version of theis method, I changed its sigature to pass 
+     * the parent cinfo to the child. This is becuase we need it 
+     * to determen the object from which we are going to construct 
+     * the class again. 
+    *
+    * Checks for "derived" Chicory variables: .class, .tostring, and java.util.List implementors
+    * and adds appropriate children to this node.
+    */
+   protected void checkForDerivedVariables(Class<?> type, String theName,
+           String offset, Class<?> parentType)
+   {
+       checkForListDecl(type, theName, offset, parentType); // implements java.util.List?
+
+       //Not fully implemented yet, don't call
+       //checkForImplicitList(cinfo, type, name, offset, depth);
+
+       checkForRuntimeClass(type, theName, offset); //.class var
+       checkForString(type, theName, offset); //.tostring var
+   }
+   
+    /**
     *
     * Checks for "derived" Chicory variables: .class, .tostring, and java.util.List implementors
     * and adds appropriate children to this node.
@@ -1251,6 +1302,207 @@ public abstract class DaikonVariableInfo
 
        checkForRuntimeClass(type, theName, offset); //.class var
        checkForString(type, theName, offset); //.tostring var
+   }
+   
+   /**
+    * @author zalsaeed
+    * 
+    * Determines if type implements list
+    * and prints associated decls, if necessary
+    * @param parentType: to know who is having the list.
+    */
+   protected void checkForListDecl(Class<?> type, String theName, String offset, 
+		   Class<?> parentType)
+   {
+       if (isArray || type.isPrimitive() || type.isArray())
+           return;
+
+       // System.out.printf ("checking %s %sto for list implementation = %b%n",
+       //                    type, theName, implementsList (type));
+
+       //I might need to extend the method implementList() to also consider collections 
+       if (implementsList(type)) {
+           @SuppressWarnings("unchecked")
+           DaikonVariableInfo child = new ListInfo(offset + theName + "[]",
+                                              (Class<? extends List<?>>)type);
+
+           addChild(child);
+
+           boolean ignore = child.check_for_dup_names();
+
+           // CLASSNAME var
+           if (!ignore) {
+               DaikonVariableInfo childClass
+                   = new DaikonClassInfo(offset + theName + "[]" + class_suffix, 
+                		   classClassName + "[]", 
+                		   stringClassName + "[]", 
+                		   offset + theName + "[]", 
+                		   true);
+               
+               child.addChild(childClass);
+           }
+           
+           
+           Object currentObj = null;
+           
+           System.out.println("parentType: " + parentType);
+           /*
+            * getting the instance from my observed_objects instead of passing it down
+            * through all the method calls. My choice here is not safe, since objects could 
+            * be died in the actual program, but they are only available because my list 
+            * is holding them. However, this choice works for me now. Until this is proven 
+            * valuable there is no need to go over all the trouble of changing all the 
+            * methods involved in this process. 
+            * 
+            * parentType is the parent of this list, or where this list is defined.
+            */
+           if (parentType != null){
+        	   System.out.println("ParentClass: " + parentType.getName());
+        	   System.out.println("Parent HashCode: " + parentType.hashCode());
+           
+	           for (Object obj:Runtime.observed_objects){
+	        	   if(obj.getClass().hashCode() == parentType.hashCode()){
+	        		   currentObj = obj;
+	        	   }
+	        	   System.out.println("Avialable Objects: " + obj.getClass().getName());
+	        	   System.out.println(obj.getClass().hashCode());
+	           }
+           }
+           
+           List<Object> listElements = new ArrayList<Object>();
+           //I'm only looking for user defined lists and if their object is instantiated
+           //theName here is the name of the list as the user defined it.
+           if (currentObj != null){
+        	   System.out.println("Will construct tree of list elements ...");
+        	   listElements = getListElements(currentObj, theName);
+           }else{
+        	   System.out.println("nothing to do ...");
+           }
+           
+           /*
+            * At this stage I either don't have any element or I know that the elements I have 
+            * are non-primitive (could be user defined object, java defined object, or array)
+            * 
+            * I'm adding those elements as children of this ListInfo object 
+            * (e.g. listName.[..].element1) with type ListElement. I'm also adding the fields 
+            * of the elements (given that I can access them) as children of the newly added
+            * ListEelemnt child (e.g. listName.[..].element1.field1) with type FieldInfo.
+            * 
+            * Here are some choices I made.
+            * 
+            * Choice 1: 
+    	    * I'm using the class name here (obj.getClass().getSimpleName()) to identify 
+    	    * an element in the list, but this could be problematic as there could be two 
+    	    * different elements of the same class. Thus, it would be confusing when 
+    	    * reading invariants generated by Daikon. Another identifier that could be used
+    	    * is the element ID in the as it is in the list (maybe along with the class 
+    	    * name). However, I will not go with this choice until I find an actual problem 
+    	    * caused by this choice.
+    	    * 
+    	    * Choice 2:
+    	    * I'm only observing the elements's fields. I have no intention to go deeper into 
+    	    * the field's fields (e.g. element.field.field_of_the_field). This is to be consistent
+    	    * With the normally given depth (most of the times 2, but could be 1). Meaning, if we 
+    	    * are inspecting a list of the "this" node, then we are still complying with the given 
+    	    * depth. However, if we are inspecting a child of the node "this" this we are making 
+    	    * sure that we don't go too deep into the tree of fields.  
+    	    * 
+    	    * Choice 3: 
+    	    * offset, here is fixed manually according to where we are in the execution. Manually
+    	    * means that I didn't follow how Chicory's original developers handled offset. This is 
+    	    * because first I'm dealing with a list and no variable names (related to choice 1), second 
+    	    * it is safe to handle the offset manually in this level since we are not going deeper
+    	    * (see choice 2).
+            */
+           for (Object obj:listElements){
+        	   //TODO delete all these prints.
+        	   System.out.println("Got them: " + obj.getClass().getSimpleName());
+        	   System.out.println("this is classClassName: " + classClassName);
+        	   System.out.println("this is stringClassName: " + stringClassName);
+        	   System.out.println("this is class_suffix: " + class_suffix);
+        	   System.out.println("this is theName: " + theName);
+        	   System.out.println("this is offset: " + offset);
+        	   System.out.println("this is this: " + this);
+        	   System.out.println("this is child.getName(): " + child.getName());
+        	   
+        	   //manually handling the offset.
+        	   String currentOffset = offset + theName + "[..].";
+        	   
+        	   //add this object as a ListElement to the ListInfo 
+        	   DaikonVariableInfo newChild = child.addDeclVar(obj.getClass(), 
+        			   obj.getClass().getSimpleName(), currentOffset);
+        	   
+        	   //Adding the object's (or elements) fields as FieldInfos to the ListElement
+        	   for(Field objField:obj.getClass().getDeclaredFields()){
+        		   
+        		   DaikonVariableInfo newField = new FieldInfo(currentOffset + obj.getClass().getSimpleName(), objField,
+        				 objField.getType().getName(), getRepName(objField.getType(), false),
+                         false);
+        		   //TODO need a case where the field is not primitive to see how it would be handled.
+        		   newChild.addChild(newField);
+        		   
+        	   }
+           }
+       }
+   }
+   
+   /**
+    * @author zalsaeed
+    * A method to return a list of elements in the given object.
+    * 
+    * @param obj
+    */
+   protected List<Object> getListElements(Object obj, String listName){
+		//TODO add nested primitive values to scope.
+	   
+	   List<Object> listOfElements = new ArrayList<Object>();
+		
+	   System.out.println("Got Called!");
+	   Field field = null;
+	   try {
+		   field = obj.getClass().getField(listName);
+		   
+	   } catch (NoSuchFieldException | SecurityException e) {
+		   // TODO throw a proper message 
+		   e.printStackTrace();   
+	   }
+	   
+	   Object listInstance = null;
+	   try {
+		   listInstance = field.get(obj);   
+	   } catch (IllegalArgumentException | IllegalAccessException e) {
+		   // TODO throw a proper message
+		   e.printStackTrace();   
+	   }
+	   
+	   if(listInstance instanceof Collection){
+		   System.out.println("I got the list ..." + field.getName());
+		   
+	   }
+	   
+	   Type genericFieldType = field.getGenericType();
+	   System.out.println("My print " + genericFieldType);
+	   
+	   if(genericFieldType instanceof ParameterizedType){
+		   ParameterizedType aType = (ParameterizedType) genericFieldType;
+		   Type[] fieldArgTypes = aType.getActualTypeArguments();
+		   System.out.println("Field args types: " + fieldArgTypes);
+		   for(Type fieldArgType : fieldArgTypes){
+			   Class fieldArgClass = (Class) fieldArgType;
+			   if (!fieldArgClass.isPrimitive()){
+				   System.out.println("Content of collection is not primitive." + fieldArgClass.getTypeName());
+				   //Go over each object (e.g. in a list) and get its fields.
+				   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
+					   //TODO check if the objects in list are primitive values
+					   Object element = iter.next();
+					   element.getClass();
+					   listOfElements.add(element);   
+				   }
+			   }   
+		   }   
+	   }
+	   
+	   return listOfElements;
    }
 
    /**

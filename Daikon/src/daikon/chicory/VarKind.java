@@ -15,5 +15,6 @@ public enum VarKind {
     FUNCTION,
     ARRAY,
     VARIABLE,
-    RETURN
+    RETURN,
+    LISTELEMENT
 };

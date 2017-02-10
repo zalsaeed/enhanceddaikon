@@ -375,7 +375,7 @@ public class DeclWriter extends DaikonWriter {
       for (VarRelation relation : relations)
         outFile.println ("parent parent " + relation.parent_ppt_name + " "
                          + relation.id);
-
+      
       // Print each variable
       for (DaikonVariableInfo childOfRoot: root) {
         if (debug) System.out.println("method var: " + childOfRoot.getName());
@@ -595,7 +595,7 @@ public class DeclWriter extends DaikonWriter {
 
         // Write out the variable and its name
         outFile.println ("variable " + escape (var.getName()));
-
+        
         // Write out the kind of variable and its relative name
         VarKind kind = var.get_var_kind();
         String relative_name = var.get_relative_name();
@@ -603,7 +603,7 @@ public class DeclWriter extends DaikonWriter {
           relative_name = "";
         outFile.println ("  var-kind " + out_name (kind) + " "
                          + relative_name);
-
+        
         // Write out the enclosing variable
         // If we are in an inner class, we need to special case the
         // 'hidden' field that holds the outer class 'this' pointer.

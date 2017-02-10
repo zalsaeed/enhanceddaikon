@@ -376,7 +376,7 @@ public class Chicory {
         //      java -Xdebug -Xrunjdwp:transport=dt_socket,address=8998,server=y -jar myapp.jar
         //cmdlist.add("-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=8000 -Djava.compiler=NONE");
       }
-
+    
     cmdlist.add ("-cp");
     cmdlist.add (cp);
     cmdlist.add ("-ea");
@@ -424,14 +424,7 @@ public class Chicory {
     	= new StreamRedirectThread("stdin", System.in, chicory_proc.getOutputStream(), false);
     
     stdin_thread.start();
-    
-    System.out.println("One.................................>");
     int targetResult = redirect_wait (chicory_proc);
-    System.out.println("One.................................<");  
-    
-    for(ClassInfo ci:all_classes){
-    	System.out.println("ci: " + ci.class_name);
-    }
     
     //TODO activate this once you are ready to run it twice!
 //    //Second run
