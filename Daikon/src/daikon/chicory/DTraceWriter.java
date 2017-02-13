@@ -251,12 +251,15 @@ public class DTraceWriter extends DaikonWriter
           }
         }
 
-        //TODO change here to travers the children values at this moment
         //go through all of the current node's children
         //and recurse on their values
         if (curInfo.dTraceShouldPrintChildren()) {
         	System.out.println("\t\t\t[Chicory.DTraceWrite.traversValue()] vvvv printing childrens values");
           for (DaikonVariableInfo child : curInfo) {
+        	  if (val != null)
+        		  System.out.println("Getting val from: " + val.getClass().getName() + " for: " + child);
+        	  else
+        		  System.out.println("Getting val from: NULL for: " + child);
             Object childVal = child.getMyValFromParentVal(val);
             traverseValue(mi, child, childVal);
           }
@@ -521,6 +524,41 @@ public class DTraceWriter extends DaikonWriter
         }
 
         return arrList;
+    }
+    
+    /**
+     * @author zalsaeed
+     * 
+     * My version of this method. The goal of my change is to look for 
+     * a specific object given its hashcode instead of returning the complete 
+     * set of elements.
+     * 
+     * Return a List derived from an aray
+     * @param arrayVal Must be an array type
+     * @return a List (with correct primitive wrappers) corresponding to the array
+     */
+    public static Object getListFromArray(Object arrayVal, int hash)
+    {
+        if (arrayVal instanceof NonsensicalObject)
+            return nonsenseList;
+
+        if (!arrayVal.getClass().isArray()) {
+            throw new RuntimeException(String.format(
+              "The object \"%s\" of type %s is not an array",
+              arrayVal, arrayVal.getClass()));
+        }
+
+        int len = Array.getLength(arrayVal);
+        Object val = null;
+
+        for (int i = 0; i < len; i++)
+        {        	
+        	// assuming the content must be non-primitives
+        	if (Array.get(arrayVal, i).getClass().hashCode() == hash)
+        		val = Array.get(arrayVal, i);
+        }
+        
+        return val;
     }
 
 

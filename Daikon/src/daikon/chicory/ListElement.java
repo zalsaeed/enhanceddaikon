@@ -1,6 +1,9 @@
 package daikon.chicory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 public class ListElement extends DaikonVariableInfo{
 
@@ -11,21 +14,72 @@ public class ListElement extends DaikonVariableInfo{
 	
 	private boolean is_primitive;
 	
+	private Class<? extends List<?>> listType;
+	
 	public ListElement(Class<?> type, String theName, String typeName, 
-			String repTypeName, boolean arr) {
+			String repTypeName, boolean arr, Class<? extends List<?>> parentType) {
 		super(theName, typeName, repTypeName, arr);
 		clazz = type;
 		
 		is_static = Modifier.isStatic(clazz.getModifiers());
 		is_primitive = false;
+		listType = parentType;
 		
 		
 	}
 
 	@Override
 	public Object getMyValFromParentVal(Object parentVal) {
-		return null; //dump value for now
-		//throw new RuntimeException ("You cant get an object value from a list (ListElement)");
+		
+		Method arrayMethod = null;
+        try
+        {
+            arrayMethod = listType.getMethod("toArray", new Class<?>[0]);
+        }
+        catch (NoSuchMethodException e)
+        {
+            throw new Error(listType.getName() + " seems to implement java.util.List, but method toArray() not found");
+        }
+
+        Object arrayVal = null;
+
+        if (parentVal != null && !(parentVal instanceof NonsensicalObject) && !(parentVal instanceof NonsensicalList))
+        {
+
+            //TODO why can't we just cast to List and call toArray directly?
+
+            try
+            {
+                arrayVal = arrayMethod.invoke(parentVal, new Object[0]);
+            }
+            catch (IllegalArgumentException e1)
+            {
+                throw new Error(e1);
+            }
+            catch (IllegalAccessException e1)
+            {
+                throw new Error(e1);
+            }
+            catch (InvocationTargetException e1)
+            {
+                throw new Error(e1);
+            }
+        }
+        else
+            arrayVal = NonsensicalObject.getInstance();
+
+        
+        if (arrayVal instanceof  NonsensicalObject){
+        	return arrayVal;
+        }else{
+        	@SuppressWarnings("nullness") // We just verified (or set) arrayVal in code above.
+            Object tmp = DTraceWriter.getListFromArray(arrayVal, clazz.hashCode());
+            System.out.println("Temp is: " + tmp.getClass().getName());
+            //TODO traverse the array here looking for the obj by hashcode
+            
+            return tmp;
+        }
+        
 	}
 
 	@Override
