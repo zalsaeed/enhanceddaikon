@@ -152,7 +152,8 @@ public class UnifyTraces {
 		    writer.println();
 		    
 		    //write ppts 
-		    for(String ppt_name:final_ppts.keySet())
+		    //for(String ppt_name:final_ppts.keySet())
+		    for(String ppt_name:ppt_keys)
 		    	writePpt(final_ppts.get(ppt_name), writer);
 		    
 		    for(TraceInfo ti:all_traces)

@@ -5,721 +5,8 @@
 decl-version 2.0
 var-comparability none
 
-ppt ObserverEffect.ObserverA.getValue():::ENTER
+ppt ObserverEffect.TestingObservers.TestingObservers():::ENTER
 ppt-type enter
-parent parent ObserverEffect.ObserverA:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverA
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-
-ppt ObserverEffect.ObserverA.update():::EXIT19
-ppt-type subexit
-parent parent ObserverEffect.ObserverA:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverA
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-
-ppt ObserverEffect.Subject.getState():::EXIT15
-ppt-type subexit
-parent parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver
-  var-kind field dumObserver
-  enclosing-var this
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..]
-  var-kind array
-  enclosing-var this.dumObserver.subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.dumObserver.subject.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers
-  var-kind field observers
-  enclosing-var this
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.state
-  var-kind field state
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers
-  var-kind field observers
-  enclosing-var this.dumObserver.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.state
-  var-kind field state
-  enclosing-var this.dumObserver.subject
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..]
-  var-kind array
-  enclosing-var this.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.dumObserver.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable return
-  var-kind return
-  dec-type int
-  rep-type int
-  comparability 22
-
-ppt ObserverEffect.Observer.Observer():::ENTER
-ppt-type enter
-
-ppt ObserverEffect.Subject.Subject():::EXIT7
-ppt-type subexit
-parent parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver
-  var-kind field dumObserver
-  enclosing-var this
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..]
-  var-kind array
-  enclosing-var this.dumObserver.subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.dumObserver.subject.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers
-  var-kind field observers
-  enclosing-var this
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.state
-  var-kind field state
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers
-  var-kind field observers
-  enclosing-var this.dumObserver.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.state
-  var-kind field state
-  enclosing-var this.dumObserver.subject
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..]
-  var-kind array
-  enclosing-var this.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.dumObserver.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-
-ppt ObserverEffect.Subject.setState(int):::EXIT21
-ppt-type subexit
-parent parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver
-  var-kind field dumObserver
-  enclosing-var this
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..]
-  var-kind array
-  enclosing-var this.dumObserver.subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable state
-  var-kind variable
-  dec-type int
-  rep-type int
-  flags is_param
-  comparability 22
-variable this.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.dumObserver.subject.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers
-  var-kind field observers
-  enclosing-var this
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.state
-  var-kind field state
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers
-  var-kind field observers
-  enclosing-var this.dumObserver.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.state
-  var-kind field state
-  enclosing-var this.dumObserver.subject
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..]
-  var-kind array
-  enclosing-var this.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.dumObserver.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-
-ppt ObserverEffect.ObserverB.getValue():::ENTER
-ppt-type enter
-parent parent ObserverEffect.ObserverB:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverB
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
 
 ppt ObserverEffect.TestingObservers.TestingObservers():::EXIT9
 ppt-type subexit
@@ -800,745 +87,145 @@ variable this.integerList[..]
   comparability 22
   parent ObserverEffect.TestingObservers:::OBJECT 1
 
-ppt ObserverEffect.Subject:::OBJECT
-ppt-type object
-variable this.dumObserver.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.dumObserver
-  var-kind field dumObserver
-  enclosing-var this
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable this.dumObserver.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-variable this.dumObserver.subject.observers[..]
-  var-kind array
-  enclosing-var this.dumObserver.subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-variable this.dumObserver.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-variable this.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable this.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-variable this.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-variable this.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.dumObserver.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-variable this.dumObserver.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable this.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-variable this.dumObserver.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.dumObserver.subject.observers[]
-  flags synthetic classname
-  comparability 22
-variable this.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.observers
-  flags synthetic classname
-  comparability 22
-variable this.observers
-  var-kind field observers
-  enclosing-var this
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-variable this.state
-  var-kind field state
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-variable this.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.observers[]
-  flags synthetic classname
-  comparability 22
-variable this.dumObserver.subject.observers
-  var-kind field observers
-  enclosing-var this.dumObserver.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-variable this.dumObserver.subject.state
-  var-kind field state
-  enclosing-var this.dumObserver.subject
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.dumObserver.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.observers[..]
-  var-kind array
-  enclosing-var this.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-variable this.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.dumObserver.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.observers
-  flags synthetic classname
-  comparability 22
-variable this.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver
-  flags synthetic classname
-  comparability 22
-variable this.dumObserver.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.dumObserver.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable this.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.dumObserver.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-
-ppt ObserverEffect.ObserverB.ObserverB(ObserverEffect.Subject):::ENTER
+ppt ObserverEffect.TestingObservers.main(java.lang.String[]):::ENTER
 ppt-type enter
-variable subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject
+variable args
   var-kind variable
-  dec-type ObserverEffect.Subject
+  dec-type java.lang.String[]
   rep-type hashcode
   flags is_param
   comparability 22
-variable subject.dumObserver.getClass().getName()
+variable args.getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var subject.dumObserver
+  enclosing-var args
   dec-type java.lang.Class
   rep-type java.lang.String
-  function-args subject.dumObserver
+  function-args args
   flags synthetic classname
   comparability 22
-variable subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args subject.observers[]
-  flags synthetic classname
-  comparability 22
-variable subject.dumObserver.subject
-  var-kind field subject
-  enclosing-var subject.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-variable subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args subject.observers
-  flags synthetic classname
-  comparability 22
-variable subject.observers
-  var-kind field observers
-  enclosing-var subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..]
+variable args[..]
   var-kind array
-  enclosing-var subject.observers
+  enclosing-var args
   array 1
-  dec-type java.util.List
+  dec-type java.lang.String[]
   rep-type hashcode[]
   comparability 22
-variable subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.state
-  var-kind field state
-  enclosing-var subject
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
+variable args[..].toString
+  var-kind function toString()
+  enclosing-var args[..]
+  array 1
+  dec-type java.lang.String[]
+  rep-type java.lang.String[]
+  function-args args[]
+  flags synthetic to_string
   comparability 22
 
-ppt ObserverEffect.ObserverA.getValue():::EXIT12
+ppt ObserverEffect.TestingObservers.main(java.lang.String[]):::EXIT131
 ppt-type subexit
-parent parent ObserverEffect.ObserverA:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable this
+variable args
   var-kind variable
-  dec-type ObserverEffect.ObserverA
+  dec-type java.lang.String[]
   rep-type hashcode
   flags is_param
   comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable return
-  var-kind return
-  dec-type int
-  rep-type int
+variable args.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var args
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args args
+  flags synthetic classname
   comparability 22
-
-ppt ObserverEffect.Subject.setState(int):::ENTER
-ppt-type enter
-parent parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver
-  var-kind field dumObserver
-  enclosing-var this
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..]
+variable args[..]
   var-kind array
-  enclosing-var this.dumObserver.subject.observers
+  enclosing-var args
   array 1
-  dec-type java.util.List
+  dec-type java.lang.String[]
   rep-type hashcode[]
   comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.dumObserver.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable state
-  var-kind variable
-  dec-type int
-  rep-type int
-  flags is_param
-  comparability 22
-variable this.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers[..]
+variable args[..].toString
+  var-kind function toString()
+  enclosing-var args[..]
   array 1
-  dec-type java.lang.Class[]
+  dec-type java.lang.String[]
   rep-type java.lang.String[]
-  function-args this.dumObserver.subject.observers[]
-  flags synthetic classname
+  function-args args[]
+  flags synthetic to_string
   comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers
-  var-kind field observers
-  enclosing-var this
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.state
-  var-kind field state
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers
-  var-kind field observers
-  enclosing-var this.dumObserver.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.state
-  var-kind field state
-  enclosing-var this.dumObserver.subject
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..]
-  var-kind array
-  enclosing-var this.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver.subject.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.dumObserver.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
-variable this.dumObserver.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.dumObserver.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Subject:::OBJECT 1
 
-ppt ObserverEffect.ObserverC.getValue():::ENTER
-ppt-type enter
-parent parent ObserverEffect.ObserverC:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverC
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-
-ppt ObserverEffect.ObserverA.update():::ENTER
-ppt-type enter
-parent parent ObserverEffect.ObserverA:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverA
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-
-ppt ObserverEffect.ObserverB:::OBJECT
+ppt ObserverEffect.TestingObservers:::OBJECT
 ppt-type object
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverB
-  rep-type hashcode
-  flags is_param
-  comparability 22
-
-ppt ObserverEffect.ObserverC:::OBJECT
-ppt-type object
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverC
-  rep-type hashcode
-  flags is_param
-  comparability 22
-
-ppt ObserverEffect.ObserverC.getValue():::EXIT12
-ppt-type subexit
-parent parent ObserverEffect.ObserverC:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverC
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-variable return
-  var-kind return
-  dec-type int
-  rep-type int
-  comparability 22
-
-ppt ObserverEffect.ObserverB.ObserverB(ObserverEffect.Subject):::EXIT9
-ppt-type subexit
-parent parent ObserverEffect.ObserverB:::OBJECT 1
-variable subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
-variable subject
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-variable subject.dumObserver.getClass().getName()
+variable this.stringList.getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var subject.dumObserver
+  enclosing-var this.stringList
   dec-type java.lang.Class
   rep-type java.lang.String
-  function-args subject.dumObserver
+  function-args this.stringList
   flags synthetic classname
   comparability 22
-variable subject.observers[..].getClass().getName()
+variable this.stringList[..].getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var subject.observers[..]
+  enclosing-var this.stringList[..]
   array 1
   dec-type java.lang.Class[]
   rep-type java.lang.String[]
-  function-args subject.observers[]
+  function-args this.stringList[]
   flags synthetic classname
   comparability 22
-variable subject.dumObserver.subject
-  var-kind field subject
-  enclosing-var subject.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
+variable this.integerList.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.integerList
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.integerList
+  flags synthetic classname
   comparability 22
 variable this
   var-kind variable
-  dec-type ObserverEffect.ObserverB
+  dec-type ObserverEffect.TestingObservers
   rep-type hashcode
   flags is_param
   comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
-variable subject.observers.getClass().getName()
+variable this.integerList[..].getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args subject.observers
+  enclosing-var this.integerList[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.integerList[]
   flags synthetic classname
   comparability 22
-variable subject.observers
-  var-kind field observers
-  enclosing-var subject
+variable this.integerList
+  var-kind field integerList
+  enclosing-var this
   dec-type java.util.List
   rep-type hashcode
   comparability 22
-variable subject.observers[..]
+variable this.stringList[..]
   var-kind array
-  enclosing-var subject.observers
+  enclosing-var this.stringList
   array 1
   dec-type java.util.List
   rep-type hashcode[]
   comparability 22
-variable subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var subject.observers[..]
-  dec-type ObserverC
+variable this.stringList
+  var-kind field stringList
+  enclosing-var this
+  dec-type java.util.List
   rep-type hashcode
   comparability 22
-variable subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.state
-  var-kind field state
-  enclosing-var subject
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
+variable this.integerList[..]
+  var-kind array
+  enclosing-var this.integerList
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
   comparability 22
 
-ppt ObserverEffect.Subject.notifyAllObservers():::EXIT31
+ppt ObserverEffect.Subject.Subject():::ENTER
+ppt-type enter
+
+ppt ObserverEffect.Subject.Subject():::EXIT7
 ppt-type subexit
 parent parent ObserverEffect.Subject:::OBJECT 1
 variable this.dumObserver.subject.observers[..].ObserverB.value
@@ -1970,29 +657,8 @@ variable this.dumObserver.subject.observers[..].ObserverA.value
   comparability 22
   parent ObserverEffect.Subject:::OBJECT 1
 
-ppt ObserverEffect.ObserverB.update():::ENTER
-ppt-type enter
-parent parent ObserverEffect.ObserverB:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverB
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
-
-ppt ObserverEffect.Subject.Subject():::ENTER
-ppt-type enter
-
-ppt ObserverEffect.Subject.notifyAllObservers():::ENTER
-ppt-type enter
+ppt ObserverEffect.Subject.getState():::EXIT15
+ppt-type subexit
 parent parent ObserverEffect.Subject:::OBJECT 1
 variable this.dumObserver.subject.observers[..].ObserverB.value
   var-kind field value
@@ -2206,462 +872,455 @@ variable this.dumObserver.subject.observers[..].ObserverA.value
   rep-type int
   comparability 22
   parent ObserverEffect.Subject:::OBJECT 1
-
-ppt ObserverEffect.Observer.Observer():::EXIT9
-ppt-type subexit
-parent parent ObserverEffect.Observer:::OBJECT 1
-variable this.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.subject.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.subject.observers[]
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.subject.observers
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers
-  var-kind field observers
-  enclosing-var this.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.state
-  var-kind field state
-  enclosing-var this.subject
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..]
-  var-kind array
-  enclosing-var this.subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject
-  var-kind field subject
-  enclosing-var this
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-variable this.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-  parent ObserverEffect.Observer:::OBJECT 1
-
-ppt ObserverEffect.ObserverA:::OBJECT
-ppt-type object
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverA
-  rep-type hashcode
-  flags is_param
-  comparability 22
-
-ppt ObserverEffect.Observer:::OBJECT
-ppt-type object
-variable this.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this
-  flags synthetic classname
-  comparability 22
-variable this.subject.dumObserver.subject
-  var-kind field subject
-  enclosing-var this.subject.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-variable this.subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args this.subject.observers[]
-  flags synthetic classname
-  comparability 22
-variable this.subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.subject.observers
-  flags synthetic classname
-  comparability 22
-variable this.subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var this.subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable this
-  var-kind variable
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  flags is_param
-  comparability 22
-variable this.subject.observers
-  var-kind field observers
-  enclosing-var this.subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-variable this.subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var this.subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable this.subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var this.subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args this.subject.dumObserver
-  flags synthetic classname
-  comparability 22
-variable this.subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var this.subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.subject.state
-  var-kind field state
-  enclosing-var this.subject
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var this.subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-variable this.subject.observers[..]
-  var-kind array
-  enclosing-var this.subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-variable this.subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var this.subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-variable this.subject
-  var-kind field subject
-  enclosing-var this
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-variable this.subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var this.subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable this.subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var this.subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-
-ppt ObserverEffect.ObserverA.ObserverA(ObserverEffect.Subject):::ENTER
-ppt-type enter
-variable subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject
-  var-kind variable
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  flags is_param
-  comparability 22
-variable subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args subject.dumObserver
-  flags synthetic classname
-  comparability 22
-variable subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args subject.observers[]
-  flags synthetic classname
-  comparability 22
-variable subject.dumObserver.subject
-  var-kind field subject
-  enclosing-var subject.dumObserver
-  dec-type ObserverEffect.Subject
-  rep-type hashcode
-  comparability 22
-variable subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args subject.observers
-  flags synthetic classname
-  comparability 22
-variable subject.observers
-  var-kind field observers
-  enclosing-var subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..]
-  var-kind array
-  enclosing-var subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-variable subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.state
-  var-kind field state
-  enclosing-var subject
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
-  comparability 22
-
-ppt ObserverEffect.ObserverB.getValue():::EXIT12
-ppt-type subexit
-parent parent ObserverEffect.ObserverB:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverB
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
 variable return
   var-kind return
   dec-type int
   rep-type int
   comparability 22
 
-ppt ObserverEffect.TestingObservers:::OBJECT
-ppt-type object
-variable this.stringList.getClass().getName()
+ppt ObserverEffect.Subject.setState(int):::ENTER
+ppt-type enter
+parent parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver
+  var-kind field dumObserver
+  enclosing-var this
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..]
+  var-kind array
+  enclosing-var this.dumObserver.subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver.getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var this.stringList
+  enclosing-var this.dumObserver.subject.dumObserver
   dec-type java.lang.Class
   rep-type java.lang.String
-  function-args this.stringList
+  function-args this.dumObserver.subject.dumObserver
   flags synthetic classname
   comparability 22
-variable this.stringList[..].getClass().getName()
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable state
+  var-kind variable
+  dec-type int
+  rep-type int
+  flags is_param
+  comparability 22
+variable this.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var this.stringList[..]
+  enclosing-var this.dumObserver.subject.observers[..]
   array 1
   dec-type java.lang.Class[]
   rep-type java.lang.String[]
-  function-args this.stringList[]
+  function-args this.dumObserver.subject.observers[]
   flags synthetic classname
   comparability 22
-variable this.integerList.getClass().getName()
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers.getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var this.integerList
+  enclosing-var this.observers
   dec-type java.lang.Class
   rep-type java.lang.String
-  function-args this.integerList
+  function-args this.observers
   flags synthetic classname
   comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers
+  var-kind field observers
+  enclosing-var this
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.state
+  var-kind field state
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
 variable this
   var-kind variable
-  dec-type ObserverEffect.TestingObservers
+  dec-type ObserverEffect.Subject
   rep-type hashcode
   flags is_param
   comparability 22
-variable this.integerList[..].getClass().getName()
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].getClass().getName()
   var-kind function getClass().getName()
-  enclosing-var this.integerList[..]
+  enclosing-var this.observers[..]
   array 1
   dec-type java.lang.Class[]
   rep-type java.lang.String[]
-  function-args this.integerList[]
+  function-args this.observers[]
   flags synthetic classname
   comparability 22
-variable this.integerList
-  var-kind field integerList
-  enclosing-var this
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers
+  var-kind field observers
+  enclosing-var this.dumObserver.subject
   dec-type java.util.List
   rep-type hashcode
   comparability 22
-variable this.stringList[..]
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.state
+  var-kind field state
+  enclosing-var this.dumObserver.subject
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..]
   var-kind array
-  enclosing-var this.stringList
+  enclosing-var this.observers
   array 1
   dec-type java.util.List
   rep-type hashcode[]
   comparability 22
-variable this.stringList
-  var-kind field stringList
-  enclosing-var this
-  dec-type java.util.List
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.dumObserver.subject
+  dec-type ObserverEffect.Observer
   rep-type hashcode
   comparability 22
-variable this.integerList[..]
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+
+ppt ObserverEffect.Subject.setState(int):::EXIT21
+ppt-type subexit
+parent parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver
+  var-kind field dumObserver
+  enclosing-var this
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..]
   var-kind array
-  enclosing-var this.integerList
+  enclosing-var this.dumObserver.subject.observers
   array 1
   dec-type java.util.List
   rep-type hashcode[]
   comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable state
+  var-kind variable
+  dec-type int
+  rep-type int
+  flags is_param
+  comparability 22
+variable this.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.dumObserver.subject.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers
+  var-kind field observers
+  enclosing-var this
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.state
+  var-kind field state
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers
+  var-kind field observers
+  enclosing-var this.dumObserver.subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.state
+  var-kind field state
+  enclosing-var this.dumObserver.subject
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..]
+  var-kind array
+  enclosing-var this.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.dumObserver.subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
 
 ppt ObserverEffect.Subject.registerObserver(ObserverEffect.Observer):::ENTER
 ppt-type enter
@@ -2985,27 +1644,6 @@ variable observer.subject.dumObserver.getClass().getName()
   flags synthetic classname
   comparability 22
 
-ppt ObserverEffect.ObserverC.update():::EXIT19
-ppt-type subexit
-parent parent ObserverEffect.ObserverC:::OBJECT 1
-variable this.value
-  var-kind field value
-  enclosing-var this
-  dec-type int
-  rep-type int
-  comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-variable this
-  var-kind variable
-  dec-type ObserverEffect.ObserverC
-  rep-type hashcode
-  flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-
-ppt ObserverEffect.TestingObservers.TestingObservers():::ENTER
-ppt-type enter
-
 ppt ObserverEffect.Subject.registerObserver(ObserverEffect.Observer):::EXIT25
 ppt-type subexit
 parent parent ObserverEffect.Subject:::OBJECT 1
@@ -3328,23 +1966,1493 @@ variable observer.subject.dumObserver.getClass().getName()
   flags synthetic classname
   comparability 22
 
-ppt ObserverEffect.ObserverC.update():::ENTER
+ppt ObserverEffect.Subject.notifyAllObservers():::ENTER
 ppt-type enter
-parent parent ObserverEffect.ObserverC:::OBJECT 1
+parent parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver
+  var-kind field dumObserver
+  enclosing-var this
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..]
+  var-kind array
+  enclosing-var this.dumObserver.subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.dumObserver.subject.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers
+  var-kind field observers
+  enclosing-var this
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.state
+  var-kind field state
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers
+  var-kind field observers
+  enclosing-var this.dumObserver.subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.state
+  var-kind field state
+  enclosing-var this.dumObserver.subject
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..]
+  var-kind array
+  enclosing-var this.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.dumObserver.subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+
+ppt ObserverEffect.Subject.notifyAllObservers():::EXIT31
+ppt-type subexit
+parent parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver
+  var-kind field dumObserver
+  enclosing-var this
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..]
+  var-kind array
+  enclosing-var this.dumObserver.subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.dumObserver.subject.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers
+  var-kind field observers
+  enclosing-var this
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.state
+  var-kind field state
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers
+  var-kind field observers
+  enclosing-var this.dumObserver.subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.state
+  var-kind field state
+  enclosing-var this.dumObserver.subject
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..]
+  var-kind array
+  enclosing-var this.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.dumObserver.subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+variable this.dumObserver.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Subject:::OBJECT 1
+
+ppt ObserverEffect.Subject:::OBJECT
+ppt-type object
+variable this.dumObserver.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.dumObserver
+  var-kind field dumObserver
+  enclosing-var this
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable this.dumObserver.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable this.dumObserver.subject.observers[..]
+  var-kind array
+  enclosing-var this.dumObserver.subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable this.dumObserver.subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.dumObserver
+  flags synthetic classname
+  comparability 22
+variable this.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable this.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+variable this.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable this.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.dumObserver.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+variable this.dumObserver.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.dumObserver.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable this.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable this.dumObserver.subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.dumObserver.subject.observers[]
+  flags synthetic classname
+  comparability 22
+variable this.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.observers
+  flags synthetic classname
+  comparability 22
+variable this.observers
+  var-kind field observers
+  enclosing-var this
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable this.state
+  var-kind field state
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+variable this
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+variable this.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.observers[]
+  flags synthetic classname
+  comparability 22
+variable this.dumObserver.subject.observers
+  var-kind field observers
+  enclosing-var this.dumObserver.subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable this.dumObserver.subject.state
+  var-kind field state
+  enclosing-var this.dumObserver.subject
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.dumObserver.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.observers[..]
+  var-kind array
+  enclosing-var this.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable this.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.dumObserver.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver.subject.observers
+  flags synthetic classname
+  comparability 22
+variable this.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.dumObserver
+  flags synthetic classname
+  comparability 22
+variable this.dumObserver.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.dumObserver.subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable this.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.dumObserver.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.dumObserver.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+
+ppt ObserverEffect.Observer.Observer():::ENTER
+ppt-type enter
+
+ppt ObserverEffect.Observer.Observer():::EXIT9
+ppt-type subexit
+parent parent ObserverEffect.Observer:::OBJECT 1
+variable this.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.subject.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.subject.observers[]
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.subject.observers
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers
+  var-kind field observers
+  enclosing-var this.subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.subject.dumObserver
+  flags synthetic classname
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.state
+  var-kind field state
+  enclosing-var this.subject
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..]
+  var-kind array
+  enclosing-var this.subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject
+  var-kind field subject
+  enclosing-var this
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+variable this.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+  parent ObserverEffect.Observer:::OBJECT 1
+
+ppt ObserverEffect.Observer:::OBJECT
+ppt-type object
+variable this.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this
+  flags synthetic classname
+  comparability 22
+variable this.subject.dumObserver.subject
+  var-kind field subject
+  enclosing-var this.subject.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable this.subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args this.subject.observers[]
+  flags synthetic classname
+  comparability 22
+variable this.subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.subject.observers
+  flags synthetic classname
+  comparability 22
+variable this.subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var this.subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable this
+  var-kind variable
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  flags is_param
+  comparability 22
+variable this.subject.observers
+  var-kind field observers
+  enclosing-var this.subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable this.subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var this.subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable this.subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var this.subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args this.subject.dumObserver
+  flags synthetic classname
+  comparability 22
+variable this.subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var this.subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.subject.state
+  var-kind field state
+  enclosing-var this.subject
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var this.subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.subject.observers[..]
+  var-kind array
+  enclosing-var this.subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable this.subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var this.subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable this.subject
+  var-kind field subject
+  enclosing-var this
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable this.subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var this.subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable this.subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var this.subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+
+ppt ObserverEffect.ObserverA.ObserverA(ObserverEffect.Subject):::ENTER
+ppt-type enter
+variable subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+variable subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.dumObserver
+  flags synthetic classname
+  comparability 22
+variable subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args subject.observers[]
+  flags synthetic classname
+  comparability 22
+variable subject.dumObserver.subject
+  var-kind field subject
+  enclosing-var subject.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.observers
+  flags synthetic classname
+  comparability 22
+variable subject.observers
+  var-kind field observers
+  enclosing-var subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..]
+  var-kind array
+  enclosing-var subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.state
+  var-kind field state
+  enclosing-var subject
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+
+ppt ObserverEffect.ObserverA.ObserverA(ObserverEffect.Subject):::EXIT9
+ppt-type subexit
+parent parent ObserverEffect.ObserverA:::OBJECT 1
+variable subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
 variable this.value
   var-kind field value
   enclosing-var this
   dec-type int
   rep-type int
   comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
-variable this
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable subject
   var-kind variable
-  dec-type ObserverEffect.ObserverC
+  dec-type ObserverEffect.Subject
   rep-type hashcode
   flags is_param
   comparability 22
-  parent ObserverEffect.ObserverC:::OBJECT 1
+variable subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.dumObserver
+  flags synthetic classname
+  comparability 22
+variable subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args subject.observers[]
+  flags synthetic classname
+  comparability 22
+variable subject.dumObserver.subject
+  var-kind field subject
+  enclosing-var subject.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverA
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.observers
+  flags synthetic classname
+  comparability 22
+variable subject.observers
+  var-kind field observers
+  enclosing-var subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..]
+  var-kind array
+  enclosing-var subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.state
+  var-kind field state
+  enclosing-var subject
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+
+ppt ObserverEffect.ObserverA.getValue():::ENTER
+ppt-type enter
+parent parent ObserverEffect.ObserverA:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverA
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+
+ppt ObserverEffect.ObserverA.getValue():::EXIT12
+ppt-type subexit
+parent parent ObserverEffect.ObserverA:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverA
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable return
+  var-kind return
+  dec-type int
+  rep-type int
+  comparability 22
+
+ppt ObserverEffect.ObserverA.update():::ENTER
+ppt-type enter
+parent parent ObserverEffect.ObserverA:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverA
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+
+ppt ObserverEffect.ObserverA.update():::EXIT19
+ppt-type subexit
+parent parent ObserverEffect.ObserverA:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverA
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverA:::OBJECT 1
+
+ppt ObserverEffect.ObserverA:::OBJECT
+ppt-type object
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverA
+  rep-type hashcode
+  flags is_param
+  comparability 22
+
+ppt ObserverEffect.ObserverB.ObserverB(ObserverEffect.Subject):::ENTER
+ppt-type enter
+variable subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+variable subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.dumObserver
+  flags synthetic classname
+  comparability 22
+variable subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args subject.observers[]
+  flags synthetic classname
+  comparability 22
+variable subject.dumObserver.subject
+  var-kind field subject
+  enclosing-var subject.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.observers
+  flags synthetic classname
+  comparability 22
+variable subject.observers
+  var-kind field observers
+  enclosing-var subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..]
+  var-kind array
+  enclosing-var subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.state
+  var-kind field state
+  enclosing-var subject
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+
+ppt ObserverEffect.ObserverB.ObserverB(ObserverEffect.Subject):::EXIT9
+ppt-type subexit
+parent parent ObserverEffect.ObserverB:::OBJECT 1
+variable subject.observers[..].ObserverA.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverA
+  dec-type int
+  rep-type int
+  comparability 22
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable subject
+  var-kind variable
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  flags is_param
+  comparability 22
+variable subject.dumObserver.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.dumObserver
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.dumObserver
+  flags synthetic classname
+  comparability 22
+variable subject.observers[..].getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers[..]
+  array 1
+  dec-type java.lang.Class[]
+  rep-type java.lang.String[]
+  function-args subject.observers[]
+  flags synthetic classname
+  comparability 22
+variable subject.dumObserver.subject
+  var-kind field subject
+  enclosing-var subject.dumObserver
+  dec-type ObserverEffect.Subject
+  rep-type hashcode
+  comparability 22
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverB
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable subject.observers.getClass().getName()
+  var-kind function getClass().getName()
+  enclosing-var subject.observers
+  dec-type java.lang.Class
+  rep-type java.lang.String
+  function-args subject.observers
+  flags synthetic classname
+  comparability 22
+variable subject.observers
+  var-kind field observers
+  enclosing-var subject
+  dec-type java.util.List
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..]
+  var-kind array
+  enclosing-var subject.observers
+  array 1
+  dec-type java.util.List
+  rep-type hashcode[]
+  comparability 22
+variable subject.observers[..].ObserverC.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverC
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverC
+  var-kind field ObserverC
+  enclosing-var subject.observers[..]
+  dec-type ObserverC
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB.value
+  var-kind field value
+  enclosing-var subject.observers[..].ObserverB
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.state
+  var-kind field state
+  enclosing-var subject
+  dec-type int
+  rep-type int
+  comparability 22
+variable subject.observers[..].ObserverA
+  var-kind field ObserverA
+  enclosing-var subject.observers[..]
+  dec-type ObserverA
+  rep-type hashcode
+  comparability 22
+variable subject.dumObserver
+  var-kind field dumObserver
+  enclosing-var subject
+  dec-type ObserverEffect.Observer
+  rep-type hashcode
+  comparability 22
+variable subject.observers[..].ObserverB
+  var-kind field ObserverB
+  enclosing-var subject.observers[..]
+  dec-type ObserverB
+  rep-type hashcode
+  comparability 22
+
+ppt ObserverEffect.ObserverB.getValue():::ENTER
+ppt-type enter
+parent parent ObserverEffect.ObserverB:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverB
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+
+ppt ObserverEffect.ObserverB.getValue():::EXIT12
+ppt-type subexit
+parent parent ObserverEffect.ObserverB:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverB
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable return
+  var-kind return
+  dec-type int
+  rep-type int
+  comparability 22
+
+ppt ObserverEffect.ObserverB.update():::ENTER
+ppt-type enter
+parent parent ObserverEffect.ObserverB:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverB
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+
+ppt ObserverEffect.ObserverB.update():::EXIT19
+ppt-type subexit
+parent parent ObserverEffect.ObserverB:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverB
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverB:::OBJECT 1
+
+ppt ObserverEffect.ObserverB:::OBJECT
+ppt-type object
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverB
+  rep-type hashcode
+  flags is_param
+  comparability 22
 
 ppt ObserverEffect.ObserverC.ObserverC(ObserverEffect.Subject):::ENTER
 ppt-type enter
@@ -3445,39 +3553,6 @@ variable subject.dumObserver
   enclosing-var subject
   dec-type ObserverEffect.Observer
   rep-type hashcode
-  comparability 22
-
-ppt ObserverEffect.TestingObservers.main(java.lang.String[]):::EXIT131
-ppt-type subexit
-variable args
-  var-kind variable
-  dec-type java.lang.String[]
-  rep-type hashcode
-  flags is_param
-  comparability 22
-variable args.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var args
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args args
-  flags synthetic classname
-  comparability 22
-variable args[..]
-  var-kind array
-  enclosing-var args
-  array 1
-  dec-type java.lang.String[]
-  rep-type hashcode[]
-  comparability 22
-variable args[..].toString
-  var-kind function toString()
-  enclosing-var args[..]
-  array 1
-  dec-type java.lang.String[]
-  rep-type java.lang.String[]
-  function-args args[]
-  flags synthetic to_string
   comparability 22
 
 ppt ObserverEffect.ObserverC.ObserverC(ObserverEffect.Subject):::EXIT9
@@ -3596,171 +3671,96 @@ variable subject.dumObserver
   rep-type hashcode
   comparability 22
 
-ppt ObserverEffect.TestingObservers.main(java.lang.String[]):::ENTER
+ppt ObserverEffect.ObserverC.getValue():::ENTER
 ppt-type enter
-variable args
-  var-kind variable
-  dec-type java.lang.String[]
-  rep-type hashcode
-  flags is_param
-  comparability 22
-variable args.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var args
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args args
-  flags synthetic classname
-  comparability 22
-variable args[..]
-  var-kind array
-  enclosing-var args
-  array 1
-  dec-type java.lang.String[]
-  rep-type hashcode[]
-  comparability 22
-variable args[..].toString
-  var-kind function toString()
-  enclosing-var args[..]
-  array 1
-  dec-type java.lang.String[]
-  rep-type java.lang.String[]
-  function-args args[]
-  flags synthetic to_string
-  comparability 22
-
-ppt ObserverEffect.ObserverB.update():::EXIT19
-ppt-type subexit
-parent parent ObserverEffect.ObserverB:::OBJECT 1
+parent parent ObserverEffect.ObserverC:::OBJECT 1
 variable this.value
   var-kind field value
   enclosing-var this
   dec-type int
   rep-type int
   comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
+  parent ObserverEffect.ObserverC:::OBJECT 1
 variable this
   var-kind variable
-  dec-type ObserverEffect.ObserverB
+  dec-type ObserverEffect.ObserverC
   rep-type hashcode
   flags is_param
   comparability 22
-  parent ObserverEffect.ObserverB:::OBJECT 1
+  parent ObserverEffect.ObserverC:::OBJECT 1
 
-ppt ObserverEffect.ObserverA.ObserverA(ObserverEffect.Subject):::EXIT9
+ppt ObserverEffect.ObserverC.getValue():::EXIT12
 ppt-type subexit
-parent parent ObserverEffect.ObserverA:::OBJECT 1
-variable subject.observers[..].ObserverA.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverA
-  dec-type int
-  rep-type int
-  comparability 22
+parent parent ObserverEffect.ObserverC:::OBJECT 1
 variable this.value
   var-kind field value
   enclosing-var this
   dec-type int
   rep-type int
   comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable subject
+  parent ObserverEffect.ObserverC:::OBJECT 1
+variable this
   var-kind variable
-  dec-type ObserverEffect.Subject
+  dec-type ObserverEffect.ObserverC
   rep-type hashcode
   flags is_param
   comparability 22
-variable subject.dumObserver.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.dumObserver
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args subject.dumObserver
-  flags synthetic classname
+  parent ObserverEffect.ObserverC:::OBJECT 1
+variable return
+  var-kind return
+  dec-type int
+  rep-type int
   comparability 22
-variable subject.observers[..].getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.observers[..]
-  array 1
-  dec-type java.lang.Class[]
-  rep-type java.lang.String[]
-  function-args subject.observers[]
-  flags synthetic classname
+
+ppt ObserverEffect.ObserverC.update():::ENTER
+ppt-type enter
+parent parent ObserverEffect.ObserverC:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
   comparability 22
-variable subject.dumObserver.subject
-  var-kind field subject
-  enclosing-var subject.dumObserver
-  dec-type ObserverEffect.Subject
+  parent ObserverEffect.ObserverC:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverC
   rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverC:::OBJECT 1
+
+ppt ObserverEffect.ObserverC.update():::EXIT19
+ppt-type subexit
+parent parent ObserverEffect.ObserverC:::OBJECT 1
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
+  comparability 22
+  parent ObserverEffect.ObserverC:::OBJECT 1
+variable this
+  var-kind variable
+  dec-type ObserverEffect.ObserverC
+  rep-type hashcode
+  flags is_param
+  comparability 22
+  parent ObserverEffect.ObserverC:::OBJECT 1
+
+ppt ObserverEffect.ObserverC:::OBJECT
+ppt-type object
+variable this.value
+  var-kind field value
+  enclosing-var this
+  dec-type int
+  rep-type int
   comparability 22
 variable this
   var-kind variable
-  dec-type ObserverEffect.ObserverA
+  dec-type ObserverEffect.ObserverC
   rep-type hashcode
   flags is_param
-  comparability 22
-  parent ObserverEffect.ObserverA:::OBJECT 1
-variable subject.observers.getClass().getName()
-  var-kind function getClass().getName()
-  enclosing-var subject.observers
-  dec-type java.lang.Class
-  rep-type java.lang.String
-  function-args subject.observers
-  flags synthetic classname
-  comparability 22
-variable subject.observers
-  var-kind field observers
-  enclosing-var subject
-  dec-type java.util.List
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..]
-  var-kind array
-  enclosing-var subject.observers
-  array 1
-  dec-type java.util.List
-  rep-type hashcode[]
-  comparability 22
-variable subject.observers[..].ObserverC.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverC
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverC
-  var-kind field ObserverC
-  enclosing-var subject.observers[..]
-  dec-type ObserverC
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB.value
-  var-kind field value
-  enclosing-var subject.observers[..].ObserverB
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.state
-  var-kind field state
-  enclosing-var subject
-  dec-type int
-  rep-type int
-  comparability 22
-variable subject.observers[..].ObserverA
-  var-kind field ObserverA
-  enclosing-var subject.observers[..]
-  dec-type ObserverA
-  rep-type hashcode
-  comparability 22
-variable subject.dumObserver
-  var-kind field dumObserver
-  enclosing-var subject
-  dec-type ObserverEffect.Observer
-  rep-type hashcode
-  comparability 22
-variable subject.observers[..].ObserverB
-  var-kind field ObserverB
-  enclosing-var subject.observers[..]
-  dec-type ObserverB
-  rep-type hashcode
   comparability 22
 
 ObserverEffect.TestingObservers.main(java.lang.String[]):::ENTER
