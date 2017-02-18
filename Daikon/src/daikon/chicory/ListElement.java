@@ -87,13 +87,30 @@ public class ListElement extends DaikonVariableInfo{
 		if (is_static)
 			return VarKind.VARIABLE;
 		else
-			return VarKind.LISTELEMENT;
+			return VarKind.FIELD;
 		//throw new RuntimeException ("No var-kind for ListElement");
 	}
 
 	public boolean is_primitive() {
 		return is_primitive;
 	}
-
-
+	
+	/**
+     * Returns the name of this field.  Since statics are top level, they
+     * have no relative name.  Fields return their field name.
+     **/
+    public /*@Nullable*/ String get_relative_name() {
+      if (is_static)
+        return null;
+      else {
+        //String theName = field.getName();
+        // Convert the internal reflection name for an outer class
+        // 'this' field to the Java language format.
+        //if (theName.startsWith("this$")) {
+        //    theName = field.getType().getName() + ".this";
+        //}
+    	String theName = clazz.getSimpleName();  
+        return theName;
+      }
+    }
 }
