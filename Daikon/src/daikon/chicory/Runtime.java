@@ -635,7 +635,7 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     	try {
     		
 		    //process_new_classes();
-		    process_classes();
+		    process_classes(true, obj, mi_index);
 		
 		    //this is the method that we encountered and would like to get the its traces
 		    MethodInfo mi = methods.get(mi_index);
@@ -711,7 +711,7 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
 	      in_dtrace = true;
 	     try {
 	    	  //process_new_classes();
-	    	  process_classes();
+	    	  process_classes(false, obj, mi_index);
 	    	  
 	    	  // Write out the infromation for this method
 	    	  MethodInfo mi = methods.get(mi_index);
@@ -992,43 +992,83 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
      * or not. Then we will write traces based on those fresh 
      * information. 
      * 
+     * @param isEntry - true if the method is invoked by enter() false if invoked by exit()
+     * @param obj - Receiver of the method that was entered/exited.  Null if method is static or init
      * 
      */
-    public static void process_classes(){
+    public static void process_classes(Boolean isEntry, /*@Nullable*/ Object obj, int mi_index){
     	
     	
     	System.out.println("\nenter >>>>> [Chicory.Runtime.process_classes()]");
     	
+    	MethodInfo mi = methods.get(mi_index);
+    	ClassInfo ci = mi.class_info;
+    	
+    	
+    	System.out.println ("\tstart processing class " + ci.class_name);
+    	    		
+    	    		
+    	if (debug)
+    		System.out.println ("processing class " + ci.class_name);
+    	
+    	//print the header of the .dtrace file
+    	if (first_class) {
+    		decl_writer.printHeaderInfo (ci.class_name);
+    		first_class = false;	
+    	}
+    	
+    	ci.initViaReflection();
+    	
+    	//TODO use this for constructing only this method that we are writing traces for
+    	mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
+    	mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
+    	
+//    	for (MethodInfo m_info: ci.method_infos)
+//    	{
+//    		m_info.traversalEnter = RootInfo.enter_process(m_info, Runtime.nesting_depth);
+//    		m_info.traversalExit = RootInfo.exit_process(m_info, Runtime.nesting_depth);	
+//    	}
+    	
+    	//the comp_info is always null for me.
+    	
+    	decl_writer.print_decl_class (ci, comp_info, mi);
+    	
+    	System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
+        }
+    	
     	//TODO do I need any other arguments?
     	//TODO is it OK to init class for many times? 
-    	synchronized (all_classes){
-    	
-	    	for(ClassInfo class_info:all_classes){
-	    		System.out.println ("\tstart processing class " + class_info.class_name);
-	    		
-	    		if (debug)
-	                System.out.println ("processing class " + class_info.class_name);
-	    		
-	    		//print the header of the .dtrace file 
-	    		if (first_class) {
-	                decl_writer.printHeaderInfo (class_info.class_name);
-	                first_class = false;
-	              }
-	    		
-	    		class_info.initViaReflection();
-	    		
-	    		for (MethodInfo mi: class_info.method_infos)
-	            {
-	                mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
-	                mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
-	            }
-	    		
-	    		//the comp_info is always null for me. 
-	            decl_writer.print_decl_class (class_info, comp_info);
-	    	}
-    	}
-    	System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
-    }
+//    	synchronized (all_classes){
+//    	
+//    		System.out.println("before -> all_classes.size(): " + all_classes.size());
+//	    	for(ClassInfo class_info:all_classes){
+//	    		System.out.println("within -> all_classes.size(): " + all_classes.size());
+//	    		System.out.println ("\tstart processing class " + class_info.class_name);
+//	    		
+//	    		if (debug)
+//	                System.out.println ("processing class " + class_info.class_name);
+//	    		
+//	    		//print the header of the .dtrace file 
+//	    		if (first_class) {
+//	                decl_writer.printHeaderInfo (class_info.class_name);
+//	                first_class = false;
+//	              }
+//	    		
+//	    		class_info.initViaReflection();
+//	    		
+//	    		for (MethodInfo mi: class_info.method_infos)
+//	            {
+//	                mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
+//	                mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
+//	            }
+//	    		
+//	    		//the comp_info is always null for me. 
+//	            decl_writer.print_decl_class (class_info, comp_info);
+//	    	}
+//	    	System.out.println("after -> all_classes.size(): " + all_classes.size());
+//    	}
+//    	System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
+//    }
 
     /**
      * Writes out decl information for any new classes and removes

@@ -289,6 +289,64 @@ public class DeclWriter extends DaikonWriter {
     }
 
     /**
+     * @author zalsaeed
+     * 
+     * Based on the older version of this method, but writes for only one method.
+     * 
+     * Prints declarations for all the methods in the indicated class.
+     * This method is called in Runtime to print decls info for a class.
+     *
+     * @param cinfo
+     *        Class whose declarations should be printed.
+     *
+     */
+    public void print_decl_class (ClassInfo cinfo, /*@Nullable*/ DeclReader comp_info, MethodInfo mi) {
+
+      
+    	System.out.println("\t\t\tenter >>>>> [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
+    	if (debug) System.out.println("Enter print_decl_class: " + cinfo);
+    	
+    	Member member = mi.member;
+
+    		
+    	// Don't want to instrument these types of methods
+    	if (!shouldInstrumentMethod(member))	
+    		return;
+    	
+    	// Gets the root of the method's traversal pattern
+    	RootInfo enterRoot = mi.traversalEnter;
+    	
+    	assert enterRoot != null : "Traversal pattern not initialized "
+    			+ "at method " + mi.method_name;
+	
+    	print_method (mi, enterRoot, methodEntryName(member), PptType.ENTER,
+    			comp_info);
+    	
+    	// Print exit program point for EACH exit location in the method
+    	// Note that there may not be any exits.  They may get filtered out,
+    	// or some methods don't have an exit (only a throw)
+    	
+    	Set<Integer> theExits = new HashSet<Integer>(mi.exit_locations);
+    	for (Integer exitLoc : theExits) {
+    		// Get the root of the method's traversal pattern
+    		RootInfo exitRoot = mi.traversalExit;
+    		assert enterRoot != null : "Traversal pattern not initialized at "
+    				+ "method " + mi.method_name;
+    		
+    		print_method (mi, exitRoot,methodExitName(member,exitLoc.intValue()),
+    				PptType.SUBEXIT, comp_info);	
+    	}	
+    
+    	print_class_ppt (cinfo, cinfo.class_name + ":::CLASS", comp_info);
+    	print_object_ppt (cinfo, classObjectName(cinfo.clazz), comp_info);
+
+    	if (debug) System.out.println("Exit print_decl_class");
+    	System.out.println("\t\t\texit <<<<<< [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
+    }
+    
+    
+    
+    /**
      * Prints declarations for all the methods in the indicated class.
      * This method is called in Runtime to print decls info for a class.
      *
@@ -302,43 +360,46 @@ public class DeclWriter extends DaikonWriter {
     	System.out.println("\t\t\tenter >>>>> [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
     	if (debug) System.out.println("Enter print_decl_class: " + cinfo);
 
-      // Print all methods and constructors
-      for (MethodInfo mi : cinfo.get_method_infos()) {
+    	// Print all methods and constructors      
+    	for (MethodInfo mi : cinfo.get_method_infos()) {
+        
+    		Member member = mi.member;
 
-        Member member = mi.member;
+    		// Don't want to instrument these types of methods        
+    		if (!shouldInstrumentMethod(member))
+    			continue;
+        
+    		// Gset the root of the method's traversal pattern
+        
+    		RootInfo enterRoot = mi.traversalEnter;
+        
+    		assert enterRoot != null : "Traversal pattern not initialized "
+    				+ "at method " + mi.method_name;
 
-        // Don't want to instrument these types of methods
-        if (!shouldInstrumentMethod(member))
-          continue;
-
-        // Gset the root of the method's traversal pattern
-        RootInfo enterRoot = mi.traversalEnter;
-        assert enterRoot != null : "Traversal pattern not initialized "
-          + "at method " + mi.method_name;
-
-        print_method (mi, enterRoot, methodEntryName(member), PptType.ENTER,
-                      comp_info);
-
-        // Print exit program point for EACH exit location in the method
-        // Note that there may not be any exits.  They may get filtered out,
-        // or some methods don't have an exit (only a throw)
-        Set<Integer> theExits = new HashSet<Integer>(mi.exit_locations);
-        for (Integer exitLoc : theExits) {
-          // Get the root of the method's traversal pattern
-          RootInfo exitRoot = mi.traversalExit;
-          assert enterRoot != null : "Traversal pattern not initialized at "
-            + "method " + mi.method_name;
-
-          print_method (mi, exitRoot,methodExitName(member,exitLoc.intValue()),
+    		print_method (mi, enterRoot, methodEntryName(member), PptType.ENTER,
+    				comp_info);
+        
+    		// Print exit program point for EACH exit location in the method
+    		// Note that there may not be any exits.  They may get filtered out,
+    		// or some methods don't have an exit (only a throw)
+        
+    		Set<Integer> theExits = new HashSet<Integer>(mi.exit_locations);
+    		for (Integer exitLoc : theExits) {
+    			// Get the root of the method's traversal pattern
+    			RootInfo exitRoot = mi.traversalExit;
+    			assert enterRoot != null : "Traversal pattern not initialized at "
+    					+ "method " + mi.method_name;
+          
+    			print_method (mi, exitRoot,methodExitName(member,exitLoc.intValue()),
                         PptType.SUBEXIT, comp_info);
-        }
-      }
+    		}      
+    	}
+      
+    	print_class_ppt (cinfo, cinfo.class_name + ":::CLASS", comp_info);
+    	print_object_ppt (cinfo, classObjectName(cinfo.clazz), comp_info);
 
-      print_class_ppt (cinfo, cinfo.class_name + ":::CLASS", comp_info);
-      print_object_ppt (cinfo, classObjectName(cinfo.clazz), comp_info);
-
-      if (debug) System.out.println("Exit print_decl_class");
-      System.out.println("\t\t\texit <<<<<< [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
+    	if (debug) System.out.println("Exit print_decl_class");
+    	System.out.println("\t\t\texit <<<<<< [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
     }
 
     /**
