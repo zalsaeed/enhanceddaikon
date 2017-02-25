@@ -1,6 +1,15 @@
 Daikon version 5.2.20, released January 5, 2016; http://plse.cs.washington.edu/daikon.
 Reading declaration files 
 [2:50:10 PM]:                                                                  
+
+Num of all obseeved ppts: 462
+Num of identical ppts keys found: 40
+Num of identical ppts found: 40
+Num of traces found: 54
+
+Num of identical ppts found: 0
+Num final ppts calculated: 40
+Num of processed ppts: 462
                                                                                
 
                                                                                

@@ -1,21 +1,21 @@
 Daikon version 5.2.20, released January 5, 2016; http://plse.cs.washington.edu/daikon.
 Reading declaration files 
-[2:48:52 PM]:                                                                  
                                                                                
-Num of all obseeved ppts: 162
+Num of all obseeved ppts: 108
 Num of identical ppts keys found: 32
 Num of identical ppts found: 32
 Num of traces found: 54
 
 Num of identical ppts found: 0
 Num final ppts calculated: 32
-Num of processed ppts: 162
+Num of processed ppts: 108
 
 
+[3:22:44 PM]:                                                                  
                                                                                
 Processing trace data; reading 1 dtrace file:
 
-[2:48:52 PM]: Finished reading TestingObservers_oneMethodOnlyProcessed.dtrace_m
+[3:22:44 PM]: Finished reading TestingObservers_oneMethodOnlyEntryOrExit.dtrace
 
                                                                                
 ===========================================================================
@@ -268,33 +268,33 @@ size(this.observers[]) == 3
 this.observers.getClass().getName() == orig(this.observers.getClass().getName())
 ===========================================================================
 ObserverEffect.Subject.registerObserver(ObserverEffect.Observer):::ENTER
-observer.subject.observers[].ObserverB.value == this.observers[].ObserverB.value
-this.observers[].ObserverA == observer.subject.observers[].ObserverA
-this.observers[].ObserverA == this.observers[this.observers[].ObserverB.value]
-this.observers[].ObserverA == this.observers[this.observers[].ObserverA.value]
-this.observers[].ObserverB == observer.subject.observers[].ObserverB
-observer.subject.observers[].ObserverA.value == this.observers[].ObserverA.value
 observer.subject.observers == this.observers
 observer.subject.observers[] == this.observers[]
+observer.subject.observers[].ObserverB.value == this.observers[].ObserverB.value
+observer.subject.observers[].ObserverA == this.observers[].ObserverA
+observer.subject.observers[].ObserverB == this.observers[].ObserverB
 this.state == observer.subject.state
 this.state == this.observers[].ObserverB.value
 this.state == this.observers[].ObserverA.value
 this == observer.subject
 this.observers[].ObserverB.value == this.observers[].ObserverA.value
+this.observers[].ObserverA == this.observers[this.observers[].ObserverB.value]
+this.observers[].ObserverA == this.observers[this.observers[].ObserverA.value]
+this.observers[].ObserverA.value == observer.subject.observers[].ObserverA.value
 observer.subject.observers[observer.subject.observers[].ObserverB.value] == this.observers[this.observers[].ObserverB.value]
-this.observers[observer.subject.observers[].ObserverB.value] == this.observers[this.observers[].ObserverB.value]
-observer.subject.observers[observer.subject.observers[].ObserverA.value] == this.observers[this.observers[].ObserverA.value]
-this.observers[observer.subject.observers[].ObserverA.value] == this.observers[this.observers[].ObserverA.value]
 observer.subject.observers[this.observers[].ObserverB.value] == this.observers[this.observers[].ObserverB.value]
 observer.subject.observers[this.observers[].ObserverA.value] == this.observers[this.observers[].ObserverA.value]
+observer.subject.observers[observer.subject.observers[].ObserverA.value] == this.observers[this.observers[].ObserverA.value]
+this.observers[observer.subject.observers[].ObserverB.value] == this.observers[this.observers[].ObserverB.value]
 this.observers[this.observers[].ObserverB.value] == this.observers[this.observers[].ObserverA.value]
+this.observers[this.observers[].ObserverA.value] == this.observers[observer.subject.observers[].ObserverA.value]
 this.state == 0
 this.observers[].ObserverB.value == 0
 this.observers[].ObserverA.value == 0
 size(this.observers[]) one of { 0, 1, 2 }
 this.observers[this.observers[].ObserverB.value] has only one value
 this.observers[this.observers[].ObserverA.value] has only one value
-observer.subject.observers.getClass().getName() == this.observers.getClass().getName()
+this.observers.getClass().getName() == observer.subject.observers.getClass().getName()
 ===========================================================================
 ObserverEffect.Subject.registerObserver(ObserverEffect.Observer):::EXIT
 observer.subject.observers[].ObserverB.value == this.observers[].ObserverB.value
@@ -321,8 +321,8 @@ this.state == this.observers[].ObserverB.value
 this.state == this.observers[].ObserverA.value
 this.state == orig(this.state)
 this.state == orig(observer.subject.state)
-this.observers[].ObserverB.value == orig(observer.subject.observers[].ObserverA.value)
 this.observers[].ObserverB.value == orig(this.observers[].ObserverA.value)
+this.observers[].ObserverB.value == orig(observer.subject.observers[].ObserverA.value)
 observer.subject == orig(this)
 observer.subject == orig(observer.subject)
 orig(this.observers[].ObserverA) == this.observers[this.observers[].ObserverC.value]
@@ -337,15 +337,15 @@ this.observers[this.observers[].ObserverC.value] == orig(this.observers[post(thi
 this.observers[this.observers[].ObserverC.value] == orig(observer.subject.observers[post(observer.subject.observers[].ObserverC.value)])
 this.observers[this.observers[].ObserverC.value] == orig(this.observers[post(observer.subject.observers[].ObserverC.value)])
 this.observers[this.observers[].ObserverC.value] == orig(observer.subject.observers[observer.subject.observers[].ObserverB.value])
-this.observers[this.observers[].ObserverC.value] == orig(this.observers[observer.subject.observers[].ObserverB.value])
 this.observers[this.observers[].ObserverC.value] == orig(observer.subject.observers[this.observers[].ObserverB.value])
+this.observers[this.observers[].ObserverC.value] == orig(this.observers[observer.subject.observers[].ObserverB.value])
 this.observers[this.observers[].ObserverC.value] == orig(this.observers[this.observers[].ObserverB.value])
 this.observers[this.observers[].ObserverB.value] == orig(observer.subject.observers[post(this.observers[].ObserverB.value)])
 this.observers[this.observers[].ObserverB.value] == orig(this.observers[post(this.observers[].ObserverB.value)])
-this.observers[this.observers[].ObserverB.value] == orig(observer.subject.observers[observer.subject.observers[].ObserverA.value])
-this.observers[this.observers[].ObserverB.value] == orig(this.observers[observer.subject.observers[].ObserverA.value])
 this.observers[this.observers[].ObserverB.value] == orig(observer.subject.observers[this.observers[].ObserverA.value])
+this.observers[this.observers[].ObserverB.value] == orig(observer.subject.observers[observer.subject.observers[].ObserverA.value])
 this.observers[this.observers[].ObserverB.value] == orig(this.observers[this.observers[].ObserverA.value])
+this.observers[this.observers[].ObserverB.value] == orig(this.observers[observer.subject.observers[].ObserverA.value])
 this.observers[].ObserverC.value == 0
 this.state == 0
 this.observers[].ObserverB.value == 0
@@ -355,8 +355,8 @@ this.observers[this.observers[].ObserverC.value] has only one value
 this.observers[this.state] has only one value
 this.observers[this.observers[].ObserverB.value] has only one value
 observer.subject.observers.getClass().getName() == this.observers.getClass().getName()
-this.observers.getClass().getName() == orig(observer.subject.observers.getClass().getName())
 this.observers.getClass().getName() == orig(this.observers.getClass().getName())
+this.observers.getClass().getName() == orig(observer.subject.observers.getClass().getName())
 orig(observer.getClass().getName()) in this.observers[].getClass().getName()
 orig(observer) in this.observers[]
 orig(this.observers[].ObserverA) in this.observers[]

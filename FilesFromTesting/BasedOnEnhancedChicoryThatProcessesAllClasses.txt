@@ -1,0 +1,10 @@
+BasedOnEnhancedChicoryThatProcessesAllClasses
+
+Num of all obseeved ppts: 1971
+Num of identical ppts keys found: 40
+Num of identical ppts found: 40
+Num of traces found: 54
+
+Num of identical ppts found: 0
+Num final ppts calculated: 40
+Num of processed ppts: 1971

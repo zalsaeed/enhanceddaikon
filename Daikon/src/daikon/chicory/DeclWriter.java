@@ -300,7 +300,8 @@ public class DeclWriter extends DaikonWriter {
      *        Class whose declarations should be printed.
      *
      */
-    public void print_decl_class (ClassInfo cinfo, /*@Nullable*/ DeclReader comp_info, MethodInfo mi) {
+    public void print_decl_class (ClassInfo cinfo, /*@Nullable*/ DeclReader comp_info, 
+    		MethodInfo mi, Boolean isEntry) {
 
       
     	System.out.println("\t\t\tenter >>>>> [Chicory.DeclWriter.print_decl_class()] for-> " + cinfo);
@@ -313,29 +314,34 @@ public class DeclWriter extends DaikonWriter {
     	if (!shouldInstrumentMethod(member))	
     		return;
     	
-    	// Gets the root of the method's traversal pattern
-    	RootInfo enterRoot = mi.traversalEnter;
-    	
-    	assert enterRoot != null : "Traversal pattern not initialized "
-    			+ "at method " + mi.method_name;
-	
-    	print_method (mi, enterRoot, methodEntryName(member), PptType.ENTER,
-    			comp_info);
-    	
-    	// Print exit program point for EACH exit location in the method
-    	// Note that there may not be any exits.  They may get filtered out,
-    	// or some methods don't have an exit (only a throw)
-    	
-    	Set<Integer> theExits = new HashSet<Integer>(mi.exit_locations);
-    	for (Integer exitLoc : theExits) {
-    		// Get the root of the method's traversal pattern
-    		RootInfo exitRoot = mi.traversalExit;
-    		assert enterRoot != null : "Traversal pattern not initialized at "
-    				+ "method " + mi.method_name;
+    	if(isEntry){
     		
-    		print_method (mi, exitRoot,methodExitName(member,exitLoc.intValue()),
-    				PptType.SUBEXIT, comp_info);	
-    	}	
+    	
+    		// Gets the root of the method's traversal pattern
+    		RootInfo enterRoot = mi.traversalEnter;
+    	
+    		assert enterRoot != null : "Traversal pattern not initialized "
+    				+ "at method " + mi.method_name;
+	
+    		print_method (mi, enterRoot, methodEntryName(member), PptType.ENTER,
+    				comp_info);
+    	}else{
+    	
+    		// Print exit program point for EACH exit location in the method
+    		// Note that there may not be any exits.  They may get filtered out,
+    		// or some methods don't have an exit (only a throw)
+    	
+    		Set<Integer> theExits = new HashSet<Integer>(mi.exit_locations);
+    		for (Integer exitLoc : theExits) {
+    			// Get the root of the method's traversal pattern
+    			RootInfo exitRoot = mi.traversalExit;
+    			assert exitRoot != null : "Traversal pattern not initialized at "
+    					+ "method " + mi.method_name;
+    		
+    			print_method (mi, exitRoot,methodExitName(member,exitLoc.intValue()),
+    					PptType.SUBEXIT, comp_info);	
+    		}
+    	}
     
     	print_class_ppt (cinfo, cinfo.class_name + ":::CLASS", comp_info);
     	print_object_ppt (cinfo, classObjectName(cinfo.clazz), comp_info);

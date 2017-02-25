@@ -1020,8 +1020,10 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     	ci.initViaReflection();
     	
     	//TODO use this for constructing only this method that we are writing traces for
-    	mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
-    	mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
+    	if(isEntry)
+    		mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
+    	else
+    		mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
     	
 //    	for (MethodInfo m_info: ci.method_infos)
 //    	{
@@ -1030,8 +1032,7 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
 //    	}
     	
     	//the comp_info is always null for me.
-    	
-    	decl_writer.print_decl_class (ci, comp_info, mi);
+    	decl_writer.print_decl_class (ci, comp_info, mi, isEntry);
     	
     	System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
         }
