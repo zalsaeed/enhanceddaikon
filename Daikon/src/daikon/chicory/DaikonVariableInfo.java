@@ -513,21 +513,16 @@ public abstract class DaikonVariableInfo
 
         
         // Get the fields
-        //System.out.printf ("getting fields for %s%n", type);
-        Field[] fields = type.getDeclaredFields();
-        
+        // We need to get fields of superclass(es) as well.
+        List<Field> fields = new ArrayList<Field>();
+        Class<?> c = type;
+        while (c != null && c != Object.class) {
+        	fields.addAll(Arrays.asList(c.getDeclaredFields()));
+        	c = c.getSuperclass();	
+        }
+		
         //-------------------------------------------------------------------------------------------with the exception
         //added by Ziyad 
-        
-        //Getting all superclass's fields
-        List<Field> myFields = new ArrayList<Field>();
-		Class<?> c = type;
-		while (c != null && c != Object.class) {
-			myFields.addAll(Arrays.asList(c.getDeclaredFields()));
-			c = c.getSuperclass(); //TODO I think this will ignore one superclass if a given class has two parents
-		}
-		
-		
 
 //		//Go over all available fields and obtain their fields if they are objects (not primitives).
 //		List<Field> nested_fields = new ArrayList<Field>();
@@ -578,7 +573,7 @@ public abstract class DaikonVariableInfo
         //    System.out.printf ("%d fields in %s%n", fields.length, type);
 
         debug_vars.log ("%s: [%s] %d dontPrintInstanceVars = %b, "
-                        + "inArray = %b%n", type, offset, fields.length,
+                        + "inArray = %b%n", type, offset, fields.size(),
                         dontPrintInstanceVars, isArray);
         
 //        for (Field cField :fields) {
