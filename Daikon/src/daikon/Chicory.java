@@ -425,28 +425,6 @@ public class Chicory {
     
     stdin_thread.start();
     int targetResult = redirect_wait (chicory_proc);
-    
-    //TODO activate this once you are ready to run it twice!
-//    //Second run
-//    String[] ncmdline = cmdlist.toArray(new String[cmdlist.size()]);
-//    
-//    java.lang.Runtime nrt = java.lang.Runtime.getRuntime();
-//    
-//    Process chicory_seond = null;
-//    try {
-//    	chicory_seond = nrt.exec(ncmdline);
-//    }
-//    catch (Exception e) {
-//      System.out.printf("Exception '%s' while executing '%s'\n", e,
-//    		  ncmdline);
-//      System.exit(1);
-//    }
-//    
-//    StreamRedirectThread new_thread
-//    	= new StreamRedirectThread("stdin", System.in, chicory_seond.getOutputStream(), false);
-//    System.out.println("Two.................................");
-//    new_thread.start();
-//    int secondTargetResult = redirect_wait (chicory_seond);
 
     if (daikon) {
       // Terminate if target didn't end properly
@@ -497,7 +475,6 @@ public class Chicory {
       if (targetResult != 0) {
         System.out.printf ("Warning: Target exited with %d status\n", targetResult);
       }
-      //TODO close for both runs when running it twice.
       System.out.println("Thread terminated safely!");
       System.exit (targetResult);
     }

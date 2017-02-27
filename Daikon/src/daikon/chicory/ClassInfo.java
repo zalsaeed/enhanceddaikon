@@ -77,8 +77,9 @@ public class ClassInfo {
   public void initViaReflection() {
 	  
 	  //By this time all classes are know to this instance. 
-	  System.out.println("\n\t\tenter >>>>> [Chicory.ClassInfo.initViaReflection()] for-> " 
-			  + class_name + " Loader-> " + loader.getClass().getName());
+	  if(Runtime.working_debug)
+		  System.out.println("\t\tenter >>>>> [Chicory.ClassInfo.initViaReflection()] for-> "
+				  + class_name + " Loader-> " + loader.getClass().getName());
 	  
     // get the reflection class
     try {
@@ -122,7 +123,8 @@ public class ClassInfo {
             }
         }
     }
-    System.out.println("\t\texit <<<<< [Chicory.ClassInfo.initViaReflection()] for-> " + class_name);
+    if(Runtime.working_debug)
+    	System.out.println("\t\texit <<<<< [Chicory.ClassInfo.initViaReflection()] for-> " + class_name);
   }
 
   /**

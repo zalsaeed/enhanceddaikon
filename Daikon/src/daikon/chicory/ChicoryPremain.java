@@ -39,7 +39,6 @@ public class ChicoryPremain {
    **/
   private static boolean doPurity = false;
 
-
   /**
    * This method is the entry point of the java agent.  Its main
    * purpose is to set up the transformer so that when classes from
@@ -52,7 +51,8 @@ public class ChicoryPremain {
   public static void premain (String agentArgs, Instrumentation inst)
     throws IOException {
 
-    System.out.format ("In premain, agentargs ='%s', " +
+	  if(Runtime.settings_debug)
+		  System.out.format ("In premain, agentargs ='%s', " +
                        "Instrumentation = '%s'%n", agentArgs, inst);
 
     // Parse our arguments using Chicory's argument parser
@@ -84,7 +84,6 @@ public class ChicoryPremain {
     Runtime.ppt_omit_pattern    = Chicory.ppt_omit_pattern;
     Runtime.ppt_select_pattern  = Chicory.ppt_select_pattern;
     Runtime.sample_start        = Chicory.sample_start;
-    Runtime.firstRun			= Chicory.firstRun;
     DaikonVariableInfo.std_visibility = Chicory.std_visibility;
     DaikonVariableInfo.debug_vars.enabled = Chicory.debug;
     if (Chicory.comparability_file != null) {
@@ -96,8 +95,6 @@ public class ChicoryPremain {
         // Runtime.comp_info.dump();
       }
     }
-    
-    System.out.println("The first run flag is: " + Runtime.firstRun);
 
     if (Chicory.doPurity())
       {
@@ -134,7 +131,8 @@ public class ChicoryPremain {
         
         @SuppressWarnings("unchecked")
         Class<Instrument> c = (Class<Instrument>) transformer.getClass();
-        System.out.printf ("Classloader of tranformer = %s%n",
+        if(Runtime.settings_debug)
+        	System.out.printf ("Classloader of tranformer = %s%n",
                      c.getClassLoader());
       } catch (Exception e) {
         throw new RuntimeException ("Unexpected error loading Instrument", e);
@@ -145,7 +143,8 @@ public class ChicoryPremain {
     // Instrument transformer = new Instrument();
     // transformer is simply a daikon.chicory.Instrument instance
     inst.addTransformer ((ClassFileTransformer) transformer);
-    System.out.println("exit <<<< [ChicoryPremain.premain()]");
+    if(Runtime.settings_debug)
+    	System.out.println("exit <<<< [ChicoryPremain.premain()]");
     //System.out.println("Loader: " + inst.getInitiatedClasses(transformer.getClass().getClassLoader()));
     //System.out.println(ManagementFactory.getRuntimeMXBean().getName());
   }
@@ -347,7 +346,8 @@ public class ChicoryPremain {
     public static final SimpleLog debug = new SimpleLog (Chicory.verbose);
 
     public ChicoryLoader() throws IOException {
-    	System.out.println("enter >>>>> [ChicoryPremain.ChicoryLoader.<init>]");
+    	if(Runtime.settings_debug)
+    		System.out.println("enter >>>>> [ChicoryPremain.ChicoryLoader.<init>]");
       String bcel_classname = "org.apache.bcel.Constants";
       String plse_marker_classname = "org.apache.bcel.PLSEMarker";
 
@@ -406,7 +406,8 @@ public class ChicoryPremain {
           bcel_index++;
         }
       }
-      System.out.println("exit <<<<< [ChicoryPremain.ChicoryLoader.<init>]");
+      if(Runtime.settings_debug)
+    	  System.out.println("exit <<<<< [ChicoryPremain.ChicoryLoader.<init>]");
     }
 
     /**
@@ -482,10 +483,12 @@ public class ChicoryPremain {
     protected Class<?> loadClass (/*@BinaryName*/ String name, boolean resolve)
       throws java.lang.ClassNotFoundException {
 
-    	System.out.println("enter >>>> [ChicoryPremina.ChicoryLoader.loadClass()");
+    	if(Runtime.settings_debug)
+    		System.out.println("enter >>>> [ChicoryPremina.ChicoryLoader.loadClass()");
       // If we are not loading from our jar, just use the normal mechanism
       if (bcel_jar == null){
-          System.out.println("exit <<<<< [ChicoryPremina.ChicoryLoader.loadClass()] -> name: " + name + " resolve?" + resolve);
+          if(Runtime.settings_debug)
+        	  System.out.println("exit <<<<< [ChicoryPremina.ChicoryLoader.loadClass()] -> name: " + name + " resolve?" + resolve);
     	  return super.loadClass (name, resolve);
       }
       // Load non-bcel files via the normal mechanism

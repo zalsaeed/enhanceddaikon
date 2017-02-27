@@ -74,7 +74,8 @@ public class ListElement extends DaikonVariableInfo{
         }else{
         	@SuppressWarnings("nullness") // We just verified (or set) arrayVal in code above.
             Object tmp = DTraceWriter.getListFromArray(arrayVal, clazz.hashCode());
-            System.out.println("Temp is: " + tmp.getClass().getName());
+            if(Runtime.working_debug)
+            	System.out.println("Temp is: " + tmp.getClass().getName());
             //TODO traverse the array here looking for the obj by hashcode
             
             return tmp;

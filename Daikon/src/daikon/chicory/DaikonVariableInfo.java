@@ -181,10 +181,12 @@ public abstract class DaikonVariableInfo
         assert info.repTypeName != null : "Child's representation type name should not be null";
         assert info.compareInfoString != null : "Child's comparability information should not be null";
 
-        System.out.printf("\t\t\t\t\t[DaikonVariableInfo.addChild()] Adding: %s to %s%n", info , this);
+        if(Runtime.working_debug)
+        	System.out.printf("\t\t\t\t\t[DaikonVariableInfo.addChild()] Adding: %s to %s%n", info , this);
         debug_vars.log ("Adding %s to %s", info, this);
         children.add(info);
-        System.out.printf("\t\t\t\t\t[DaikonVariableInfo.addChild()] new children.size() =  %s in %s%n", children.size(), this);
+        if(Runtime.working_debug)
+        	System.out.printf("\t\t\t\t\t[DaikonVariableInfo.addChild()] new children.size() =  %s in %s%n", children.size(), this);
         
     }
 
@@ -430,9 +432,10 @@ public abstract class DaikonVariableInfo
     protected void addParameters(ClassInfo cinfo,
              Member method, List<String> argnames, String offset, int depth) {
         
-    	System.out.println("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addParampter()] "
-        		+ "cinfo: " + cinfo.class_name + " method: " + method.getName()
-        		+ " offset: " + offset + " depth: " + depth);
+    	if(Runtime.working_debug)
+    		System.out.println("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addParampter()] "
+    				+ "cinfo: " + cinfo.class_name + " method: " + method.getName()
+    				+ " offset: " + offset + " depth: " + depth);
     	
     	Class<?>[] arguments = (method instanceof Constructor<?>)
             ? ((Constructor<?>) method).getParameterTypes()
@@ -450,7 +453,8 @@ public abstract class DaikonVariableInfo
                 continue;
             if (type.getName().equals ("java.lang.DCompMarker"))
                 continue;
-            System.out.printf("\t\t\t\t[Chicory.DaikonVariableInfo.addParampter()] processing parameter '%s'%n", name);
+            if(Runtime.working_debug)
+            	System.out.printf("\t\t\t\t[Chicory.DaikonVariableInfo.addParampter()] processing parameter '%s'%n", name);
             debug_vars.indent ("processing parameter '%s'%n", name);
             DaikonVariableInfo theChild = addDeclVar(cinfo, type,
                                          name, offset, depth, i, param_offset);
@@ -462,8 +466,9 @@ public abstract class DaikonVariableInfo
             debug_vars.exdent();
         }
         debug_vars.log ("exit addParameters%n");
-        System.out.println("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addParampter()] "
-        		+ "cinfo: " + cinfo.class_name);
+        if(Runtime.working_debug)
+        	System.out.println("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addParampter()] "
+        			+ "cinfo: " + cinfo.class_name);
     }
 
     /**
@@ -475,11 +480,13 @@ public abstract class DaikonVariableInfo
     protected void addClassVars(final ClassInfo cinfo, boolean dontPrintInstanceVars,
                                 Class<?> type, String offset, int depth) {
 
-    	System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addClassVars] "
-    			+ "%s : %s : %s : [%s] isStatic: %s :"
-    			+ " shouldAddRuntimeClass: %s%n", 
-    			this, cinfo, type, offset, dontPrintInstanceVars,
-    			shouldAddRuntimeClass(type));
+    	if(Runtime.working_debug)
+    		System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addClassVars] "
+    				+ "%s : %s : %s : [%s] isStatic: %s :"
+    				+ " shouldAddRuntimeClass: %s%n",
+    				this, cinfo, type, offset, dontPrintInstanceVars,
+    				shouldAddRuntimeClass(type));
+    	
         //DaikonVariableInfo corresponding to the "this" object
         DaikonVariableInfo thisInfo;
         
@@ -491,7 +498,8 @@ public abstract class DaikonVariableInfo
         if (!dontPrintInstanceVars && offset.equals(""))
         {
             // "this" variable
-        	System.out.println();
+        	if(Runtime.working_debug)
+        		System.out.println();
             thisInfo = new ThisObjInfo(type);
             addChild(thisInfo);
 
@@ -521,73 +529,15 @@ public abstract class DaikonVariableInfo
         	c = c.getSuperclass();	
         }
 		
-        //-------------------------------------------------------------------------------------------with the exception
-        //added by Ziyad 
-
-//		//Go over all available fields and obtain their fields if they are objects (not primitives).
-//		List<Field> nested_fields = new ArrayList<Field>();
-//		
-//		for(Field field:myFields) {
-//			Object myInstance = field.get(type); 
-//			    //Check if a field is a collection (could contain list of interesting objects)
-//			    if(myInstance instanceof Collection) {
-//			    	System.out.println("We have a collection: " + myInstance.toString() + " of type " +  field.getType().getTypeName());
-//
-//			    	//TODO Use it if you want to know the type of the objects the list holds
-//			    	Type genericFieldType = field.getGenericType();
-//			    	System.out.println("My print " + genericFieldType);
-//			    	
-//			    	if(genericFieldType instanceof ParameterizedType){
-//			    	    ParameterizedType aType = (ParameterizedType) genericFieldType;
-//			    	    Type[] fieldArgTypes = aType.getActualTypeArguments();
-//			    	    System.out.println("Field args types: " + fieldArgTypes);
-//			    	    for(Type fieldArgType : fieldArgTypes){
-//			    	        Class fieldArgClass = (Class) fieldArgType;
-//			    	        if (!fieldArgClass.isPrimitive()){
-//			    	        	System.out.println("Content of collection is not primitive." + fieldArgClass.getTypeName());
-//			    	        	//Go over each object (e.g. in a list) and get its fields. 
-//					    	    for (Iterator<?> iter = ((Iterable) myInstance).iterator(); iter.hasNext(); ) { 
-//						    	    Object element = iter.next();
-//						    	    c = element.getClass();
-//						    	    nested_fields.addAll(Arrays.asList(c.getDeclaredFields()));
-//						    	}
-//			    	        }
-//			    	        
-//			    	    }
-//			    	}
-//			    	
-//			    }
-//			    else { //The field is not a collection
-//			    	if (!field.getType().isPrimitive()){
-//			    		c = myInstance.getClass();
-//				    	nested_fields.addAll(Arrays.asList(c.getDeclaredFields()));
-//			    	}
-//			    }
-//		}
-//		
-//		myFields.addAll(nested_fields);
-        
-		//-----------------------------------------------------------------------------------------
-		
         // if (fields.length > 50)
         //    System.out.printf ("%d fields in %s%n", fields.length, type);
 
         debug_vars.log ("%s: [%s] %d dontPrintInstanceVars = %b, "
                         + "inArray = %b%n", type, offset, fields.size(),
                         dontPrintInstanceVars, isArray);
-        
-//        for (Field cField :fields) {
-//        	if(cField.getType().isAssignableFrom(Collection.class)){
-//        		System.out.println("This is a collection: " + cField.getName());
-//        	}
-//        	if(cField.getType().isPrimitive()){
-//            	System.out.printf("      classfield type [Primitive]: %s %n", cField.getType());
-//            }else{
-//            	System.out.printf("      classfield type [non-Primitve]: %s %n", cField.getType());
-//            }
-//        }
 
-        System.out.println("\t\t\tFields of: " + type.getName());
+        if(Runtime.working_debug)
+        	System.out.println("\t\t\tFields of: " + type.getName());
 
         for (Field classField : fields) {
             boolean is_static = Modifier.isStatic (classField.getModifiers());
@@ -659,8 +609,8 @@ public abstract class DaikonVariableInfo
             }
 
             //System.out.printf("\t\t\tclassfield type: %s %n", classField.getType());
-            
-            System.out.printf("\t\t\t\tprocessing: %s %n", classField.getName());
+            if(Runtime.working_debug)
+            	System.out.printf("\t\t\t\tprocessing: %s %n", classField.getName());
 
         	Class<?> fieldType = classField.getType();
 
@@ -670,7 +620,9 @@ public abstract class DaikonVariableInfo
             debug_vars.indent ("--Created DaikonVariable %s%n", newChild);
 
             String newOffset = buf.toString();
-            System.out.printf("\t\t\tbuf: %s %n", newOffset);
+            if(Runtime.working_debug)
+            	System.out.printf("\t\t\tbuf: %s %n", newOffset);
+            
             newChild.addChildNodes(cinfo, fieldType, classField.getName(),
                           newOffset, depth);    
             
@@ -769,7 +721,8 @@ public abstract class DaikonVariableInfo
             }
         }
         debug_vars.log ("exit addClassVars%n");
-        System.out.println("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.assClassVars]");
+        if(Runtime.working_debug)
+        	System.out.println("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.assClassVars]");
     }
 
     /**
@@ -963,7 +916,8 @@ public abstract class DaikonVariableInfo
     	//System.out.printf("  field: %s, offset: %s%n", field, offset);
     	debug_vars.log ("enter addDeclVar(field):%n");
         debug_vars.log ("  field: %s, offset: %s%n", field, offset);
-        System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addDeclVar(field)]: field: %s offset: %s%n", field, offset);
+        if(Runtime.working_debug)
+        	System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addDeclVar(field)]: field: %s offset: %s%n", field, offset);
         String arr_str = "";
         if (isArray)
             arr_str = "[]";
@@ -1067,7 +1021,8 @@ public abstract class DaikonVariableInfo
         }
 
         debug_vars.log ("exit addDeclVar(field)%n");
-        System.out.printf("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addDeclVar(field)]%n");
+        if(Runtime.working_debug)
+        	System.out.printf("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addDeclVar(field)]%n");
         return newField;
     }
 
@@ -1343,7 +1298,9 @@ public abstract class DaikonVariableInfo
            
            Object currentObj = null;
            
-           System.out.println("parentType: " + parentType);
+           if(Runtime.working_debug)
+        	   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] parentType: " 
+        			   + parentType);
            /*
             * getting the instance from my observed_objects instead of passing it down
             * through all the method calls. My choice here is not safe, since objects could 
@@ -1355,15 +1312,19 @@ public abstract class DaikonVariableInfo
             * parentType is the parent of this list, or where this list is defined.
             */
            if (parentType != null){
-        	   System.out.println("ParentClass: " + parentType.getName());
-        	   System.out.println("Parent HashCode: " + parentType.hashCode());
+        	   if(Runtime.working_debug){
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] ParentClass: " + parentType.getName());
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] Parent HashCode: " + parentType.hashCode());
+        	   }
            
 	           for (Object obj:Runtime.observed_objects){
 	        	   if(obj.getClass().hashCode() == parentType.hashCode()){
 	        		   currentObj = obj;
 	        	   }
-	        	   System.out.println("Avialable Objects: " + obj.getClass().getName());
-	        	   System.out.println(obj.getClass().hashCode());
+	        	   if(Runtime.working_debug){
+	        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] Avialable Objects: " + obj.getClass().getName());
+	        		   System.out.println("\t\t\t\t" + obj.getClass().hashCode());
+	        	   }
 	           }
            }
            
@@ -1371,10 +1332,12 @@ public abstract class DaikonVariableInfo
            //I'm only looking for user defined lists and if their object is instantiated
            //theName here is the name of the list as the user defined it.
            if (currentObj != null){
-        	   System.out.println("Will construct tree of list elements ...");
+        	   if(Runtime.working_debug)
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] Will construct tree of list elements ...");
         	   listElements = getListElements(currentObj, theName);
            }else{
-        	   System.out.println("nothing to do ...");
+        	   if(Runtime.working_debug)
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] nothing to do ...");
            }
            
            /*
@@ -1415,14 +1378,16 @@ public abstract class DaikonVariableInfo
            for (Object obj:listElements){
         	   //TODO to find the id of the elements iterate this as an array and get the id
         	   //TODO delete all these prints.
-        	   System.out.println("Got them: " + obj.getClass().getSimpleName());
-        	   System.out.println("this is classClassName: " + classClassName);
-        	   System.out.println("this is stringClassName: " + stringClassName);
-        	   System.out.println("this is class_suffix: " + class_suffix);
-        	   System.out.println("this is theName: " + theName);
-        	   System.out.println("this is offset: " + offset);
-        	   System.out.println("this is this: " + this);
-        	   System.out.println("this is child.getName(): " + child.getName());
+        	   if(Runtime.working_debug){
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] Got them: " + obj.getClass().getSimpleName());
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is classClassName: " + classClassName);
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is stringClassName: " + stringClassName);
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is class_suffix: " + class_suffix);
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is theName: " + theName);
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is offset: " + offset);
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is this: " + this);
+        		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is child.getName(): " + child.getName());
+        	   }
         	   
         	   //manually handling the offset.
         	   String currentOffset = offset + theName + "[..].";
@@ -1459,7 +1424,8 @@ public abstract class DaikonVariableInfo
 	   
 	   List<Object> listOfElements = new ArrayList<Object>();
 		
-	   System.out.println("Got Called!");
+	   if(Runtime.working_debug)
+		   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got Called!");
 	   Field field = null;
 	   try {
 		   field = obj.getClass().getField(listName);
@@ -1478,21 +1444,24 @@ public abstract class DaikonVariableInfo
 	   }
 	   
 	   if(listInstance instanceof Collection){
-		   System.out.println("I got the list ..." + field.getName());
-		   
+		   if(Runtime.working_debug)
+			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] I got the list ..." + field.getName());
 	   }
 	   
 	   Type genericFieldType = field.getGenericType();
-	   System.out.println("My print " + genericFieldType);
+	   if(Runtime.working_debug)
+		   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] My print " + genericFieldType);
 	   
 	   if(genericFieldType instanceof ParameterizedType){
 		   ParameterizedType aType = (ParameterizedType) genericFieldType;
 		   Type[] fieldArgTypes = aType.getActualTypeArguments();
-		   System.out.println("Field args types: " + fieldArgTypes);
+		   if(Runtime.working_debug)
+			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Field args types: " + fieldArgTypes);
 		   for(Type fieldArgType : fieldArgTypes){
 			   Class fieldArgClass = (Class) fieldArgType;
 			   if (!fieldArgClass.isPrimitive()){
-				   System.out.println("Content of collection is not primitive." + fieldArgClass.getTypeName());
+				   if(Runtime.working_debug)
+					   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive." + fieldArgClass.getTypeName());
 				   //Go over each object (e.g. in a list) and get its fields.
 				   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
 					   //TODO check if the objects in list are primitive values
@@ -1634,9 +1603,9 @@ public abstract class DaikonVariableInfo
    /*@RequiresNonNull("#1.clazz")*/
    protected void addChildNodes(final ClassInfo cinfo, Class<?> type, String theName,
                                 String offset, int depthRemaining) {
-	   	   
-	   System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addChildNodes()]%n");
-	   System.out.printf("\t\t\tname: %s, offset: %s type:%s%n", theName, offset, getTypeName());
+	   if(Runtime.working_debug)
+		   System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addChildNodes()] name: %s, offset: %s type:%s%n",
+				   theName, offset, getTypeName());
 	   
        debug_vars.log ("enter addChildNodes:%n");
        debug_vars.log ("  name: %s, offset: %s%n", theName, offset);
@@ -1713,7 +1682,8 @@ public abstract class DaikonVariableInfo
        // regular old class type
        else
        {
-    	   System.out.printf("\t\t\t**Depth Remaining = %d%n", depthRemaining);
+    	   if(Runtime.working_debug)
+    		   System.out.printf("\t\t\t**Depth Remaining = %d%n", depthRemaining);
            debug_vars.log ("**Depth Remaining = %d%n", depthRemaining);
 
            if (depthRemaining <= 0)
@@ -1725,7 +1695,8 @@ public abstract class DaikonVariableInfo
                addClassVars(cinfo, false, type, offset + theName + ".", depthRemaining - 1);
        }
        debug_vars.log ("exit addChildNodes%n");
-       System.out.printf("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addChildNodes()]%n");
+       if(Runtime.working_debug)
+    	   System.out.printf("\t\t\texit <<<<< [Chicory.DaikonVariableInfo.addChildNodes()]%n");
    }
 
    /**

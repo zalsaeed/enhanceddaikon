@@ -33,7 +33,13 @@ public class Runtime
 
     /** debug flag **/
     public static final boolean debug = false;
+    
+    /*setting debug to show setting information on console*/
+    public static final boolean settings_debug = false;
 
+    /*working debug to show the actual instrumentation process on console*/
+    public static final boolean working_debug = false;
+    
     /**
      * Flag indicating that a dtrace record is currently being written
      * used to prevent a call to instrumented code that occurs as part
@@ -129,8 +135,9 @@ public class Runtime
     static Set<String> initSet = new HashSet<String>();
     
     //TODO delete it, used it to deboug the the number of traces written at entery
-    static int counter = 0;
+    static int traces_counter = 0;
 
+    static int ppt_counter = 0;
     /** Class of information about each active call **/
     private static class CallInfo {
         /** nonce of call **/
@@ -162,12 +169,6 @@ public class Runtime
    * help us reconstruct a collection from the reflected objects. 
    */
   public static List<Object> observed_objects = new ArrayList<Object>();
-  
-  /**
-   * to determin whether this is a first run or not. 
-   * Default: false
-   */
-  public static boolean firstRun = false;
   
   /**
    * first method that we have seen in the whole application
@@ -592,25 +593,29 @@ public class Runtime
  
 public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int mi_index,
                                           Object[] args) {
+    if(Runtime.working_debug)
     	System.out.println("\nenter >>>>> [Chicory.Runtime.enter()] mi-> "
-    										+ methods.get(mi_index).class_info.class_name +"."
-                                          + methods.get(mi_index).method_name);
+    			+ methods.get(mi_index).class_info.class_name +"."
+    			+ methods.get(mi_index).method_name);
     	
     	//Check if the instance is already alive? to associate it 
     	//with the class name when instrumented. 
     	if(obj!= null){
-    		System.out.println("[Chicory.Runtime.enter()] Given reciver obj -> " + obj.getClass().getName());
+    		if(Runtime.working_debug)
+    			System.out.println("[Chicory.Runtime.enter()] Given reciver obj -> " + obj.getClass().getName());
     		if(!observed_objects.contains(obj)){
     			observed_objects.add(obj);
     		}
-    		for(Object o:observed_objects){
-    			System.out.println("In list: " + o.getClass().getName());
-    		}
-    		
     	}else {
-    		System.out.println("[Chicory.Runtime.enter()] given reciver obj is NULL");
+    		if(Runtime.working_debug)
+    			System.out.println("[Chicory.Runtime.enter()] given reciver obj is NULL");
     	}
     	
+    	if(Runtime.working_debug){
+			for(Object o:observed_objects){
+				System.out.println("In list: " + o.getClass().getName());
+			}
+		}
     	
     	
     	if (debug) {
@@ -643,7 +648,7 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
 		
 		
 		    mi.capture_cnt++;
-		    counter++;
+		    traces_counter++;
 		    	
 		    dtrace_writer.methodEntry(mi, nonce, obj, args);  	
 		    
@@ -651,9 +656,10 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
 		    //release the writing flag for dtrace
 		    in_dtrace = false;    
     	}
-    	System.out.println("exit >>>>> [Chicory.Runtime.enter()] -> "
-    			+ methods.get(mi_index).class_info.class_name +"."
-    			+ methods.get(mi_index).method_name);
+    	if(Runtime.working_debug)
+    		System.out.println("exit >>>>> [Chicory.Runtime.enter()] -> "
+    				+ methods.get(mi_index).class_info.class_name +"."
+    				+ methods.get(mi_index).method_name);
     }
 
     /**
@@ -674,21 +680,26 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     public static synchronized void exit(/*@Nullable*/ Object obj, int nonce, int mi_index,
                             Object[] args, Object ret_val, int exitLineNum) {
     	
-    	System.out.println("\nenter >>>>> [Chicory.Runtime.exit()] -> "
-    			+ methods.get(mi_index).class_info.class_name +"."
-    			+ methods.get(mi_index).method_name);
+    	if(Runtime.working_debug)
+    		System.out.println("\nenter >>>>> [Chicory.Runtime.exit()] -> "
+    				+ methods.get(mi_index).class_info.class_name +"."
+    				+ methods.get(mi_index).method_name);
     	
     	if(obj!= null){
-    		System.out.println("[Chicory.Runtime.exit()] Given reciver obj -> " + obj.getClass().getName());
+    		if(Runtime.working_debug)
+    			System.out.println("[Chicory.Runtime.exit()] Given reciver obj -> " + obj.getClass().getName());
     		if(!observed_objects.contains(obj)){
     			observed_objects.add(obj);
     		}
+    	}else {
+    		if(Runtime.working_debug)
+    			System.out.println("[Chicory.Runtime.exit()] given reciver obj is NULL");
+    	}
+    	
+    	if(Runtime.working_debug){
     		for(Object o:observed_objects){
     			System.out.println("In list: " + o.getClass().getName());
     		}
-    		
-    	}else {
-    		System.out.println("[Chicory.Runtime.exit()] given reciver obj is NULL");
     	}
     	
     	if (debug) {
@@ -715,7 +726,7 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
 	    	  
 	    	  // Write out the infromation for this method
 	    	  MethodInfo mi = methods.get(mi_index);
-	    	  counter++;
+	    	  traces_counter++;
 	    	  // long start = System.currentTimeMillis();
 	    	  dtrace_writer.methodExit(mi, nonce, obj, args, ret_val,
 	                                 exitLineNum);
@@ -725,9 +736,10 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
 	    		  in_dtrace = false;  
 	    	  }
 
-    	System.out.println("exit >>>>> [Chicory.Runtime.exit()] -> "
-    			+ methods.get(mi_index).class_info.class_name +"."
-    			+ methods.get(mi_index).method_name);
+	     if(Runtime.working_debug)
+	    	 System.out.println("exit >>>>> [Chicory.Runtime.exit()] -> "
+	    			 + methods.get(mi_index).class_info.class_name +"."
+	    			 + methods.get(mi_index).method_name);
       
     }
     
@@ -939,8 +951,8 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     	
         assert !initSet.contains(className) : className + " already exists in initSet";
 
-        //System.out.println("initialized ---> " + name);
-        System.out.println("[Chicory.Runtime.initNotify()] initialized ---> " + className);
+        if(Runtime.working_debug)
+        	System.out.println("[Chicory.Runtime.initNotify()] initialized ---> " + className);
         initSet.add(className);
     }
 
@@ -998,15 +1010,14 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
      */
     public static void process_classes(Boolean isEntry, /*@Nullable*/ Object obj, int mi_index){
     	
-    	
-    	System.out.println("\nenter >>>>> [Chicory.Runtime.process_classes()]");
+    	if(Runtime.working_debug)
+    		System.out.println("\nenter >>>>> [Chicory.Runtime.process_classes()]");
     	
     	MethodInfo mi = methods.get(mi_index);
     	ClassInfo ci = mi.class_info;
     	
-    	
-    	System.out.println ("\tstart processing class " + ci.class_name);
-    	    		
+    	if(Runtime.working_debug)
+    		System.out.println ("\tstart processing class " + ci.class_name);		
     	    		
     	if (debug)
     		System.out.println ("processing class " + ci.class_name);
@@ -1025,6 +1036,7 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     	else
     		mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
     	
+    	//Constructing decl for all method of the given class, in case the single method doesn't work
 //    	for (MethodInfo m_info: ci.method_infos)
 //    	{
 //    		m_info.traversalEnter = RootInfo.enter_process(m_info, Runtime.nesting_depth);
@@ -1034,11 +1046,13 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     	//the comp_info is always null for me.
     	decl_writer.print_decl_class (ci, comp_info, mi, isEntry);
     	
-    	System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
-        }
+    	if(Runtime.working_debug)
+    		System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
+    }
     	
-    	//TODO do I need any other arguments?
-    	//TODO is it OK to init class for many times? 
+    // This the old method where all classes and all method are processed.
+    	//TO/DO do I need any other arguments?
+    	//TO/DO is it OK to init class for many times? 
 //    	synchronized (all_classes){
 //    	
 //    		System.out.println("before -> all_classes.size(): " + all_classes.size());
@@ -1080,7 +1094,8 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
       // Processing of the new_classes list must be
       // very careful, as the call to get_reflection or printDeclClass
       // may load other classes (which then get added to the list).
-    	System.out.println("\nenter >>>>> [Chicory.Runtime.process_new_class()]");
+    	if(Runtime.working_debug)
+    		System.out.println("\nenter >>>>> [Chicory.Runtime.process_new_class()]");
     	
       while (true) {
 
@@ -1097,7 +1112,8 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
         if (class_info == null)
           break;
         
-        System.out.println ("\tstart processing class " + class_info.class_name);
+        if(Runtime.working_debug)
+        	System.out.println ("\tstart processing class " + class_info.class_name);
 
         if (debug)
           System.out.println ("processing class " + class_info.class_name);
@@ -1121,9 +1137,11 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
         //TODO create your own printDeclClass method since this it self is not used anymore (print_decl_class is the one in use now )
         //TODO I think it is better to pass comp_infoto the new method even though it is null for me, just to avoid fixing all the other methods 
         decl_writer.printDeclClass (class_info, comp_info);
-        System.out.println ("\tend processing class " + class_info.class_name);
+        if(Runtime.working_debug)
+        	System.out.println ("\tend processing class " + class_info.class_name);
       }
-      System.out.println("exit <<<<< [Chicory.Runtime.process_new_class()]");
+      if(Runtime.working_debug)
+    	  System.out.println("exit <<<<< [Chicory.Runtime.process_new_class()]");
     }
 
     /** Increment the number of records that have been printed. **/
@@ -1238,8 +1256,8 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
     /*@EnsuresNonNull("dtrace")*/
     public static void setDtrace(String filename, boolean append)
     {
-    	//TODO: This is the best entry point that I can see. 
-        System.out.printf("entered daikon.chicory.Runtime.setDtrace(%s, %b)...%n", filename, append);
+    	if(Runtime.settings_debug)
+    		System.out.printf("entered daikon.chicory.Runtime.setDtrace(%s, %b)...%n", filename, append);
 
         if (no_dtrace)
         {
@@ -1348,24 +1366,9 @@ public static synchronized void enter(/*@Nullable*/ Object obj, int nonce, int m
                         dtrace.close();
                     }
                     
-                    //all things from here on added by zalsaeed
-                    synchronized (Runtime.all_classes){
-                    	System.out.println("[Runtime.addShutdownHook()] this is the termination of the agent");
-                        Chicory.all_classes = new ArrayList<ClassInfo>(all_classes);
-//                        for(ClassInfo ci:Runtime.all_classes){
-//                        	System.out.println("Adding: " + ci.class_name);
-//                        	Chicory.all_classes.add(ci);
-//                        }
-                    }
-                    
-                    synchronized (all_traces){
-                    	System.out.println("All catched traces at entery point:");
-                    	int i = 1;
-                    	for (TraceRecord tr:all_traces){
-                    		System.out.println("Trace " + i++ + "\tEnterFlag: " + tr.isEnter + "\tmi_index: " + tr.index);
-                    	}
-                    }
-                    System.out.println("Counter: " + counter);
+                    System.out.println("\n\nenhanced Chciory Report:");
+                    System.out.println("Total ppts written: " + ppt_counter);
+                    System.out.println("Total traces written: " + traces_counter);
                 }
 
                 if (chicoryLoaderInstantiationError) {

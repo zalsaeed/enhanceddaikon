@@ -31,15 +31,18 @@ public class RootInfo extends DaikonVariableInfo
      */
     public static RootInfo enter_process (MethodInfo mi, int depth)
     {
-    	System.out.printf("\t\tenter >>>>> [Chicory.RootInfo.enter_process()] "
-    			+ "	Building enter tree for %s%n", mi);
+    	if(Runtime.working_debug)
+    		System.out.printf("\t\tenter >>>>> [Chicory.RootInfo.enter_process()] "
+    				+ "	Building enter tree for %s%n", mi);
+    	
         debug_vars.clear ("Building enter tree for %s:%s%n", mi.method_name, mi);
 
         RootInfo root = new RootInfo();
 
         // Don't build a tree for class initializers.
         if (mi.is_class_init()){
-        	System.out.println("\t\t[Chicory.RootInfo.enter_process()] It is a <cinit>, thus no tree created");
+        	if(Runtime.working_debug)
+        		System.out.println("\t\t[Chicory.RootInfo.enter_process()] It is a <cinit>, thus no tree created");
         	return (root);
         }
             
@@ -52,7 +55,8 @@ public class RootInfo extends DaikonVariableInfo
         // guarantees that any static variables in the class are found here
         // and not below.
         if (!(mi.member instanceof Constructor<?>)) {
-        	System.out.println("\t\t[Chicory.RootInfo.enter_process()] the method is not a Constuctor");
+        	if(Runtime.working_debug)
+        		System.out.println("\t\t[Chicory.RootInfo.enter_process()] the method is not a Constuctor");
             root.addClassVars(mi.class_info,
                               Modifier.isStatic(mi.member.getModifiers()),
                               mi.member.getDeclaringClass(), 
@@ -67,8 +71,9 @@ public class RootInfo extends DaikonVariableInfo
 
         debug_vars.log ("exit enter_process%n");
         
-        System.out.printf("\t\texit <<<<< [Chicory.RootInfo.enter_process()]"
-        		+ "	built enter tree for %s%n", mi);
+        if(Runtime.working_debug)
+        	System.out.printf("\t\texit <<<<< [Chicory.RootInfo.enter_process()]"
+        			+ "	built enter tree for %s%n", mi);
 
         return root;
     }
@@ -78,15 +83,18 @@ public class RootInfo extends DaikonVariableInfo
      */
     public static RootInfo exit_process(MethodInfo mi, int depth)
     {
-    	System.out.printf("\t\tenter >>>>> [Chicory.RootInfo.exit_process()] "
-    			+ "	Building exit tree for %s%n", mi);
+    	if(Runtime.working_debug)
+    		System.out.printf("\t\tenter >>>>> [Chicory.RootInfo.exit_process()] "
+    				+ "	Building exit tree for %s%n", mi);
+    	
         debug_vars.clear ("Building exit tree for %s%n", mi);
 
         RootInfo root = new RootInfo();
 
         // Don't build a tree for class initializers.
         if (mi.is_class_init()){
-        	System.out.println("\t\t[Chicory.RootInfo.enter_process()] It is a <cinit>, thus no tree created");
+        	if(Runtime.working_debug)
+        		System.out.println("\t\t[Chicory.RootInfo.enter_process()] It is a <cinit>, thus no tree created");
         	return (root);
         }
 
@@ -114,8 +122,10 @@ public class RootInfo extends DaikonVariableInfo
         if (mi.member instanceof Method)
         {
             Class<?> returnType = ((Method) mi.member).getReturnType();
-            System.out.println("\t\t[Chicory.RootInfo.exit_process()] return type: " 
-            		+ returnType.getName());
+            if(Runtime.working_debug)
+            	System.out.println("\t\t[Chicory.RootInfo.exit_process()] return type: "
+            			+ returnType.getName());
+            
             if (!(returnType.equals(Void.TYPE)))
             {
                 // add a new ReturnInfo object to the traversal tree
@@ -131,8 +141,10 @@ public class RootInfo extends DaikonVariableInfo
         }
 
         debug_vars.log ("exit exit_process%n");
-        System.out.printf("\t\texit <<<<< [Chicory.RootInfo.exit_process()]"
-        		+ "	built exit tree for %s%n", mi);
+        
+        if(Runtime.working_debug)
+        	System.out.printf("\t\texit <<<<< [Chicory.RootInfo.exit_process()]"
+        			+ "	built exit tree for %s%n", mi);
 
         return root;
     }
@@ -143,7 +155,8 @@ public class RootInfo extends DaikonVariableInfo
      */
     public static RootInfo getObjectPpt(ClassInfo cinfo, int depth)
     {
-    	System.out.printf("\t\t\t\t\tenter >>>>> [Chicory.RootInfo.getObjectPpt()] cinfo: %s%n", cinfo);
+    	if(Runtime.working_debug)
+    		System.out.printf("\t\t\t\t\tenter >>>>> [Chicory.RootInfo.getObjectPpt()] cinfo: %s%n", cinfo);
         debug_vars.clear ("enter getObjectPpt: %s%n", cinfo);
 
         RootInfo root = new RootInfo();
@@ -155,7 +168,8 @@ public class RootInfo extends DaikonVariableInfo
                 cinfo.clazz, /*offset = */ "", depth);
 
         debug_vars.log ("exit getObjectPpt%n");
-        System.out.printf("\t\t\t\t\texit <<<<< [Chicory.RootInfo.getObjectPpt()]%n");
+        if(Runtime.working_debug)
+        	System.out.printf("\t\t\t\t\texit <<<<< [Chicory.RootInfo.getObjectPpt()]%n");
 
         return root;
     }
