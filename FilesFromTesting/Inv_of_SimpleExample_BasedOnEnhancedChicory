@@ -1,0 +1,82 @@
+Daikon version 5.5.x, released January 5, 2017; http://plse.cs.washington.edu/daikon.
+Processing trace data; reading 1 dtrace file:                                  
+[3:56:26 PM]: Finished reading SimpleExample/Tester_merged.dtrace 
+Based on enhanced Chicory
+===========================================================================    
+SimpleExample.Modifier:::OBJECT
+this has only one value
+this.receivers has only one value
+this.receivers != null
+this.receivers[] elements has only one value
+this.receivers[] elements != null
+this.receivers.getClass().getName() == java.util.ArrayList.class
+this.receivers[].getClass().getName() elements == SimpleExample.Receiver.class
+this.receivers[].getClass().getName() one of { [], [SimpleExample.Receiver] }
+size(this.receivers[]) one of { 0, 1 }
+this != null
+this.receivers[].Receiver has only one value
+this.receivers[] elements == this.receivers[].Receiver
+this.receivers[].Receiver in this.receivers[]
+this.receivers[].Receiver.internalValue % size(this.receivers[]) == 0
+this.receivers[].Receiver.internalValue >= size(this.receivers[])-1
+===========================================================================
+SimpleExample.Modifier.Modifier():::EXIT
+this.receivers[] == []
+this.receivers[].getClass().getName() == []
+===========================================================================
+SimpleExample.Modifier.addReciver(java.lang.Object):::ENTER
+obj.getClass().getName() == SimpleExample.Receiver.class
+obj has only one value
+this.receivers[] == []
+this.receivers[].getClass().getName() == []
+===========================================================================
+SimpleExample.Modifier.addReciver(java.lang.Object):::EXIT
+this.receivers == orig(this.receivers)
+size(this.receivers[])-1 == this.receivers[].Receiver.internalValue
+this.receivers[].Receiver.internalValue == orig(size(this.receivers[]))
+this.receivers[] contains no nulls and has only one value, of length 1
+this.receivers[].getClass().getName() == [SimpleExample.Receiver]
+size(this.receivers[]) == 1
+orig(obj) == this.receivers[this.receivers[].Receiver.internalValue]
+this.receivers[] elements == orig(obj)
+this.receivers.getClass().getName() == orig(this.receivers.getClass().getName())
+orig(obj.getClass().getName()) in this.receivers[].getClass().getName()
+this.receivers[].Receiver == orig(obj)
+===========================================================================
+SimpleExample.Modifier.modify():::ENTER
+this.receivers[] contains no nulls and has only one value, of length 1
+this.receivers[].getClass().getName() == [SimpleExample.Receiver]
+size(this.receivers[]) == 1
+===========================================================================
+SimpleExample.Modifier.modify():::EXIT
+this.receivers == orig(this.receivers)
+this.receivers[].Receiver == orig(this.receivers[].Receiver)
+this.receivers[] == orig(this.receivers[])
+this.receivers[] contains no nulls and has only one value, of length 1
+this.receivers[].getClass().getName() == [SimpleExample.Receiver]
+size(this.receivers[]) == 1
+this.receivers.getClass().getName() == orig(this.receivers.getClass().getName())
+this.receivers[].Receiver.internalValue - orig(this.receivers[].Receiver.internalValue) - 1 == 0
+===========================================================================
+SimpleExample.Receiver:::OBJECT
+this has only one value
+===========================================================================
+SimpleExample.Receiver.Receiver():::EXIT
+this.internalValue == 0
+===========================================================================
+SimpleExample.Receiver.increment():::ENTER
+===========================================================================
+SimpleExample.Receiver.increment():::EXIT
+this.internalValue - orig(this.internalValue) - 1 == 0
+===========================================================================
+SimpleExample.Tester.main(java.lang.String[]):::ENTER
+args has only one value
+args.getClass().getName() == java.lang.String[].class
+args[] == []
+args[].toString == []
+===========================================================================
+SimpleExample.Tester.main(java.lang.String[]):::EXIT
+args[] == orig(args[])
+args[] == []
+args[].toString == []
+Exiting Daikon.
