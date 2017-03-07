@@ -47,9 +47,9 @@ public abstract class DaikonVariableInfo
     protected final boolean isArray;
 
     /** Print debug information about the variables **/
-    static SimpleLog debug_vars = new SimpleLog ("debug_vars.txt", true);
+    static SimpleLog debug_vars = new SimpleLog ("debug_vars.txt", false);
 
-    private static SimpleLog debug_array = new SimpleLog ("debug_array.txt", true);
+    private static SimpleLog debug_array = new SimpleLog ("debug_array.txt", false);
 
     /**default string for comparability info**/
     private static final String compareInfoDefaultString = "22";
