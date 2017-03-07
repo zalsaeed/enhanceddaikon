@@ -499,7 +499,7 @@ public class DeclWriter extends DaikonWriter {
 
       if (debug) System.out.println("Exit print_class_ppt");
       
-      Runtime.ppt_counter++;
+      // Runtime.ppt_counter++;
       if(Runtime.working_debug)
     	  System.out.println("\t\t\t\texit <<<<< [Chicory.DeclWriter.print_class_ppt()] cinfo-> "
     			  + cinfo);
