@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -138,7 +139,10 @@ public class UnifyTraces {
 	    //File dtrace_file = new File (String.format ("%s_merged.dtrace.gz", file_name.matches("[^\\]*(?=[.][a-zA-Z]+$")));
 	    //PrineStream unifier =
 		try{
-		    PrintWriter writer = new PrintWriter(String.format ("%s_merged.dtrace", file_name), "UTF-8");
+			String out_filename = String.format ("%s_merged.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
+			OutputStream os = new FileOutputStream(out_filename);
+            os = new GZIPOutputStream(os);
+            PrintWriter writer = new PrintWriter(os);
 		    
 		    // write the header 
 		    for(String cmnt:comments){
