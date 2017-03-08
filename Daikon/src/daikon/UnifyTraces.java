@@ -206,7 +206,7 @@ public class UnifyTraces {
 					throw new IllegalArgumentException("One of the stored ppts in the hashMap has a differnt parent!");
 				
 				// iterating over all variables for this pi
-				for(String varName:pi.var_to_prop_reps.keySet()){
+				for(String varName:pi.arrangedKeys){
 					//System.out.println("variable " + varName);
 					String[] prop = final_for_this_key.var_to_prop_reps.get(varName);
 					
@@ -236,7 +236,7 @@ public class UnifyTraces {
 		w.println("this_invocation_nonce");
 		w.println(ti.nonce);
 		
-		for(String varName:ppt.var_to_prop_reps.keySet()){
+		for(String varName:ppt.arrangedKeys){
 			Value val = ti.getValueByName(varName);
 			if (val != null){
 				w.println(val.valueName);
@@ -260,7 +260,7 @@ public class UnifyTraces {
 		if(one.parentName != null)
 			w.println("parent parent " + one.parentName + " " + one.parentID);
 		
-		for(String varName:one.var_to_prop_reps.keySet()){
+		for(String varName:one.arrangedKeys){
 			w.println("variable " + varName);
 			for(String props:one.var_to_prop_reps.get(varName)){
 				w.println(props);

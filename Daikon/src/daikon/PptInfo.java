@@ -1,6 +1,8 @@
 package daikon;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class PptInfo {
 	
@@ -20,6 +22,7 @@ public class PptInfo {
 	 */
 	String parentID = null;
 	
+	List<String> arrangedKeys = new ArrayList<String>();
 	final HashMap<String,String[]> var_to_prop_reps = new HashMap<String,String[]>();
 	
 	public PptInfo (String name){
@@ -40,6 +43,9 @@ public class PptInfo {
 	
 	public void addNewVariable (String varName, String[] properties){
 		//TODO check for whitespace in the name and the properties.
+		//Store the key
+		arrangedKeys.add(varName);
+		//Store the keys and value ...
 		var_to_prop_reps.put(varName, properties);
 	}
 
