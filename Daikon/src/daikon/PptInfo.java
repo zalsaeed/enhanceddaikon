@@ -6,10 +6,23 @@ import java.util.List;
 
 public class PptInfo {
 	
+	/* Full ppt string e.g. ppt SimpleExample.Modifier.Modifier():::ENTER*/
 	String name;
 	
-	/**Ppt given type **/
-	String type = null;
+	/* point type (e.g. OBJECT, ENTER, or EXIT10) */
+	String point;
+	
+	/* the package name without any noise */
+	String pckg;
+	
+	/* the class name without any noise */
+	String cls;
+	
+	/* the method and its arguments full name (e.g. setX(int)) */
+	String method = null;
+	
+	/*Ppt given type */
+	String type = null; //enter, exit, subexit, object
 	
 	/** if a parent exists, then its name should be this **/
 	String parentName = null;

@@ -139,7 +139,7 @@ public class UnifyTraces {
 	    //File dtrace_file = new File (String.format ("%s_merged.dtrace.gz", file_name.matches("[^\\]*(?=[.][a-zA-Z]+$")));
 	    //PrineStream unifier =
 		try{
-			String out_filename = String.format ("%s_merged.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
+			String out_filename = String.format ("%s_basedOnEnhancedChicory.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
 			OutputStream os = new FileOutputStream(out_filename);
             os = new GZIPOutputStream(os);
             PrintWriter writer = new PrintWriter(os);
@@ -170,10 +170,61 @@ public class UnifyTraces {
 		} catch (IOException e) {
 		   // do something
 		}
-	    //dtrace.println("# EOF (added by no_more_output)");
+		
+		writeCombinedTraces(file_name);
 	
 	}	
 	
+	private static void writeCombinedTraces(String file_name) {
+		
+		try{
+			String out_filename = String.format ("%s_basedOnEnhancedChicoryCombined.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
+			OutputStream os = new FileOutputStream(out_filename);
+            os = new GZIPOutputStream(os);
+            PrintWriter writer = new PrintWriter(os);
+		    
+		    // write the header 
+		    for(String cmnt:comments){
+		    	writer.println("// " +  cmnt);
+		    }
+		    writer.println("// merged version\n");
+		    
+		    writer.println("decl-version " + declVersion);
+		    writer.println("var-comparability " + varComparability);
+		    
+		    writer.println();
+		    
+		    //assuming we are only looking at a single package
+		    List<String> all_available_unique_classes = new ArrayList<String>();
+			for(String s:ppt_keys){
+				PptInfo temp = final_ppts.get(s);
+				if(temp.point.equals("OBJECT") && !all_available_unique_classes.contains(temp.cls))
+					all_available_unique_classes.add(temp.cls);
+			}
+			System.out.println("totalclasses: " + all_available_unique_classes.size());
+		    
+		    //get a class
+		    //combine it with all other classes
+		    	//write decl and traces for each combination
+		    
+		    //write ppts 
+		    //for(String ppt_name:ppt_keys)
+		    	//writePpt(final_ppts.get(ppt_name), writer);
+		    
+		    //for(TraceInfo ti:all_traces)
+		    	//traceWriting(ti, writer, final_ppts.get(ti.name));
+		    
+		    writer.println();
+		    writer.println("# EOF (added by Runtime.addShutdownHook)");
+		    
+		    writer.close();
+		} catch (IOException e) {
+		   // do something
+		}
+		
+		
+	}
+
 	private static void processPpts(){
 		
 		List<PptInfo> ppts_of_this_key = new ArrayList<PptInfo>();
@@ -193,8 +244,30 @@ public class UnifyTraces {
 				if(final_for_this_key.type == null) //this will only happen in the first iter
 					final_for_this_key.setType(pi.type);
 				
-				if(!final_for_this_key.type.matches(pi.type))//n_2 to n ppts must have the same type of current one
+				
+				if(!final_for_this_key.type.equals(pi.type))//n_2 to n ppts must have the same type of current one
 					throw new IllegalArgumentException("One of the stored ppts in the hashMap has a differnt type!");
+				
+				//this should only happen in the first iter
+				if(final_for_this_key.cls == null || final_for_this_key.pckg == null || final_for_this_key.point == null){
+					final_for_this_key.cls = pi.cls;
+					final_for_this_key.pckg = pi.pckg;
+					final_for_this_key.point = pi.point;
+					if (pi.method != null)
+						final_for_this_key.method = pi.method;
+				}
+				
+				if(final_for_this_key.cls != null && !final_for_this_key.cls.equals(pi.cls))
+					throw new IllegalArgumentException("The two ppts have different class name!");
+				
+				if(final_for_this_key.pckg != null && !final_for_this_key.pckg.equals(pi.pckg))
+					throw new IllegalArgumentException("The two ppts have different package name!");
+				
+				if(final_for_this_key.point != null && !final_for_this_key.point.equals(pi.point))
+					throw new IllegalArgumentException("The two ppts have different point type!");
+				
+				if(final_for_this_key.method != null && !final_for_this_key.method.equals(pi.method))
+					throw new IllegalArgumentException("The two ppts have different method signature!");
 				
 				//if the ppts have a parent will execute only once, 
 				if(final_for_this_key.parentName == null && pi.parentName !=null){
@@ -202,7 +275,7 @@ public class UnifyTraces {
 					final_for_this_key.parentID = pi.parentID; // Assuming the parent ID must be the same 
 				}
 				
-				if(final_for_this_key.parentName != null && !final_for_this_key.parentName.matches(pi.parentName))
+				if(final_for_this_key.parentName != null && !final_for_this_key.parentName.equals(pi.parentName))
 					throw new IllegalArgumentException("One of the stored ppts in the hashMap has a differnt parent!");
 				
 				// iterating over all variables for this pi
@@ -270,8 +343,66 @@ public class UnifyTraces {
 		
 	}
 	
+	private static void readTraceString(String traceName, TraceInfo traceInfo){
+		String fullname; //pptName as given
+		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
+		String pkg_cls; // package and class name separated by a "." as given in the ppt
+		String point;  // point type (e.g. OBJECT, ENTER, or EXIT10)
+		String method; // the method and its arguments full name (e.g. setX(int))
+		String packageName; // the package name without any noise
+		String clsName; // the class name without any noise
+		
+		
+	    fullname = traceName.intern();
+	    int separatorPosition = traceName.indexOf( FileIO.ppt_tag_separator );
+	    if (separatorPosition == -1) {
+	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+traceName+"'");
+	    }
+	    
+	    fn_name = traceName.substring(0, separatorPosition).intern();
+	    point = traceName.substring(separatorPosition + FileIO.ppt_tag_separator.length()).intern();
+
+	    int lparen = fn_name.indexOf('(');
+	    if (lparen == -1) {
+	    	pkg_cls = fn_name;
+	    	method = null;
+	    	//This is an obj"
+	    	String[] twoWords = pkg_cls.split("\\.+");
+	    	packageName = twoWords[0];	      
+	    	clsName = twoWords[1];
+
+	    	traceInfo.point = point;
+	    	traceInfo.cls = clsName;
+	    	traceInfo.pckg = packageName;
+	      
+	      return;
+	    }
+	    int dot = fn_name.lastIndexOf('.', lparen);
+	    if (dot == -1) {
+	      // throw new Daikon.TerminationMessage("No dot in function name " + fn_name);
+	      method = fn_name;
+	      pkg_cls = null;
+	      return;
+	    }
+	    // now 0 <= dot < lparen
+	    pkg_cls = fn_name.substring(0, dot).intern();
+	    // a ppt must have the package name and the class name, otherwise the traces are wrong. 
+	    String[] twoWords = pkg_cls.split("\\.+");
+	    packageName = twoWords[0];
+	    clsName = twoWords[1];
+	    method = fn_name.substring(dot + 1).intern();
+	    
+	    
+	    traceInfo.point = point;
+    	traceInfo.cls = clsName;
+    	traceInfo.pckg = packageName;
+    	traceInfo.method = method;
+	}
+	
 	private static TraceInfo constructTraceInfo(Scanner scanner, String name){
 		TraceInfo ti = new TraceInfo(name);
+		
+		readTraceString(name, ti);
 		
 		String invocation_nonce = scanner.nextLine();
 		if(!invocation_nonce.matches("this_invocation_nonce"))
@@ -301,9 +432,68 @@ public class UnifyTraces {
 		
 		return ti;
 	}
+	
+	private static void readPptString(String pptName, PptInfo pptinfo){
+		String fullname; //pptName as given
+		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
+		String pkg_cls; // package and class name separated by a "." as given in the ppt
+		String point;  // point type (e.g. OBJECT, ENTER, or EXIT10)
+		String method; // the method and its arguments full name (e.g. setX(int))
+		String packageName; // the package name without any noise
+		String clsName; // the class name without any noise
+		
+		
+	    fullname = pptName.intern();
+	    int separatorPosition = pptName.indexOf( FileIO.ppt_tag_separator );
+	    if (separatorPosition == -1) {
+	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+pptName+"'");
+	    }
+	    
+	    fn_name = pptName.substring(0, separatorPosition).intern();
+	    point = pptName.substring(separatorPosition + FileIO.ppt_tag_separator.length()).intern();
+
+	    int lparen = fn_name.indexOf('(');
+	    if (lparen == -1) {
+	    	pkg_cls = fn_name;
+	    	method = null;
+	    	//This is an obj"
+	    	String[] twoWords = pkg_cls.split("\\.+");
+	    	packageName = twoWords[0];	      
+	    	clsName = twoWords[1];
+
+	    	pptinfo.point = point;
+	    	pptinfo.cls = clsName;
+	    	pptinfo.pckg = packageName;
+	      
+	      return;
+	    }
+	    int dot = fn_name.lastIndexOf('.', lparen);
+	    if (dot == -1) {
+	      // throw new Daikon.TerminationMessage("No dot in function name " + fn_name);
+	      method = fn_name;
+	      pkg_cls = null;
+	      return;
+	    }
+	    // now 0 <= dot < lparen
+	    pkg_cls = fn_name.substring(0, dot).intern();
+	    // a ppt must have the package name and the class name, otherwise the traces are wrong. 
+	    String[] twoWords = pkg_cls.split("\\.+");
+	    packageName = twoWords[0];
+	    clsName = twoWords[1];
+	    method = fn_name.substring(dot + 1).intern();
+	    
+	    
+	    pptinfo.point = point;
+    	pptinfo.cls = clsName;
+    	pptinfo.pckg = packageName;
+    	pptinfo.method = method;
+	}
 
 	private static PptInfo constructPpptInfo(Scanner scanner, String name){
 		PptInfo currentPpt = new PptInfo(name);
+		
+		//given the full ppt name break it down to package, class, method and point then store the values in the PptInfo
+		readPptString(name, currentPpt);
 		
 		String typeInfo = scanner.nextLine();
 		String[] words = typeInfo.split("\\s+");
@@ -367,38 +557,7 @@ public class UnifyTraces {
 			ppt.setParentName(words[i]);
 		}
 	}
-	
-//	public static void setDtrace(String filename, boolean append, PrintStream dtrace)
-//    {
-//
-//        try
-//        {
-//            File file = new File(filename);
-//            File parent = file.getParentFile();
-//            if (parent != null)
-//                parent.mkdirs();
-//            OutputStream os = new FileOutputStream(filename, append);
-//            if (filename.endsWith(".gz"))
-//            {
-//                if (append)
-//                    throw new Error("DTRACEAPPEND environment variable is set, " + "Cannot append to gzipped dtrace file " + filename);
-//                os = new GZIPOutputStream(os);
-//            }
-//
-//            //System.out.println("limit = " + dtraceLimit + " terminate " + dtraceLimitTerminate);
-//
-//            // 8192 is the buffer size in BufferedReader
-//            BufferedOutputStream bos = new BufferedOutputStream(os, 8192);
-//            dtrace = new PrintStream(bos);
-//        }
-//        catch (Exception e)
-//        {
-//            e.printStackTrace();
-//            throw new Error(e);
-//        }
-//        
-//        // System.out.printf("exited daikon.chicory.Runtime.setDtrace(%s, %b)%n", filename, append);
-//    }
+
 }
 
 

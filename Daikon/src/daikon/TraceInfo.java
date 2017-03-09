@@ -7,6 +7,18 @@ public class TraceInfo {
 	/**Trace method name**/
 	String name;
 	
+	/* point type (e.g. OBJECT, ENTER, or EXIT10) */
+	String point;
+	
+	/* the package name without any noise */
+	String pckg;
+	
+	/* the class name without any noise */
+	String cls;
+	
+	/* the method and its arguments full name (e.g. setX(int)) */
+	String method = null;
+	
 	/** method nonce as given in the trace **/
 	String nonce = null;
 	
