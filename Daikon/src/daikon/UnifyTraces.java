@@ -308,11 +308,16 @@ public class UnifyTraces {
 			
 			w.println("variable " + injectClassNameInVariableName(ppt.cls, varName));
 			for(VariableProp prop:ppt.var_to_propVals.get(varName)){
-				if (prop.getPropIdentifier().equals("enclosing-var")){
+				if (prop.getPropIdentifier().equals("enclosing-var") || prop.getPropIdentifier().equals("function-args")){
 					w.print("  ");
 					w.print(prop.getPropIdentifier());
 					w.print(" " + injectClassNameInVariableName(ppt.cls, prop.getPropValsAsString()) + "\n");
-				}else{
+				}else if(prop.getPropIdentifier().equals("parent")){
+						w.print("  ");
+						w.print(prop.propIdentifier);
+						w.print(" " + parent + " " + parentID + "\n");
+					}
+				else{
 					w.print("  ");
 					w.print(prop.getPropIdentifier());
 					w.print(" " + prop.getPropValsAsString() + "\n");
@@ -378,13 +383,45 @@ public class UnifyTraces {
     	// the way it is working now, we are dealing with properties as black-box. For the sake of failing fast
     	// we are continuing with the way it is set up now.
 	    for(String varName:firstPpt.arrangedKeys){
-	    	List<VariableProp> props = firstPpt.var_to_propVals.get(varName);
-	    	
-	    	newPpt.addNewVariable(injectClassNameInVariableName(firstPpt.cls, varName), firstPpt.var_to_prop_reps.get(varName));
+	    	List<VariableProp> props = new ArrayList<VariableProp>();
+	    	for(VariableProp vp:firstPpt.var_to_propVals.get(varName)){
+	    		VariableProp tmp = new VariableProp(vp.getPropIdentifier());
+	    		if(vp.getPropIdentifier().equals("enclosing-var") || vp.getPropIdentifier().equals("function-args")){
+	    			if(vp.propVals.size() == 1){
+	    				tmp.addPropVal(injectClassNameInVariableName(firstPpt.cls, vp.getPropValsAsString()));
+	    				props.add(tmp);
+	    			}
+	    			else
+	    				throw new IllegalArgumentException("Irregular 'enclosing-var' tried to be replaced when joining " + firstPpt.cls + " and " + secondPpt.cls + " OBJECTs");
+	    		}else{
+	    			for(String val:vp.propVals)
+	    				tmp.addPropVal(val);
+	    			props.add(tmp);
+	    		}
+	    	}
+	    	newPpt.addNewVariable(injectClassNameInVariableName(firstPpt.cls, varName), props);
 	    }
-	    for(String varName:secondPpt.arrangedKeys)	
-	    	newPpt.addNewVariable(injectClassNameInVariableName(secondPpt.cls, varName), secondPpt.var_to_prop_reps.get(varName));
-		
+	    
+	    for(String varName:secondPpt.arrangedKeys){
+	    	List<VariableProp> props = new ArrayList<VariableProp>();
+	    	for(VariableProp vp:secondPpt.var_to_propVals.get(varName)){
+	    		VariableProp tmp = new VariableProp(vp.getPropIdentifier());
+	    		if(vp.getPropIdentifier().equals("enclosing-var") || vp.getPropIdentifier().equals("function-args")){
+	    			if(vp.propVals.size() == 1){
+	    				tmp.addPropVal(injectClassNameInVariableName(secondPpt.cls, vp.getPropValsAsString()));
+	    				props.add(tmp);
+	    			}
+	    			else
+	    				throw new IllegalArgumentException("Irregular 'enclosing-var' tried to be replaced when joining " + firstPpt.cls + " and " + secondPpt.cls + " OBJECTs");
+	    		}else{
+	    			for(String val:vp.propVals)
+	    				tmp.addPropVal(val);
+	    			props.add(tmp);
+	    		}
+	    	}
+	    	newPpt.addNewVariable(injectClassNameInVariableName(secondPpt.cls, varName), props);
+	    }
+	    
 	    newPpt.pckg = newPkgName;
 	    newPpt.cls = newClsName;
 	    newPpt.point = "OBJECT";

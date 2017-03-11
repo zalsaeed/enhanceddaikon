@@ -80,5 +80,25 @@ public class PptInfo {
 		var_to_propVals.put(varName, props);
 		
 	}
+	
+	public void addNewVariable (String varName, List<VariableProp> props){
+		//TODO check for whitespace in the name and the properties.
+		//Store the key
+		arrangedKeys.add(varName);
+		// Simply adding the props according to the new way
+		var_to_propVals.put(varName, props);
+		
+		// Reading props and converting them to a String array to store them according to the old way (old way must be refactored away)
+		List<String> stringProps = new ArrayList<String>();
+		if(props.size() > 0){
+			for(VariableProp vp:props){
+				stringProps.add("  " + vp.propIdentifier + " " + vp.getPropValsAsString());
+				
+			}
+		}
+		
+		if(!stringProps.isEmpty())
+			var_to_prop_reps.put(varName, stringProps.toArray(new String[0]));
+	}
 
 }
