@@ -6,13 +6,13 @@ import java.util.List;
 public class Variable {
 	
 	/* variable name*/
-	String name;
+	String varFullName;
 	
 	List<String> properties = new ArrayList<String>();
 	
 	
 	public Variable(String name){
-		this.name = name;
+		this.varFullName = name;
 	}
 	
 	public void addProp(String prop){
@@ -20,7 +20,7 @@ public class Variable {
 	}
 	
 	public boolean isEqaul (Variable other){
-		if(this.name.matches(other.name) && 
+		if(this.varFullName.matches(other.varFullName) && 
 				this.properties.size() == other.properties.size()){
 			return true;
 		}else

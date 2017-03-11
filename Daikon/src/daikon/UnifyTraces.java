@@ -1,13 +1,10 @@
 package daikon;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
@@ -19,9 +16,8 @@ import daikon.util.Pair;
  * 
  * @author zalsaeed
  * 
- * A class to unify the traces records based on the enhanced Chicory version 
- * 
- *
+ * A class to unify the traces records based on the enhanced Chicory version.
+ * Also, it provides the ability to join to original objects onto a single made up object now.
  */
 
 public class UnifyTraces {
@@ -32,13 +28,18 @@ public class UnifyTraces {
 	static String declVersion = "";
 	static String varComparability = "";
 	
+	/* All traces found in the dtrace file, holding them in an ArrayList to preserve order*/
 	static List<TraceInfo> all_traces = new ArrayList<TraceInfo>();
 	
 	/*All identical ppt are going to be identified by this key*/
 	static List<String> ppt_keys = new ArrayList<String>();
+	
+	/* hold all Ppt from the enhanced Chicory many duplicates will be here */
 	static HashMap<String,List<PptInfo>> all_ppts = new HashMap<String,List<PptInfo>>();
 	
+	/* Final Ppts after joining all duplicates */
 	static HashMap<String,PptInfo> final_ppts = new HashMap<String,PptInfo>();
+	
 	
 	static int countProcesedPpts = 0;
 
@@ -300,14 +301,22 @@ public class UnifyTraces {
 			String[] prop = {"  var-kind variable", "  dec-type "+ newPkgName + "." + newPkgName, "  rep-type hashcode", "  flags is_param", "  comparability 22"};
 			w.println("variable this");
 			for (String s:prop)
-				w.print(s);
+				w.println(s);
 		}
 			
 		for(String varName:ppt.arrangedKeys){
 			
 			w.println("variable " + injectClassNameInVariableName(ppt.cls, varName));
-			for(String props:ppt.var_to_prop_reps.get(varName)){
-				w.println(props);
+			for(VariableProp prop:ppt.var_to_propVals.get(varName)){
+				if (prop.getPropIdentifier().equals("enclosing-var")){
+					w.print("  ");
+					w.print(prop.getPropIdentifier());
+					w.print(" " + injectClassNameInVariableName(ppt.cls, prop.getPropValsAsString()) + "\n");
+				}else{
+					w.print("  ");
+					w.print(prop.getPropIdentifier());
+					w.print(" " + prop.getPropValsAsString() + "\n");
+				}
 			}
 		}
 		w.println();
@@ -368,9 +377,11 @@ public class UnifyTraces {
 	    //TODO when constructing Ppts we should parse the properties to make sense of them
     	// the way it is working now, we are dealing with properties as black-box. For the sake of failing fast
     	// we are continuing with the way it is set up now.
-	    for(String varName:firstPpt.arrangedKeys)	
+	    for(String varName:firstPpt.arrangedKeys){
+	    	List<VariableProp> props = firstPpt.var_to_propVals.get(varName);
+	    	
 	    	newPpt.addNewVariable(injectClassNameInVariableName(firstPpt.cls, varName), firstPpt.var_to_prop_reps.get(varName));
-	    
+	    }
 	    for(String varName:secondPpt.arrangedKeys)	
 	    	newPpt.addNewVariable(injectClassNameInVariableName(secondPpt.cls, varName), secondPpt.var_to_prop_reps.get(varName));
 		

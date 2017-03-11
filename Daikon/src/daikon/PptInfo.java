@@ -37,6 +37,7 @@ public class PptInfo {
 	
 	List<String> arrangedKeys = new ArrayList<String>();
 	final HashMap<String,String[]> var_to_prop_reps = new HashMap<String,String[]>();
+	HashMap<String,List<VariableProp>> var_to_propVals = new HashMap<String,List<VariableProp>>();
 	
 	public PptInfo (String name){
 		this.name = name;
@@ -58,8 +59,26 @@ public class PptInfo {
 		//TODO check for whitespace in the name and the properties.
 		//Store the key
 		arrangedKeys.add(varName);
-		//Store the keys and value ...
+		//Store the keys and value ... this is the old way it must be removed and refacor all the code depends on it to use the new way
 		var_to_prop_reps.put(varName, properties);
+		
+		List<VariableProp> props = new ArrayList<VariableProp>();
+		if(properties.length > 0){
+			for(int i = 0 ; i < properties.length ; i++){
+				String[] prop = properties[i].split("\\s+");
+				
+				assert prop[0].equals(" ") : "Observed an irregular property when adding it to PptInfo";
+				
+				VariableProp temp = new VariableProp(prop[1]);
+				
+				for(int j = 2 ; j < prop.length ; j ++)
+					temp.addPropVal(prop[j]);
+				props.add(temp);
+			}
+		}
+		
+		var_to_propVals.put(varName, props);
+		
 	}
 
 }
