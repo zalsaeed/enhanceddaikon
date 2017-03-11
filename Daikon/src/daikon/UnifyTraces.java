@@ -9,11 +9,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
+
+import daikon.util.Pair;
 
 
 /**
@@ -187,33 +186,69 @@ public class UnifyTraces {
 		    for(String cmnt:comments){
 		    	writer.println("// " +  cmnt);
 		    }
-		    writer.println("// merged version\n");
+		    writer.println("// combined objects\n");
 		    
 		    writer.println("decl-version " + declVersion);
 		    writer.println("var-comparability " + varComparability);
 		    
 		    writer.println();
 		    
-		    //assuming we are only looking at a single package
+		    // allocating all possible classes
+		    // assuming we are only looking at a single package
 		    List<String> all_available_unique_classes = new ArrayList<String>();
-			for(String s:ppt_keys){
-				PptInfo temp = final_ppts.get(s);
-				if(temp.point.equals("OBJECT") && !all_available_unique_classes.contains(temp.cls))
-					all_available_unique_classes.add(temp.cls);
+			for(String pptFullGivenString:ppt_keys){
+				String pck_class = getPckgAndClassNameFromPpt(pptFullGivenString);
+				PptInfo tmp = new PptInfo(pptFullGivenString);
+				readPptNameString(pptFullGivenString, tmp);
+				if(tmp.point.equals("OBJECT") && !all_available_unique_classes.contains(tmp.cls))
+					all_available_unique_classes.add(pck_class);
 			}
 			System.out.println("totalclasses: " + all_available_unique_classes.size());
-		    
-		    //get a class
-		    //combine it with all other classes
-		    	//write decl and traces for each combination
-		    
-		    //write ppts 
-		    //for(String ppt_name:ppt_keys)
-		    	//writePpt(final_ppts.get(ppt_name), writer);
-		    
-		    //for(TraceInfo ti:all_traces)
-		    	//traceWriting(ti, writer, final_ppts.get(ti.name));
-		    
+			
+			// All possible combinations of the given classes 
+			List<Pair<String, String>> all_possible_comb = combinaations(all_available_unique_classes);
+			
+			for(Pair<String,String> pairs:all_possible_comb){
+				PptInfo firstObj = null;
+				PptInfo secondObj = null;
+				
+				for(String pptFullGivenString:ppt_keys){
+					//establish a new "this" variable and its trace.
+					
+					String pck_class = getPckgAndClassNameFromPpt(pptFullGivenString);
+					PptInfo tmp = new PptInfo(pptFullGivenString);
+					readPptNameString(pptFullGivenString, tmp);
+					if(pairs.a.equals(pck_class) && tmp.point.equals("OBJECT"))
+						firstObj = final_ppts.get(pptFullGivenString);
+					
+					if(pairs.b.equals(pck_class) && tmp.point.equals("OBJECT"))
+						secondObj = final_ppts.get(pptFullGivenString);
+					
+					//then write all and edit all ppts for those two classes on the fly
+				}
+				
+				PptInfo newClassObjPpt = joinTwoObjPpts(firstObj, secondObj);
+				
+				//write ppts
+				writePpt(newClassObjPpt, writer);
+
+			    for(String ppt_name:ppt_keys){
+			    	if((pairs.a.equals(getPckgAndClassNameFromPpt(ppt_name)) || 
+			    			pairs.b.equals(getPckgAndClassNameFromPpt(ppt_name))) &&
+			    			!getPointTypeFromPpt(ppt_name).equals("OBJECT"))
+			    		joinAndWritePpts(final_ppts.get(ppt_name), writer, newClassObjPpt.cls, newClassObjPpt.pckg, newClassObjPpt.name, "1");
+			    }
+			    	
+			    
+			    //write traces and change them on the fly
+			    int newObjHash = new Random().nextInt(900000000) + 100000000;
+			    
+			    for(TraceInfo ti:all_traces)
+			    	if(pairs.a.equals(getPckgAndClassNameFromPpt(ti.name)) || pairs.b.equals(getPckgAndClassNameFromPpt(ti.name)))
+			    		joinAndWriteTraces(ti, final_ppts.get(ti.name), writer, newClassObjPpt.cls, newClassObjPpt.pckg, newObjHash);
+				
+			}
+			
 		    writer.println();
 		    writer.println("# EOF (added by Runtime.addShutdownHook)");
 		    
@@ -222,7 +257,243 @@ public class UnifyTraces {
 		   // do something
 		}
 		
+	}
+	
+	private static void joinAndWriteTraces(TraceInfo ti, PptInfo ppt, PrintWriter w, String newClassName, String newPkgName, int newObjHash){
+		w.println(replaceClassNameInPptFullName(newClassName, ti.name));
+		w.println("this_invocation_nonce");
+		w.println(ti.nonce);  // it could be problematic to have similar nonce for different objects
+								//TODO change it by using the loop id for the new object as suffix.
 		
+		//Only if the first variable in the given ppt is "this" then we introduces a new "this" for our new combined object
+		if(ppt.arrangedKeys.size() > 0  && ppt.arrangedKeys.get(0).equals("this")){
+			w.println("this");
+			w.println(newObjHash);
+			w.println("1");
+		}
+		
+		for(String varName:ppt.arrangedKeys){
+			Value val = ti.getValueByName(varName);
+			if (val != null){
+				w.println(injectClassNameInVariableName(ppt.cls, val.valueName));
+				w.println(val.givenValue);
+				w.println(val.sensicalModifier);
+			}else{
+				w.println(injectClassNameInVariableName(ppt.cls, varName));
+				w.println("nonsensical");
+				w.println("2");
+			}
+		}
+		
+		w.println();
+	}
+	
+	private static void joinAndWritePpts(PptInfo ppt, PrintWriter w, String newClassName, String newPkgName, String parent, String parentID){
+		w.println("ppt " + replaceClassNameInPptFullName(newClassName, ppt.name)); 
+		w.println("ppt-type " + ppt.type);
+		
+		if(ppt.parentName != null)
+			w.println("parent parent " + parent + " " + parentID);
+		
+		//Only if the first variable in the given ppt is "this" then we introduces a new "this" for our new combined object
+		if(ppt.arrangedKeys.size() > 0  && ppt.arrangedKeys.get(0).equals("this")){
+			String[] prop = {"  var-kind variable", "  dec-type "+ newPkgName + "." + newPkgName, "  rep-type hashcode", "  flags is_param", "  comparability 22"};
+			w.println("variable this");
+			for (String s:prop)
+				w.print(s);
+		}
+			
+		for(String varName:ppt.arrangedKeys){
+			
+			w.println("variable " + injectClassNameInVariableName(ppt.cls, varName));
+			for(String props:ppt.var_to_prop_reps.get(varName)){
+				w.println(props);
+			}
+		}
+		w.println();
+	}
+	
+	/**
+	 * A class to join two PptInfos 
+	 * 
+	 * @param firstPpt
+	 * @param secondPpt
+	 * @return
+	 */
+	private static PptInfo joinTwoObjPpts (PptInfo firstPpt, PptInfo secondPpt){
+
+		if (firstPpt == null || secondPpt == null)
+			throw new IllegalArgumentException("One of the Ppts given are nulls!");
+		
+		String first_pkg_cls = getPckgAndClassNameFromPpt(firstPpt.name);
+		String second_pkg_cls = getPckgAndClassNameFromPpt(secondPpt.name);
+		
+		String[] firstTwoWords = first_pkg_cls.split("\\.+");
+		String fstPkgName = firstTwoWords[0];
+	    String fstClsName = firstTwoWords[1];
+	    
+	    String[] sndTwoWords = second_pkg_cls.split("\\.+");
+	    String sndPkgName = sndTwoWords[0];
+	    String sndClsName = sndTwoWords[1];
+	    
+	    if(!fstPkgName.equals(sndPkgName))
+	    	throw new IllegalArgumentException("Two Ppts from different packages!");
+	    
+	    String newPkgName = fstPkgName;
+	    String newClsName = fstClsName + sndClsName;
+	    
+	    // Because this is an Object Ppt I'm selecting one of the two given full names
+	    String newFullPptName = replaceClassNameInPptFullName(newClsName, firstPpt.name);
+		
+	    PptInfo newPpt = new PptInfo(newFullPptName);
+	    
+	    if(!firstPpt.type.equals(secondPpt.type))
+	    	throw new IllegalArgumentException("Two Ppts of different types trying to join!");
+	    
+	    //Setting the type
+	    newPpt.type = firstPpt.type;
+	    
+	    if(firstPpt.parentName != null && secondPpt.parentName != null && !firstPpt.parentName.equals(secondPpt.parentName))
+	    	throw new IllegalArgumentException("The two Ppts have different parents, not possible to join!");
+	    
+	    if(firstPpt.parentName != null && secondPpt.parentName != null){
+	    	newPpt.parentName = firstPpt.parentName;
+	    	newPpt.parentID = firstPpt.parentID;
+	    }
+	    
+	    // add an arbitrary this variable for the new Object
+	    String[] prop = {"  var-kind variable", "  dec-type "+ newPkgName + "." + newClsName, "  rep-type hashcode", "  flags is_param", "  comparability 22"}; 
+	    newPpt.addNewVariable("this", prop);
+		
+	    //TODO when constructing Ppts we should parse the properties to make sense of them
+    	// the way it is working now, we are dealing with properties as black-box. For the sake of failing fast
+    	// we are continuing with the way it is set up now.
+	    for(String varName:firstPpt.arrangedKeys)	
+	    	newPpt.addNewVariable(injectClassNameInVariableName(firstPpt.cls, varName), firstPpt.var_to_prop_reps.get(varName));
+	    
+	    for(String varName:secondPpt.arrangedKeys)	
+	    	newPpt.addNewVariable(injectClassNameInVariableName(secondPpt.cls, varName), secondPpt.var_to_prop_reps.get(varName));
+		
+	    newPpt.pckg = newPkgName;
+	    newPpt.cls = newClsName;
+	    newPpt.point = "OBJECT";
+		return newPpt;
+	}
+	
+	private static String injectClassNameInVariableName (String className, String variableName){
+		StringBuffer buff = new StringBuffer();
+		for(int i = 0 ; i < variableName.length() ; i++){
+			buff.append(variableName.charAt(i));
+			if(buff.toString().equals("this"))
+				buff.append("."+className);
+		}
+		return buff.toString();
+	}
+	
+	private static String replaceClassNameInPptFullName(String newClassName, String fullPptName){
+		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
+		String pkg_cls; // package and class name separated by a "." as given in the ppt
+		String point;  // point type (e.g. OBJECT, ENTER, or EXIT10)
+		String method; // the method and its arguments full name (e.g. setX(int))
+		String packageName; // the package name without any noise
+		
+	    int separatorPosition = fullPptName.indexOf( FileIO.ppt_tag_separator );
+	    if (separatorPosition == -1) {
+	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+fullPptName+"'");
+	    }
+	    
+	    fn_name = fullPptName.substring(0, separatorPosition).intern();
+	    point = fullPptName.substring(separatorPosition + FileIO.ppt_tag_separator.length()).intern();
+
+	    int lparen = fn_name.indexOf('(');
+	    if (lparen == -1) {
+	    	pkg_cls = fn_name;
+	    	method = null;
+	    	//This is an obj"
+	    	String[] twoWords = pkg_cls.split("\\.+");
+	    	packageName = twoWords[0];	      
+	      
+	    	//this is an OBJECT or CLASS thus no method
+	      return packageName + "." + newClassName + ":::" + point;
+	    }
+	    int dot = fn_name.lastIndexOf('.', lparen);
+	    if (dot == -1) {
+	      throw new Daikon.TerminationMessage("No dot in function name " + fn_name);
+
+	    }
+	    // now 0 <= dot < lparen
+	    pkg_cls = fn_name.substring(0, dot).intern();
+	    // a ppt must have the package name and the class name, otherwise the traces are wrong. 
+	    String[] twoWords = pkg_cls.split("\\.+");
+	    packageName = twoWords[0];
+	    method = fn_name.substring(dot + 1).intern();
+	    
+    	return packageName + "." + newClassName + "." + method + ":::" + point;
+	}
+	
+	private static List<Pair<String,String>> combinaations(List<String> elements){
+		List<Pair<String,String>> current_possible_comb = new ArrayList<Pair<String,String>>();
+		//base case
+		if(elements.size() == 2){
+			Pair<String,String> e = new Pair<String,String>("","");
+			e.a = elements.get(0); 
+			e.b = elements.get(elements.size() - 1);
+			current_possible_comb.add(e);
+		}else
+		if(elements.size() > 2){
+			 String e1 = elements.get(0);
+			 elements.remove(e1);
+			 for(String others:elements){
+				 if(!others.equals(e1))
+					 current_possible_comb.add(new Pair<String,String>(e1, others));
+			 }
+			 current_possible_comb.addAll(combinaations(elements));
+		}else 
+		if(elements.size() < 2)
+			throw new IllegalArgumentException("Accepts ony lists of size 2 or higher!");
+		return current_possible_comb;
+	}
+	
+	private static String getPointTypeFromPpt(String pptName){
+		String point;  // point type (e.g. OBJECT, ENTER, or EXIT10)
+		
+	    int separatorPosition = pptName.indexOf( FileIO.ppt_tag_separator );
+	    if (separatorPosition == -1) {
+	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+pptName+"'");
+	    }
+	    
+	    point = pptName.substring(separatorPosition + FileIO.ppt_tag_separator.length()).intern();
+
+	    return point;	    
+	}
+	
+	private static String getPckgAndClassNameFromPpt(String pptName){
+		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
+		String pkg_cls; // package and class name separated by a "." as given in the ppt
+		
+		
+	    int separatorPosition = pptName.indexOf( FileIO.ppt_tag_separator );
+	    if (separatorPosition == -1) {
+	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+pptName+"'");
+	    }
+	    
+	    fn_name = pptName.substring(0, separatorPosition).intern();
+
+	    int lparen = fn_name.indexOf('(');
+	    if (lparen == -1) {
+	    	pkg_cls = fn_name;
+	    	//This is an obj"
+	    	return pkg_cls;
+	      
+	    }
+	    int dot = fn_name.lastIndexOf('.', lparen);
+	    if (dot == -1)
+	    	throw new Daikon.TerminationMessage("no method found in '"+pptName+"'");
+	    // now 0 <= dot < lparen
+	    pkg_cls = fn_name.substring(0, dot).intern();
+	    // a ppt must have the package name and the class name, otherwise the traces are wrong. 
+	    return pkg_cls;
+	    
 	}
 
 	private static void processPpts(){
@@ -433,7 +704,7 @@ public class UnifyTraces {
 		return ti;
 	}
 	
-	private static void readPptString(String pptName, PptInfo pptinfo){
+	private static void readPptNameString(String pptName, PptInfo pptinfo){
 		String fullname; //pptName as given
 		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
 		String pkg_cls; // package and class name separated by a "." as given in the ppt
@@ -493,7 +764,7 @@ public class UnifyTraces {
 		PptInfo currentPpt = new PptInfo(name);
 		
 		//given the full ppt name break it down to package, class, method and point then store the values in the PptInfo
-		readPptString(name, currentPpt);
+		readPptNameString(name, currentPpt);
 		
 		String typeInfo = scanner.nextLine();
 		String[] words = typeInfo.split("\\s+");
