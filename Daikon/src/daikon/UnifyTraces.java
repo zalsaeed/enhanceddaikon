@@ -298,7 +298,7 @@ public class UnifyTraces {
 		
 		//Only if the first variable in the given ppt is "this" then we introduces a new "this" for our new combined object
 		if(ppt.arrangedKeys.size() > 0  && ppt.arrangedKeys.get(0).equals("this")){
-			String[] prop = {"  var-kind variable", "  dec-type "+ newPkgName + "." + newPkgName, "  rep-type hashcode", "  flags is_param", "  comparability 22"};
+			String[] prop = {"  var-kind variable", "  dec-type "+ newPkgName + "." + newClassName, "  rep-type hashcode", "  flags is_param", "  comparability 22"};
 			w.println("variable this");
 			for (String s:prop)
 				w.println(s);
