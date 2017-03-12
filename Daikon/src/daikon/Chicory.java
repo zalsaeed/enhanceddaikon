@@ -234,7 +234,7 @@ public class Chicory {
     // Default the trace file name to the <target-program-name>.dtrace.gz
     if (dtrace_file == null) {
       String target_class = target_args[0].replaceFirst (".*[/.]", "");
-      dtrace_file = new File (String.format ("%s.dtrace.gz", target_class));
+      dtrace_file = new File (String.format ("%sDdsObserved.dtrace.gz", target_class));
       premain_args += " --dtrace-file=" + dtrace_file;
     }
 

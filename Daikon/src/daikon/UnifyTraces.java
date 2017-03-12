@@ -139,7 +139,7 @@ public class UnifyTraces {
 	    //File dtrace_file = new File (String.format ("%s_merged.dtrace.gz", file_name.matches("[^\\]*(?=[.][a-zA-Z]+$")));
 	    //PrineStream unifier =
 		try{
-			String out_filename = String.format ("%s_basedOnEnhancedChicory.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
+			String out_filename = String.format ("%sMerged.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
 			OutputStream os = new FileOutputStream(out_filename);
             os = new GZIPOutputStream(os);
             PrintWriter writer = new PrintWriter(os);
@@ -178,7 +178,7 @@ public class UnifyTraces {
 	private static void writeCombinedTraces(String file_name) {
 		
 		try{
-			String out_filename = String.format ("%s_basedOnEnhancedChicoryCombined.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
+			String out_filename = String.format ("%sMergedOneLevelUp.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
 			OutputStream os = new FileOutputStream(out_filename);
             os = new GZIPOutputStream(os);
             PrintWriter writer = new PrintWriter(os);
