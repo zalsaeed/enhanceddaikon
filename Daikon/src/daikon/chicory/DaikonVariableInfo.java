@@ -1375,9 +1375,11 @@ public abstract class DaikonVariableInfo
     	    * it is safe to handle the offset manually in this level since we are not going deeper
     	    * (see choice 2).
             */
-           for (Object obj:listElements){
+           for (int i = 0 ; i < listElements.size(); i++){
+           //for (Object obj:listElements){
         	   //TODO to find the id of the elements iterate this as an array and get the id
-        	   //TODO delete all these prints.
+        	   Object obj = listElements.get(i);
+        	   
         	   if(Runtime.working_debug){
         		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] Got them: " + obj.getClass().getSimpleName());
         		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] this is classClassName: " + classClassName);
@@ -1390,7 +1392,7 @@ public abstract class DaikonVariableInfo
         	   }
         	   
         	   //manually handling the offset.
-        	   String currentOffset = offset + theName + "[..].";
+        	   String currentOffset = offset + theName + "[" + i +"].";
         	   
         	   //add this object as a ListElement to the ListInfo
         	   @SuppressWarnings("unchecked")
