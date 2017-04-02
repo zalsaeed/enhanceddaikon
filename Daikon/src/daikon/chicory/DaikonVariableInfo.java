@@ -1376,8 +1376,18 @@ public abstract class DaikonVariableInfo
     	    * (see choice 2).
             */
            for (int i = 0 ; i < listElements.size(); i++){
-           //for (Object obj:listElements){
-        	   //TODO to find the id of the elements iterate this as an array and get the id
+        	   /*
+        	    * Tracking elements of same type issue:
+        	    * 
+        	    * Tracking the ID of the elements this way doesn't guarantee that we are tracking the same element 
+        	    * each time we observe this list/collection. It is possible that the order of elements would change and thus 
+        	    * all IDs would change and cause confusion. Also, it is possible that one element gets deleted and elements after 
+        	    * it get shifted one position to the left, hence change their IDs too. The only way to track these elements and 
+        	    * make sure which element is deleted or shifted is by using the hashcode of the object for tracking. And keeping 
+        	    * it in our records for later possible comparison. However, even this solution has some flaws. First, it is expensive
+        	    * to keep track of collections in memory. Second, elements of same object type could have same hashcode, thus the 
+        	    * hashcode is not unique. 
+        	    */
         	   Object obj = listElements.get(i);
         	   
         	   if(Runtime.working_debug){
