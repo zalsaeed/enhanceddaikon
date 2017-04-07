@@ -1375,7 +1375,7 @@ public abstract class DaikonVariableInfo
     	    * it is safe to handle the offset manually in this level since we are not going deeper
     	    * (see choice 2).
             */
-           for (int i = 0 ; i < listElements.size(); i++){
+           for (Object obj:listElements){
         	   /*
         	    * Tracking elements of same type issue:
         	    * 
@@ -1388,7 +1388,6 @@ public abstract class DaikonVariableInfo
         	    * to keep track of collections in memory. Second, elements of same object type could have same hashcode, thus the 
         	    * hashcode is not unique. 
         	    */
-        	   Object obj = listElements.get(i);
         	   
         	   if(Runtime.working_debug){
         		   System.out.println("\t\t\t\t[Chicory.DaikonVariableInfo.checkForListDecl()] Got them: " + obj.getClass().getSimpleName());
@@ -1402,7 +1401,7 @@ public abstract class DaikonVariableInfo
         	   }
         	   
         	   //manually handling the offset.
-        	   String currentOffset = offset + theName + "[" + i +"].";
+        	   String currentOffset = offset + theName + "[" + obj.hashCode() +"].";
         	   
         	   //add this object as a ListElement to the ListInfo
         	   @SuppressWarnings("unchecked")
