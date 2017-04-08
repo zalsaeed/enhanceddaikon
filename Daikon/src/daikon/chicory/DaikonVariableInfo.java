@@ -1439,7 +1439,7 @@ public abstract class DaikonVariableInfo
 		   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got Called!");
 	   Field field = null;
 	   try {
-		   field = obj.getClass().getField(listName);
+		   field = obj.getClass().getDeclaredField(listName);
 		   
 	   } catch (NoSuchFieldException | SecurityException e) {
 		   // TODO throw a proper message 
