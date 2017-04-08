@@ -1446,6 +1446,14 @@ public abstract class DaikonVariableInfo
 		   e.printStackTrace();   
 	   }
 	   
+	   //we want to access all fields,,, then return it back to its setup
+	   boolean accessChanged = false;
+       if (!field.isAccessible())
+       {
+           accessChanged = true;
+           field.setAccessible(true);
+       }
+	   
 	   Object listInstance = null;
 	   try {
 		   listInstance = field.get(obj);   
@@ -1483,6 +1491,9 @@ public abstract class DaikonVariableInfo
 			   }   
 		   }   
 	   }
+	   
+	   if(accessChanged)
+		   field.setAccessible(false);
 	   
 	   return listOfElements;
    }
