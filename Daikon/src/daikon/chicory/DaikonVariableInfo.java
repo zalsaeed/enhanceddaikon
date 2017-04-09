@@ -1462,6 +1462,10 @@ public abstract class DaikonVariableInfo
 		   e.printStackTrace();   
 	   }
 	   
+	   //return immediately if the list is still not initialized.
+	   if(listInstance == null)
+		   return listOfElements;
+	   
 	   if(listInstance instanceof Collection){
 		   if(Runtime.working_debug)
 			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] I got the list ..." + field.getName());
