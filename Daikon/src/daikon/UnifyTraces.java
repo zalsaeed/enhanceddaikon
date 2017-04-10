@@ -1,12 +1,8 @@
 package daikon;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import daikon.util.Pair;
@@ -43,83 +39,167 @@ public class UnifyTraces {
 	
 	static int countProcesedPpts = 0;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		
 		int countAllPpts = 0;
 		
-		if (args.length == 0)
-			System.out.println("Nothing to read!");
+		if (args.length != 1)
+			throw new IllegalArgumentException("There must be only one argument passed!");
 		String file_name = args[0];
-		File decl = new File(file_name);
 		
-		Scanner scanner;
-		try {
-			scanner = new Scanner(decl);
+		InputStream gzipStream;
+		Reader decoder;
+		BufferedReader buffered;
+		
+		if(file_name.endsWith(".gz")){
 			
-			while (scanner.hasNext()){
-				String current =  scanner.nextLine();
-				String[] words = current.split("\\s+");
+			try {
+				gzipStream = new GZIPInputStream(new FileInputStream(file_name));
+				decoder = new InputStreamReader(gzipStream);
+				buffered = new BufferedReader(decoder);
 				
-				if (words.length > 0 && words[0].matches("//")){
-					//this is a comment 
-					String currentComment = "";
-					for(int i = 1 ; i < words.length ; i++){
-						currentComment = currentComment + words[i] + " ";
-					}
-					comments.add(currentComment);
+				String line;
+				while ((line = buffered.readLine()) != null) {
+					
+					String[] words = line.split("\\s+");
+					
+					if (words.length > 0 && words[0].matches("//")){
+						//this is a comment 
+						String currentComment = "";
+						for(int i = 1 ; i < words.length ; i++){
+							currentComment = currentComment + words[i] + " ";
+						}
+						comments.add(currentComment);
+					
+					}else if(words.length > 0 && words[0].matches("decl-version")){
+						//this is the decl-version used 
+						if(words.length != 2)
+							throw new IllegalArgumentException("It wasn't a decl-version!");
+						declVersion = words[1];
+						
+					}else if(words.length > 0 && words[0].matches("var-comparability")){
+						//this is the var-comparability (if it was given)
+						if(words.length != 2)
+							throw new IllegalArgumentException("It wasn't a var-comparability!");
+						varComparability = words[1];
+						
+					}else if (words[0].matches("ppt")){
+						
+						if(words.length != 2)
+							throw new IllegalArgumentException("It wasn't a ppt!");
+						PptInfo ppt = constructPpptInfo(buffered, words[1]);
+						
+						//TODO add the PptInfo s you get to a list
+						//writePpt(ppt);
+						//all_ppts.add(ppt);
+						countAllPpts++;
+						
+						if(!ppt_keys.contains(ppt.name))
+							ppt_keys.add(ppt.name);
+						
+						//Storing ppts on hashMap based on their name
+						List<PptInfo> similar_ppts = all_ppts.get(ppt.name);
+					    if (similar_ppts == null) {
+					    	similar_ppts = new ArrayList<>();
+					    	all_ppts.put(ppt.name, similar_ppts);
+					    }
+					    similar_ppts.add(ppt);
+						//all_ppts_map.put(key, value)
+						
+					}else if(words.length == 1 && words[0].length() != 0){
+						//this is a trace record
+						//System.out.println(" this is a trace:" + current);
+						TraceInfo ti = constructTraceInfo(buffered, line);
+						
+						//TODO add the traces to a list
+						//traceWriting(ti);
+						all_traces.add(ti);
+						
+						
+					}//this is an empty line, do nothing
+				}
+				buffered.close();
 				
-				}else if(words.length > 0 && words[0].matches("decl-version")){
-					//this is the decl-version used 
-					if(words.length != 2)
-						throw new IllegalArgumentException("It wasn't a decl-version!");
-					declVersion = words[1];
-					
-				}else if(words.length > 0 && words[0].matches("var-comparability")){
-					//this is the var-comparability (if it was given)
-					if(words.length != 2)
-						throw new IllegalArgumentException("It wasn't a var-comparability!");
-					varComparability = words[1];
-					
-				}else if (words[0].matches("ppt")){
-					
-					if(words.length != 2)
-						throw new IllegalArgumentException("It wasn't a ppt!");
-					PptInfo ppt = constructPpptInfo(scanner, words[1]);
-					
-					//TODO add the PptInfo s you get to a list
-					//writePpt(ppt);
-					//all_ppts.add(ppt);
-					countAllPpts++;
-					
-					if(!ppt_keys.contains(ppt.name))
-						ppt_keys.add(ppt.name);
-					
-					//Storing ppts on hashMap based on their name
-					List<PptInfo> similar_ppts = all_ppts.get(ppt.name);
-				    if (similar_ppts == null) {
-				    	similar_ppts = new ArrayList<>();
-				    	all_ppts.put(ppt.name, similar_ppts);
-				    }
-				    similar_ppts.add(ppt);
-					//all_ppts_map.put(key, value)
-					
-				}else if(words.length == 1 && words[0].length() != 0){
-					//this is a trace record
-					//System.out.println(" this is a trace:" + current);
-					TraceInfo ti = constructTraceInfo(scanner, current);
-					
-					//TODO add the traces to a list
-					//traceWriting(ti);
-					all_traces.add(ti);
-					
-					
-				}//this is an empty line, do nothing
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			scanner.close();
+		}
+		else if(file_name.endsWith(".dtrace")){
+			File decl = new File(file_name);
 			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Scanner scanner;
+			try {
+				scanner = new Scanner(decl);
+				
+				while (scanner.hasNext()){
+					String current =  scanner.nextLine();
+					String[] words = current.split("\\s+");
+					
+					
+					if (words.length > 0 && words[0].matches("//")){
+						//this is a comment 
+						String currentComment = "";
+						for(int i = 1 ; i < words.length ; i++){
+							currentComment = currentComment + words[i] + " ";
+						}
+						comments.add(currentComment);
+					
+					}else if(words.length > 0 && words[0].matches("decl-version")){
+						//this is the decl-version used 
+						if(words.length != 2)
+							throw new IllegalArgumentException("It wasn't a decl-version!");
+						declVersion = words[1];
+						
+					}else if(words.length > 0 && words[0].matches("var-comparability")){
+						//this is the var-comparability (if it was given)
+						if(words.length != 2)
+							throw new IllegalArgumentException("It wasn't a var-comparability!");
+						varComparability = words[1];
+						
+					}else if (words[0].matches("ppt")){
+						
+						if(words.length != 2)
+							throw new IllegalArgumentException("It wasn't a ppt!");
+						PptInfo ppt = constructPpptInfo(scanner, words[1]);
+						
+						//TODO add the PptInfo s you get to a list
+						//writePpt(ppt);
+						//all_ppts.add(ppt);
+						countAllPpts++;
+						
+						if(!ppt_keys.contains(ppt.name))
+							ppt_keys.add(ppt.name);
+						
+						//Storing ppts on hashMap based on their name
+						List<PptInfo> similar_ppts = all_ppts.get(ppt.name);
+					    if (similar_ppts == null) {
+					    	similar_ppts = new ArrayList<>();
+					    	all_ppts.put(ppt.name, similar_ppts);
+					    }
+					    similar_ppts.add(ppt);
+						//all_ppts_map.put(key, value)
+						
+					}else if(words.length == 1 && words[0].length() != 0){
+						//this is a trace record
+						//System.out.println(" this is a trace:" + current);
+						TraceInfo ti = constructTraceInfo(scanner, current);
+						
+						//TODO add the traces to a list
+						//traceWriting(ti);
+						all_traces.add(ti);
+						
+						
+					}//this is an empty line, do nothing
+				}
+				scanner.close();
+				
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else {
+			throw new IllegalArgumentException("The given file is not a .dtrace or .dtrace.gz file!");
 		}
 		
 		System.out.println("Num of all obseeved ppts: " + countAllPpts);
@@ -752,6 +832,40 @@ public class UnifyTraces {
 		return ti;
 	}
 	
+	private static TraceInfo constructTraceInfo(BufferedReader scanner, String name) throws IOException{
+		TraceInfo ti = new TraceInfo(name);
+		
+		readTraceString(name, ti);
+		
+		String invocation_nonce = scanner.readLine();
+		if(!invocation_nonce.matches("this_invocation_nonce"))
+			throw new IllegalArgumentException("It wasn't a trace header (can not find the invocation nonce)");
+		String nonceValue = scanner.readLine();
+		String[] isOneWord = nonceValue.split("\\s+");
+		if (isOneWord.length != 1)
+			throw new IllegalArgumentException("It wasn't a trace nonce");
+		ti.setNonce(nonceValue);
+		
+		String possibleTraceName;
+		while((possibleTraceName = scanner.readLine()) != null){
+			
+			//if empty line, then break 
+			if(possibleTraceName.length() == 0){
+				break;
+			}
+			
+			//read next two lines (value and nonsensical value)
+			String givenValue = scanner.readLine();
+			String sensModifier = scanner.readLine();
+			
+			//add the variable trace to the trace info
+			ti.addValue(possibleTraceName, givenValue, sensModifier);
+		}
+		
+		
+		return ti;
+	}
+	
 	private static void readPptNameString(String pptName, PptInfo pptinfo){
 		String fullname; //pptName as given
 		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
@@ -828,6 +942,62 @@ public class UnifyTraces {
 		
 		while (scanner.hasNext()){
 			String nextLine = scanner.nextLine();
+			if (nextLine.length() == 0){ //whitespace then end this ppt parsing
+				//TODO flush data here before breaking
+				if(currentVarName != null){ //flushing last variable info
+					currentPpt.addNewVariable(currentVarName, prop.toArray(new String[0]));
+				}
+				break;
+			}
+			
+			String[] idenfiers = nextLine.split("\\s+");
+			String mayBeParent = idenfiers[0] + " " + idenfiers[1];
+			if(idenfiers.length > 0 && mayBeParent.matches("parent parent")){
+				addParentInfo(currentPpt,idenfiers);
+			}else if(idenfiers.length > 0 && idenfiers[0].matches("variable")){
+				if(currentVarName != null){ //flushing last variable info
+					currentPpt.addNewVariable(currentVarName, prop.toArray(new String[0]));
+					prop.clear();
+				}
+				if(idenfiers.length != 2)
+					throw new IllegalArgumentException("It wasn't a variable!");
+				currentVarName = idenfiers[1];
+				
+			}else{
+				String tmepProp = " ";
+				for (int j = 1 ; j < idenfiers.length ; j++ ){ //skipping the empty space
+					tmepProp = tmepProp + " " + idenfiers[j];
+				}
+				prop.add(tmepProp);
+				//System.out.println("this is the var prop (or traces): " + nextLine + " has " + idenfiers[1].length());
+			}
+			
+		}
+		
+		return currentPpt;
+	}
+	
+	private static PptInfo constructPpptInfo(BufferedReader scanner, String name) throws IOException{
+		PptInfo currentPpt = new PptInfo(name);
+		
+		//given the full ppt name break it down to package, class, method and point then store the values in the PptInfo
+		readPptNameString(name, currentPpt);
+		
+		String typeInfo = scanner.readLine();
+		String[] words = typeInfo.split("\\s+");
+		if (words[0].matches("ppt-type")){
+			if(words.length != 2)
+				throw new IllegalArgumentException("It wasn't a ppt-type!");
+			
+			currentPpt.setType(words[1]);
+		}
+		
+		String currentVarName = null;
+		List<String> prop = new ArrayList<String>();
+		
+		String nextLine;
+		while ((nextLine = scanner.readLine()) != null){
+			//String nextLine = scanner.nextLine();
 			if (nextLine.length() == 0){ //whitespace then end this ppt parsing
 				//TODO flush data here before breaking
 				if(currentVarName != null){ //flushing last variable info
