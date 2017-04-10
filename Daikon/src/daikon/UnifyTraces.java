@@ -106,7 +106,6 @@ public class UnifyTraces {
 							throw new IllegalArgumentException("It wasn't a ppt!");
 						PptInfo ppt = constructPpptInfo(buffered, words[1]);
 						
-						//TODO add the PptInfo s you get to a list
 						//writePpt(ppt);
 						//all_ppts.add(ppt);
 						countAllPpts++;
@@ -123,7 +122,7 @@ public class UnifyTraces {
 					    similar_ppts.add(ppt);
 						//all_ppts_map.put(key, value)
 						
-					}else if(words.length == 1 && words[0].length() != 0){
+					}else if(words.length >= 1 && words[0].length() != 0){
 						//this is a trace record
 						//System.out.println(" this is a trace:" + current);
 						TraceInfo ti = constructTraceInfo(buffered, line);
@@ -197,7 +196,7 @@ public class UnifyTraces {
 					    similar_ppts.add(ppt);
 						//all_ppts_map.put(key, value)
 						
-					}else if(words.length == 1 && words[0].length() != 0){
+					}else if(words.length >= 1 && words[0].length() != 0){
 						//this is a trace record
 						//System.out.println(" this is a trace:" + current);
 						TraceInfo ti = constructTraceInfo(scanner, current);
@@ -230,11 +229,8 @@ public class UnifyTraces {
 		System.out.println("Num final ppts calculated: " + final_ppts.size());
 		System.out.println("Num of processed ppts: " + countProcesedPpts);
 		
-		//TODO easily wrtie ppts to file. 
-		//TODO write traces based on the final_ppts (just put nonsesncial for things doesn't exists
 		
-	    //File dtrace_file = new File (String.format ("%s_merged.dtrace.gz", file_name.matches("[^\\]*(?=[.][a-zA-Z]+$")));
-	    //PrineStream unifier =
+		// Writing trace as they are merged and based on the order in which they were processed.
 		try{
 			String out_filename = String.format ("%sMerged.dtrace.gz", file_name.substring(0 ,file_name.lastIndexOf(".")));
 			OutputStream os = new FileOutputStream(out_filename);
@@ -268,6 +264,8 @@ public class UnifyTraces {
 		   // do something
 		}
 		
+		
+		//Combine traces and decals of all available objects to show traces based on them both
 		if(combine)
 			writeCombinedTraces(file_name);
 	
