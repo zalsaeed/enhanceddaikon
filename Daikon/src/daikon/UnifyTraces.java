@@ -42,10 +42,27 @@ public class UnifyTraces {
 	public static void main(String[] args) throws FileNotFoundException {
 		
 		int countAllPpts = 0;
-		
-		if (args.length != 1)
-			throw new IllegalArgumentException("There must be only one argument passed!");
-		String file_name = args[0];
+		String file_name;
+		Boolean combine = false;
+		if (args.length == 2){
+			if (args[0].equals("combine"))
+					combine = true;
+			else
+				throw new IllegalArgumentException("The first flag (combine) is not passed correctley!");
+			
+			if(args[1].endsWith(".dtrace.gz") || args[1].endsWith(".dtrace"))
+				file_name = args[1];
+			else
+				throw new IllegalArgumentException("The given files is not a trace file (.dtrace or .dtrace.gz)!");
+		}
+		else if (args.length == 1){
+			if(args[0].endsWith(".dtrace.gz") || args[0].endsWith(".dtrace"))
+				file_name = args[0];
+			else
+				throw new IllegalArgumentException("The given files is not a trace file (.dtrace or .dtrace.gz)!");
+			
+		}else
+			throw new IllegalArgumentException("There must be either one or two arguments\n [filename].dtrace.gz or combine [filename].dtrace.gz!");
 		
 		InputStream gzipStream;
 		Reader decoder;
@@ -251,7 +268,8 @@ public class UnifyTraces {
 		   // do something
 		}
 		
-		writeCombinedTraces(file_name);
+		if(combine)
+			writeCombinedTraces(file_name);
 	
 	}	
 	
