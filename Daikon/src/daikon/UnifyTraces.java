@@ -5,7 +5,14 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.checkerframework.checker.initialization.qual.Initialized;
+import org.checkerframework.checker.interning.qual.UnknownInterned;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.NonRaw;
+import org.checkerframework.checker.nullness.qual.UnknownKeyFor;
+
 import daikon.util.Pair;
+import plume.UtilMDE;
 
 
 /**
@@ -38,6 +45,7 @@ public class UnifyTraces {
 	
 	
 	static int countProcesedPpts = 0;
+	static long numberOfLinesProcessed = 0;
 
 	public static void main(String[] args) throws FileNotFoundException {
 		
@@ -64,9 +72,21 @@ public class UnifyTraces {
 		}else
 			throw new IllegalArgumentException("There must be either one or two arguments\n [filename].dtrace.gz or combine [filename].dtrace.gz!");
 		
+		System.out.println("Merging traces from file: " + file_name);
+		
 		InputStream gzipStream;
 		Reader decoder;
 		BufferedReader buffered;
+		
+		long total_number_of_lines= 0;
+		try {
+			total_number_of_lines = UtilMDE.count_lines(file_name);
+			System.out.format("Totla number of lines: %,8d%n", total_number_of_lines);
+		} catch (@UnknownKeyFor @NonRaw @NonNull @Initialized @UnknownInterned  IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		
 		if(file_name.endsWith(".gz")){
 			
@@ -75,8 +95,14 @@ public class UnifyTraces {
 				decoder = new InputStreamReader(gzipStream);
 				buffered = new BufferedReader(decoder);
 				
+				long startTime = System.currentTimeMillis();
+				long lastRecordedTime = startTime;
+				System.out.println("Reading .gz traces ...");
+				
+				
 				String line;
 				while ((line = buffered.readLine()) != null) {
+					numberOfLinesProcessed++;
 					
 					String[] words = line.split("\\s+");
 					
@@ -100,6 +126,10 @@ public class UnifyTraces {
 							throw new IllegalArgumentException("It wasn't a var-comparability!");
 						varComparability = words[1];
 						
+					}else if(words.length > 0 && words[0].matches("#")){
+						//doing nothing
+						System.out.println("Reached end of file.");
+					
 					}else if (words[0].matches("ppt")){
 						
 						if(words.length != 2)
@@ -133,8 +163,20 @@ public class UnifyTraces {
 						
 						
 					}//this is an empty line, do nothing
+					
+					//progress feedback 
+					long currentTime = System.currentTimeMillis();
+					if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
+						lastRecordedTime = currentTime;
+						System.out.println("Still processing the file ... finished %" + (numberOfLinesProcessed / total_number_of_lines)*100 );
+					}
 				}
 				buffered.close();
+				System.out.println("Read %" + (numberOfLinesProcessed / total_number_of_lines)*100 + " of the file");
+				long finishTime = System.currentTimeMillis();
+				long sec = ((finishTime - startTime) / 1000) % 60;
+				long min = ((finishTime - startTime) / 1000) / 60;
+				System.out.println("Finished reading file in: " + min + ":" + sec + " min (" +(finishTime - startTime) +" millis)");
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -146,6 +188,7 @@ public class UnifyTraces {
 			
 			Scanner scanner;
 			try {
+				System.out.println("Reading .dtrace traces ...");
 				scanner = new Scanner(decl);
 				
 				while (scanner.hasNext()){
@@ -854,9 +897,11 @@ public class UnifyTraces {
 		readTraceString(name, ti);
 		
 		String invocation_nonce = scanner.readLine();
+		numberOfLinesProcessed++;
 		if(!invocation_nonce.matches("this_invocation_nonce"))
 			throw new IllegalArgumentException("It wasn't a trace header (can not find the invocation nonce)");
 		String nonceValue = scanner.readLine();
+		numberOfLinesProcessed++;
 		String[] isOneWord = nonceValue.split("\\s+");
 		if (isOneWord.length != 1)
 			throw new IllegalArgumentException("It wasn't a trace nonce");
@@ -864,6 +909,7 @@ public class UnifyTraces {
 		
 		String possibleTraceName;
 		while((possibleTraceName = scanner.readLine()) != null){
+			numberOfLinesProcessed++;
 			
 			//if empty line, then break 
 			if(possibleTraceName.length() == 0){
@@ -872,7 +918,9 @@ public class UnifyTraces {
 			
 			//read next two lines (value and nonsensical value)
 			String givenValue = scanner.readLine();
+			numberOfLinesProcessed++;
 			String sensModifier = scanner.readLine();
+			numberOfLinesProcessed++;
 			
 			//add the variable trace to the trace info
 			ti.addValue(possibleTraceName, givenValue, sensModifier);
@@ -1000,6 +1048,7 @@ public class UnifyTraces {
 		readPptNameString(name, currentPpt);
 		
 		String typeInfo = scanner.readLine();
+		numberOfLinesProcessed++;
 		String[] words = typeInfo.split("\\s+");
 		if (words[0].matches("ppt-type")){
 			if(words.length != 2)
@@ -1013,6 +1062,8 @@ public class UnifyTraces {
 		
 		String nextLine;
 		while ((nextLine = scanner.readLine()) != null){
+			numberOfLinesProcessed++;
+			
 			//String nextLine = scanner.nextLine();
 			if (nextLine.length() == 0){ //whitespace then end this ppt parsing
 				//TODO flush data here before breaking
