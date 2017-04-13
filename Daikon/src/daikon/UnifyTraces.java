@@ -141,13 +141,13 @@ public class UnifyTraces {
 						countAllPpts++;
 						
 						if(!ppt_keys.contains(ppt.key))
-							ppt_keys.add(ppt.name);
+							ppt_keys.add(ppt.key);
 						
 						//Storing ppts on hashMap based on their name
-						List<PptInfo> similar_ppts = all_ppts.get(ppt.name);
+						List<PptInfo> similar_ppts = all_ppts.get(ppt.key);
 					    if (similar_ppts == null) {
 					    	similar_ppts = new ArrayList<>();
-					    	all_ppts.put(ppt.name, similar_ppts);
+					    	all_ppts.put(ppt.key, similar_ppts);
 					    }
 					    similar_ppts.add(ppt);
 						//all_ppts_map.put(key, value)
@@ -695,7 +695,10 @@ public class UnifyTraces {
 			//remove it from HashMap so that memory is free once we complete this ppt
 			all_ppts.remove(ppt_key);
 			
-			PptInfo final_for_this_key = new PptInfo(ppt_key);
+			//initialize a final ppt for the given key, and give at the name of the current nonprocessed ppts, no the key.
+			PptInfo final_for_this_key = new PptInfo(ppts_of_this_key.get(0).name);
+			
+			//loop through all ppts with the same key and merge them to the final ppt initialized
 			for(PptInfo pi:ppts_of_this_key){
 				
 				if(final_for_this_key.type == null) //this will only happen in the first iter
@@ -767,7 +770,7 @@ public class UnifyTraces {
 				countProcesedPpts++;
 			}
 			// add the merged version of all ppts to the final_ppts hashMap
-			final_ppts.put(final_for_this_key.name, final_for_this_key);			
+			final_ppts.put(final_for_this_key.key, final_for_this_key);			
 		}
 		
 	}
@@ -797,12 +800,6 @@ public class UnifyTraces {
 		w.println(ti.name);
 		w.println("this_invocation_nonce");
 		w.println(ti.nonce);
-		
-		System.out.println(ti.name + "<---------- Writing trace for: ");
-		System.out.println();
-		for(String p:ppt_keys){
-			System.out.println(p);
-		}
 		
 		for(String varName:ppt.arrangedKeys){
 			Value val = ti.getValueByName(varName);
