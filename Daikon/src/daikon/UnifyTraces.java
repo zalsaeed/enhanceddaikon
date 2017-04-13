@@ -140,7 +140,7 @@ public class UnifyTraces {
 						//all_ppts.add(ppt);
 						countAllPpts++;
 						
-						if(!ppt_keys.contains(ppt.name))
+						if(!ppt_keys.contains(ppt.key))
 							ppt_keys.add(ppt.name);
 						
 						//Storing ppts on hashMap based on their name
@@ -695,13 +695,11 @@ public class UnifyTraces {
 			//remove it from HashMap so that memory is free once we complete this ppt
 			all_ppts.remove(ppt_key);
 			
-			
 			PptInfo final_for_this_key = new PptInfo(ppt_key);
 			for(PptInfo pi:ppts_of_this_key){
 				
 				if(final_for_this_key.type == null) //this will only happen in the first iter
 					final_for_this_key.setType(pi.type);
-				
 				
 				if(!final_for_this_key.type.equals(pi.type))//n_2 to n ppts must have the same type of current one
 					throw new IllegalArgumentException("One of the stored ppts in the hashMap has a differnt type!");
@@ -748,8 +746,21 @@ public class UnifyTraces {
 						
 					}else{
 						//make sure they are the same length of prop
-						if (prop.length != pi.var_to_prop_reps.get(varName).length)
-							throw new IllegalArgumentException("Ppts have same variable but different number of prop!");
+						/*
+						 * If the variable has new one or more properties compared to the current know 
+						 * properties in the final representation of the ppt, add the new properties
+						 * to the know properties. Otherwise, they are equal, so do nothing.
+						 */
+						if (prop.length != pi.var_to_prop_reps.get(varName).length){
+							
+							if(prop.length > pi.var_to_prop_reps.get(varName).length)
+								throw new IllegalArgumentException("The later var has a prop that is missing! This must never happen according to how Chicory works.");
+							else if(prop.length < pi.var_to_prop_reps.get(varName).length){
+								String[] temp = mergePtopertiesOfSameVairable(final_for_this_key.name, varName, prop, pi.var_to_prop_reps.get(varName));
+								final_for_this_key.var_to_prop_reps.remove(varName);
+								final_for_this_key.var_to_prop_reps.put(varName, temp);
+							}
+						}	
 					}
 				}
 				
@@ -760,12 +771,38 @@ public class UnifyTraces {
 		}
 		
 	}
+	
+	private static String[] mergePtopertiesOfSameVairable(String pptName, String varName, String[] knownVarProps, String[] newVarProps){
+		
+		// we don't need actually to merge the two properties arrays as much that we need to make sure all 
+		// properties in the old array are in the new one.
+		for(String propFromOldVar:knownVarProps){
+			boolean found = false;
+			for(String propFromNewVar:newVarProps){
+				if(propFromOldVar.equals(propFromNewVar))
+					found = true;
+			}
+			if (!found)
+				throw new IllegalArgumentException("The later var has a prop that is missing! This must never happen according to how Chicory works.");
+			
+		}
+		
+		System.out.println("One or more new properties add to '" + varName + "' of ppt '" + pptName + "'");
+		
+		return newVarProps;
+	}
 
 	private static void traceWriting(TraceInfo ti, PrintWriter w, PptInfo ppt) {
 		
 		w.println(ti.name);
 		w.println("this_invocation_nonce");
 		w.println(ti.nonce);
+		
+		System.out.println(ti.name + "<---------- Writing trace for: ");
+		System.out.println();
+		for(String p:ppt_keys){
+			System.out.println(p);
+		}
 		
 		for(String varName:ppt.arrangedKeys){
 			Value val = ti.getValueByName(varName);

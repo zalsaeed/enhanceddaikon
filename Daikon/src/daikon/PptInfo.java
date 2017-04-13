@@ -9,6 +9,9 @@ public class PptInfo {
 	/* Full ppt string e.g. ppt SimpleExample.Modifier.Modifier():::ENTER*/
 	String name;
 	
+	/*Similar to the name but with no noise added by Chicory to use for Ppt retrieval when writing traces*/
+	String key;
+	
 	/* point type (e.g. OBJECT, ENTER, or EXIT10) */
 	String point;
 	
@@ -41,6 +44,7 @@ public class PptInfo {
 	
 	public PptInfo (String name){
 		this.name = name;
+		this.key = name.replace("\\_", " ");
 	}
 	
 	public void setType(String name){
