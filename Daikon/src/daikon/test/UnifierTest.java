@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import daikon.PptInfo;
 import daikon.Unifier;
 
 public class UnifierTest {
@@ -13,7 +14,7 @@ public class UnifierTest {
 		
 		//Too much arguments
 		try {
-			Unifier.main(new String[] {"", " ","TesterDdsObserved.dtrace.gz"});
+			Unifier.main(new String[] {"combine","TesterDdsObserved.dtrace.gz", "111", " "});
 		} catch (IllegalArgumentException e){
 			
 		}
@@ -31,12 +32,31 @@ public class UnifierTest {
 		} catch (IllegalArgumentException e){
 			
 		}
+		
+		try {
+			Unifier.main(new String[] {"TesterDdsObserved.txt", "111"});
+		} catch (IllegalArgumentException e){
+			
+		}
+		
+//		try {
+//			Unifier.main(new String[] {"TesterDdsObserved.dtrace", "ABC"});
+//		} catch (NumberFormatException e){
+//			
+//		}
+//		
+//		try {
+//			Unifier.main(new String[] {"TesterDdsObserved.dtrace", "11 11"});
+//		} catch (NumberFormatException e){
+//			
+//		}
+		
 	}
 	
 	@Test
 	public void testMainFinalReports() {
 		
-		String[] args = {"combine" ,"TesterDdsObserved.dtrace.gz"};
+		String[] args = {"TesterDdsObserved.dtrace.gz"};
 	    Unifier.main(args);
 	    
 	    //read all lines in the file
@@ -64,5 +84,10 @@ public class UnifierTest {
 		//Unifier.processLine(reader, line);
 		
 	}
+	
+	//TODO test the identifyLine(String line) method
+	//TODO add test to this method
+	//TODO add test for readPptNameString(String pptName, PptInfo pptinfo){
+	
 
 }

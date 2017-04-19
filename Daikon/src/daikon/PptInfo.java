@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * A class that represents a given program point. 
+ * 
+ * 
+ * @author zalsaeed
+ *
+ */
 public class PptInfo {
 	
 	/* Full ppt string e.g. ppt SimpleExample.Modifier.Modifier():::ENTER*/

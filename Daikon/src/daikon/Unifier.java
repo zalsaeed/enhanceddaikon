@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import javax.xml.stream.events.Comment;
-
 import org.checkerframework.checker.initialization.qual.Initialized;
 import org.checkerframework.checker.interning.qual.UnknownInterned;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -22,116 +20,190 @@ import org.checkerframework.checker.nullness.qual.UnknownKeyFor;
 
 import plume.UtilMDE;
 
+/**
+ * A class to unify the traces records based on the enhanced Chicory version.
+ * Also, it provides the ability to join to original objects onto a single made up object now.
+ * 
+ * @author zalsaeed
+ */
 public class Unifier {
 	
-	/**
-	 * 
-	 * @author zalsaeed
-	 * 
-	 * A class to unify the traces records based on the enhanced Chicory version.
-	 * Also, it provides the ability to join to original objects onto a single made up object now.
-	 */
-	
-	/* All comments found on the dtrace file, to be written back latter */
+	/** All comments found on the dtrace file, to be written back latter */
 	static List<String> comments = new ArrayList<String>();
 
-	/* Declaration version as its given in the dtrace file to be written latter */
+	/** Declaration version as its given in the dtrace file to be written latter */
 	static String declVersion = "";
 	
-	/* Variable Comparability value as it is given in the dtrace file to be written latter */
+	/** Variable Comparability value as it is given in the dtrace file to be written latter */
 	static String varComparability = "";
 	
-	/* End of file declaration value as it is given in the dtrace file to be written latter */
+	/** End of file declaration value as it is given in the dtrace file to be written latter */
 	static String endOfFileStmt = "";
 	
 	//TODO delete once no need to use it (
-	/* All traces found in the dtrace file, holding them in an ArrayList to preserve order*/
+	/** All traces found in the dtrace file, holding them in an ArrayList to preserve order*/
 	static List<TraceInfo> all_traces = new ArrayList<TraceInfo>();
 	
-	/*All identical ppt are going to be identified by this key*/
+	/** All identical ppt are going to be identified by this key*/
 	public static List<String> ppt_keys = new ArrayList<String>();
 	
-	//TODO delete once no need to use it (as soon as we process ppts live)
-	/* hold all Ppt from the enhanced Chicory many duplicates will be here */
-	static HashMap<String,List<PptInfo>> all_ppts = new HashMap<String,List<PptInfo>>();
-	
-	/* Final Ppts after joining all duplicates */
+	/** Final Ppts after joining all duplicates */
 	static HashMap<String,PptInfo> final_ppts = new HashMap<String,PptInfo>();
 
+	/** Enumerator for types of possibles headlines in a .dtrace file  */
 	public enum Line {COMMENT, VERSION, COMPAT, PPT, TRACE, BLANK, END}
+	
 	//Statistical variables 
 	
-	/* count to hold the number of all observed ppts in file */
+	/** count to hold the number of all observed ppts in file */
 	public static int countAllPpts = 0;
 	
-	/* count all the ppts we observe to make sure we are not doing anything wrong */ 
+	/** count all the ppts we observe to make sure we are not doing anything wrong */ 
 	public static int countProcesedPpts = 0;
 	
-	/* Getting a sense of how far we got in reading the file */
+	/** Getting a sense of how far we got in reading the file */
 	static long numberOfLinesProcessed = 0;
 	
-	/* The total nuber of lines in the given trace file to show reading process percentage */
+	/** The total nuber of lines in the given trace file to show reading process percentage */
 	public static long total_number_of_lines= 0;
 	
+	
+	/**
+	 * This application will take a d trace file that has program points (ppts) 
+	 * with an unmatched number of variables. It then would unify those ppts as 
+	 * well as the traces associated with them to make them readable by Daikon.
+	 * 
+	 * <br>
+	 * Expected args:
+	 * <li>Option 1: Give only trace file name and location (e.g. [filename].dtrace.gz).</li>
+	 * <li>Option 2: Give the file name and a value for the buffer size to adjust it based 
+	 * 		on the memory capacity (e.g. [filename].dtrace.gz 3000).</li>
+	 * <li>Option 3: Give the file trigger the combine functionality to combine all possible 
+	 * 		objects under new unique combined object (e.g. combine [filename].dtrace.gz 3000).</li>
+	 * 
+	 * @param args: see options. 
+	 */
 	public static void main(String[] args) {
 		String file_name;
+		boolean isCompressed = true;
 		Boolean combine = false;
+		int defaultBufferSize = 8192;
 		
 		// gathering and validating inputs
-		if (args.length == 2){
+		if(args.length == 3){
 			if (args[0].equals("combine"))
-					combine = true;
+				combine = true;
 			else
 				throw new IllegalArgumentException("The first flag (combine) is not passed correctley!");
 			
-			if(args[1].endsWith(".dtrace.gz") || args[1].endsWith(".dtrace"))
+			if(args[1].endsWith(".dtrace.gz")){
 				file_name = args[1];
+				isCompressed = true;
+			}
+			else if (args[1].endsWith(".dtrace")){
+				file_name = args[1];
+				isCompressed = false;
+			}
 			else
 				throw new IllegalArgumentException("The given files is not a trace file (.dtrace or .dtrace.gz)!");
+			
+			try {
+				defaultBufferSize = Integer.parseInt(args[2]);
+				
+			} catch (NumberFormatException e){
+				System.err.println("NumberFormatException: " + e.getMessage());
+				System.exit(1);
+			}
+			
+		}else if (args.length == 2){
+			if(args[0].endsWith(".dtrace.gz")){
+				file_name = args[0];
+				isCompressed = true;
+			}
+			else if (args[0].endsWith(".dtrace")){
+				file_name = args[0];
+				isCompressed = false;
+			}
+			else
+				throw new IllegalArgumentException("The given files is not a trace file (.dtrace or .dtrace.gz)!");
+			
+			try {
+				defaultBufferSize = Integer.parseInt(args[1]);
+				
+			} catch (NumberFormatException e){
+				System.err.println("NumberFormatException: " + e.getMessage());
+				System.exit(1);
+			}
 		}
 		else if (args.length == 1){
-			if(args[0].endsWith(".dtrace.gz") || args[0].endsWith(".dtrace"))
+			if(args[0].endsWith(".dtrace.gz")){
 				file_name = args[0];
+				isCompressed = true;
+			}
+			else if (args[0].endsWith(".dtrace")){
+				file_name = args[0];
+				isCompressed = false;
+			}
 			else
 				throw new IllegalArgumentException("The given files is not a trace file (.dtrace or .dtrace.gz)!");
 			
 		}else
-			throw new IllegalArgumentException("There must be either one or two arguments\n [filename].dtrace.gz or combine [filename].dtrace.gz!");
+			throw new IllegalArgumentException("There must be either one, two, or three arguments\n "
+					+ "[filename].dtrace.gz,"
+					+ "\n [filename].dtrace.gz [buffer_size],"
+					+ "\n or combine [filename].dtrace.gz [buffer_size]");
 		
 		System.out.println("Merging traces from file: " + file_name);
 		
 		//Get the totla number of lines in the file 
 		try {
 			total_number_of_lines = UtilMDE.count_lines(file_name);
-			System.out.format("Totla number of lines: %,8d%n", total_number_of_lines);
+			System.out.format("Total number of lines: %,8d%n", total_number_of_lines);
 		} catch (@UnknownKeyFor @NonRaw @NonNull @Initialized @UnknownInterned  IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
+		readTraceFile(file_name, isCompressed, defaultBufferSize);
 		
-		//Read the file data
-		if(file_name.endsWith(".dtrace.gz")){
-			readPptsFromCompressedFile(file_name);
-		}else if(file_name.endsWith(".dtrace")){
-			
-		}
-			
+		//Combine traces and decals of all available objects to show traces based on them both
+		if(combine)
+			System.out.println("pass");
+			//writeCombinedTraces(file_name);
 
 	}
 	
-	private static void readPptsFromCompressedFile(String filename){
-		
-		System.out.println("Reading .gz traces ...");
+	/**
+
+	 * A method to read the a given .dtrace file. This method is dedicated to only read .dtrace file information 
+	 * (e.g. comments and version ... etc) and ppts. Trace are ignored when given this method. 
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param filename The file that contains the traces
+	 * @param isCompressed identify if the traces are compressed (e.g. using gzip) or not to establish the appropriate 
+	 * 		reading method. 
+	 * @param bufferSize The size of the BufferedReader that is going to be reading file. This is given to allow for 
+	 * 		manual adjustment in case it is needed. 
+	 */
+	private static void readTraceFile(String filename, boolean isCompressed, int bufferSize){
 		
 		InputStream gzipStream;
 		Reader decoder;
+		FileReader file;
 		BufferedReader buffered;
-		
+	    
 		try {
-			gzipStream = new GZIPInputStream(new FileInputStream(filename));
-			decoder = new InputStreamReader(gzipStream);
-			buffered = new BufferedReader(decoder);
+			if (isCompressed){
+				gzipStream = new GZIPInputStream(new FileInputStream(filename));
+				decoder = new InputStreamReader(gzipStream);
+				buffered = new BufferedReader(decoder ,bufferSize); // 8192 is the default change it as see fit
+				System.out.println("Reading .gz traces ...");
+			}else{
+				file = new FileReader(filename);
+		    	buffered = new BufferedReader(file ,bufferSize); // 8192 is the default change it as see fit
+		    	System.out.println("Reading .dtrace traces ...");
+			}
+			
 			
 			long startTime = System.currentTimeMillis();
 			long lastRecordedTime = startTime;
@@ -185,16 +257,8 @@ public class Unifier {
 						final_ppts.put(mergedPpt.key, mergedPpt);
 						countProcesedPpts++;
 					}
-					
-					
-					//Storing ppts on hashMap based on their name
-					List<PptInfo> similar_ppts = all_ppts.get(ppt.key);
-				    if (similar_ppts == null) {
-				    	similar_ppts = new ArrayList<>();
-				    	all_ppts.put(ppt.key, similar_ppts);
-				    }
-				    similar_ppts.add(ppt);
 				    break;
+				    
 				case TRACE:
 					break;
 				case BLANK:
@@ -210,7 +274,8 @@ public class Unifier {
 				long currentTime = System.currentTimeMillis();
 				if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
 					lastRecordedTime = currentTime;
-					System.out.println("Still processing the file ... finished %" + (numberOfLinesProcessed / total_number_of_lines)*100 );
+					System.out.println("Still processing the file ... finished %" + 
+							(numberOfLinesProcessed / total_number_of_lines)*100 );
 				}
 			}
 			buffered.close();
@@ -218,31 +283,23 @@ public class Unifier {
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading file in: " + min + ":" + sec + " min (" +(finishTime - startTime) +" millis)");
+			System.out.println("Finished reading file in: " + min + ":" + sec + " min (" + (finishTime - startTime) 
+					+ " millis)");
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 	}
 	
-	public static void readPptsFromUncompressedFile(String filename){
-		
-		FileReader file;
-	    BufferedReader buffered;
-	    
-	    try {
-	    	file = new FileReader(filename);
-	    	buffered = new BufferedReader(file ,8192); // 8192 is the default change it as see fit
-	    	
-	    } catch (IOException e){
-	    	
-	    }
-		
-		
-	}
-	
+	/**
+	 * A method to break line down, identify it, and return its type based on the {@link Line} enumerator. 
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param line The line which needs to be identified.
+	 * @return Line type based on the enumerator {@link Line}.
+	 */
 	public static Line identifyLine(String line){
 
 		String[] words = line.split("\\s+");
@@ -272,7 +329,21 @@ public class Unifier {
 		
 	}
 	
-	private static PptInfo constructPpptInfo(List<String> pptData, String name) throws IOException{
+	/**
+	 * 
+	 * Given a ppt name (e.g. ppt [package_name].[class_name].[method_sigature]:::ENTER) and a list of all the lines
+	 * that represent the ppts information only, it constructs a new {@link PptInfo} with all the given information.  
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param pptData All the information of the ppt to be constructed given in the form of strings. Each string is a 
+	 * 		line in the dtrace fiel that belongs to the ppt. The lines are given based on the order in which they were 
+	 * 		read. 
+	 * @param name The name of the ppt. For example, "[package_name].[class_name].[method_sigature]:::ENTER"
+	 * @return A well constructed {@link PptInfo} that can be easily handled in the future (e.g. for printing or 
+	 * 		comparison with other ppts). 
+	 */
+	public static PptInfo constructPpptInfo(List<String> pptData, String name) {
 		PptInfo currentPpt = new PptInfo(name);
 		
 		//given the full ppt name break it down to package, class, method and point then store the values in the PptInfo
@@ -330,9 +401,19 @@ public class Unifier {
 		return currentPpt;
 	}
 	
-	//TODO add test to this method
+	/**
+	 * Takes a {@link PptInfo} and its name (e.g. [package_name].[class_name].[method_sigature]:::ENTER) in a string 
+	 * form to break it down to smaller pieces and store them. Meaning, as the name given of the {@link PptInfo} would 
+	 * contain package name, class name, method signature, and ppt type, this method will break the name and store each
+	 * value appropriately in the given {@link PptInfo}.
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param pptName The given ppt name (e.g. [package_name].[class_name].[method_sigature]:::ENTER) as it is
+	 * found in the dtrace file.
+	 * @param pptinfo The {@link PptInfo} to be edited.
+	 */
 	public static void readPptNameString(String pptName, PptInfo pptinfo){
-		String fullname; //pptName as given
 		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
 		String pkg_cls; // package and class name separated by a "." as given in the ppt
 		String point;  // point type (e.g. OBJECT, ENTER, or EXIT10)
@@ -341,7 +422,6 @@ public class Unifier {
 		String clsName; // the class name without any noise
 		
 		
-	    fullname = pptName.intern();
 	    int separatorPosition = pptName.indexOf( FileIO.ppt_tag_separator );
 	    if (separatorPosition == -1) {
 	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+pptName+"'");
@@ -387,7 +467,15 @@ public class Unifier {
     	pptinfo.method = method;
 	}
 	
-	private static void addParentInfo (PptInfo ppt, String[] words){
+	/**
+	 * Helper method to handle storing a possible method parent information as it gets constructed. 
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param ppt A {@link PptInfo} to be edited and store its parent information. 
+	 * @param words An array of strings (no spaces) of the parent information as they were found in dtrace file. 
+	 */
+	public static void addParentInfo (PptInfo ppt, String[] words){
 		for(int i = 0 ; i < words.length ; i++){
 			if(words[i].matches("parent")){
 				continue;
@@ -402,6 +490,20 @@ public class Unifier {
 	}
 	
 
+	/**
+	 * Helper method for joining two program points ({@link PptInfo}). It takes two {@link PptInfo} that are "known" 
+	 * to be the for the same program point and merge their variables. It insure that if a variable exists before, the 
+	 * variable's properties should also be identical. Also, it doesn't remove any variables. It only adds variables 
+	 * that were not observed before (if any).  
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param originalPpt The original {@link PptInfo} that represent the a given program point in the dtrace file.
+	 * @param newPpt The newly found {@link PptInfo} that represent a previously observed program point in the dtrace 
+	 * file.
+	 * @return A merged {@link PptInfo} version of the program point that represent the other two given program points
+	 *  inclusively.
+	 */
 	public static PptInfo mergeTwoPpts(PptInfo originalPpt, PptInfo newPpt){
 		
 		if(originalPpt.key == null) 
@@ -433,7 +535,8 @@ public class Unifier {
 		if(originalPpt.point == null)
 			throw new IllegalArgumentException("The original Ppt is not established correctly (missing point info)!");
 	
-		if(!originalPpt.cls.equals(newPpt.cls) || !originalPpt.pckg.equals(newPpt.pckg) || !originalPpt.point.equals(newPpt.point))
+		if(!originalPpt.cls.equals(newPpt.cls) || !originalPpt.pckg.equals(newPpt.pckg) || 
+				!originalPpt.point.equals(newPpt.point))
 			throw new IllegalArgumentException("The given Ppts cls, pckg, or point do NOT match!");
 	
 		if (originalPpt.method != null && !originalPpt.method.equals(newPpt.method))
@@ -441,10 +544,12 @@ public class Unifier {
 	
 		//if the ppts have a parent will execute only once, 
 		if(originalPpt.parentName == null && newPpt.parentName !=null)
-			throw new IllegalArgumentException("newPpt has parent [" + newPpt.parentName + "] but originalPpt doesn't have one!");
+			throw new IllegalArgumentException("newPpt has parent [" + newPpt.parentName + "] but originalPpt doesn't "
+					+ "have one!");
 		
 		if(originalPpt.parentName != null && newPpt.parentName ==null)
-			throw new IllegalArgumentException("originalPpt has parent [" + originalPpt.parentName + "] but newPpt doesn't have one!");
+			throw new IllegalArgumentException("originalPpt has parent [" + originalPpt.parentName + "] but newPpt "
+					+ "doesn't have one!");
 		
 		if(originalPpt.parentName != null && newPpt.parentName !=null)
 			if(!originalPpt.parentName.equals(newPpt.parentName) || !originalPpt.parentID.equals(newPpt.parentID))
@@ -470,9 +575,11 @@ public class Unifier {
 				if (currentProp.length != newPpt.var_to_prop_reps.get(varName).length){
 					
 					if(currentProp.length > newPpt.var_to_prop_reps.get(varName).length)
-						throw new IllegalArgumentException("Variable from newPpt has a prop that is missing! This must never happen according to how Chicory works.");
+						throw new IllegalArgumentException("Variable from newPpt has a prop that is missing! This must "
+								+ "never happen according to how Chicory works.");
 					else if(currentProp.length < newPpt.var_to_prop_reps.get(varName).length){
-						String[] temp = mergePtopertiesOfSameVairable(originalPpt.name, varName, currentProp, newPpt.var_to_prop_reps.get(varName));
+						String[] temp = mergePtopertiesOfSameVairable(originalPpt.name, varName, currentProp, 
+								newPpt.var_to_prop_reps.get(varName));
 						originalPpt.var_to_prop_reps.remove(varName);
 						originalPpt.var_to_prop_reps.put(varName, temp);
 					}
@@ -482,7 +589,20 @@ public class Unifier {
 		return originalPpt;
 	}
 
-	public static String[] mergePtopertiesOfSameVairable(String pptName, String varName, String[] knownVarProps, String[] newVarProps){
+	/**
+	 * A helper method to merge properties of the same variable that is found in two different program points. 
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param pptName The name of the program point in question 
+	 * 	(e.g. [package_name].[class_name].[method_sigature]:::ENTER).
+	 * @param varName The variable who's properties are not identical as found from two different program points. 
+	 * @param knownVarProps The original properties that were found.
+	 * @param newVarProps The new properties that are just observed. 
+	 * @return An array of the newly merged properties given the two different properties arrays.
+	 */
+	public static String[] mergePtopertiesOfSameVairable(String pptName, String varName, String[] knownVarProps, 
+			String[] newVarProps){
 		
 		// we don't need actually to merge the two properties arrays as much that we need to make sure all 
 		// properties in the old array are in the new one.
@@ -493,7 +613,8 @@ public class Unifier {
 					found = true;
 			}
 			if (!found)
-				throw new IllegalArgumentException("The later var has a prop that is missing! This must never happen according to how Chicory works.");
+				throw new IllegalArgumentException("The later var has a prop that is missing! This must never happen "
+						+ "according to how Chicory works.");
 			
 		}
 		
