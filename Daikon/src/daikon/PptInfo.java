@@ -71,7 +71,7 @@ public class PptInfo {
 			for(int i = 0 ; i < properties.length ; i++){
 				String[] prop = properties[i].split("\\s+");
 				
-				assert prop[0].equals(" ") : "Observed an irregular property when adding it to PptInfo";
+				assert prop[0].equals("") : "Observed an irregular property when adding it to PptInfo";
 				
 				VariableProp temp = new VariableProp(prop[1]);
 				
