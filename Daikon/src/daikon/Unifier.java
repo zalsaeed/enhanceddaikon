@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import javax.xml.stream.events.Comment;
+
 import org.checkerframework.checker.initialization.qual.Initialized;
 import org.checkerframework.checker.interning.qual.UnknownInterned;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -39,6 +41,9 @@ public class Unifier {
 	/* Variable Comparability value as it is given in the dtrace file to be written latter */
 	static String varComparability = "";
 	
+	/* End of file declaration value as it is given in the dtrace file to be written latter */
+	static String endOfFileStmt = "";
+	
 	//TODO delete once no need to use it (
 	/* All traces found in the dtrace file, holding them in an ArrayList to preserve order*/
 	static List<TraceInfo> all_traces = new ArrayList<TraceInfo>();
@@ -53,6 +58,7 @@ public class Unifier {
 	/* Final Ppts after joining all duplicates */
 	static HashMap<String,PptInfo> final_ppts = new HashMap<String,PptInfo>();
 
+	public enum Line {COMMENT, VERSION, COMPAT, PPT, TRACE, BLANK, END}
 	//Statistical variables 
 	
 	/* count to hold the number of all observed ppts in file */
@@ -135,7 +141,70 @@ public class Unifier {
 			while ((line = buffered.readLine()) != null) {
 				numberOfLinesProcessed++;
 				
-				processLine(buffered, line);
+				//processLine(buffered, line);
+				
+				Line lineType = identifyLine(line);
+				
+				switch (lineType){
+				case COMMENT:
+					comments.add(line);
+					break;
+				case VERSION:
+					declVersion = line;
+					break;
+				case COMPAT:
+					varComparability = line;
+					break;
+				case PPT:
+					String[] words = line.split("\\s+");
+					
+					if(words.length != 2)
+						throw new IllegalArgumentException("It wasn't a ppt!");
+					
+					String nextLine;
+					List<String> listOfPptData = new ArrayList<String>();
+					
+					//read all lines of this ppt
+					while(!(nextLine = buffered.readLine()).matches("\\s*$")){
+						listOfPptData.add(nextLine);
+						numberOfLinesProcessed++;
+					}
+					PptInfo ppt = constructPpptInfo(listOfPptData, words[1]);
+					
+					countAllPpts++;
+					
+					if(!ppt_keys.contains(ppt.key)){
+						//First time observing such ppt
+						ppt_keys.add(ppt.key);
+						final_ppts.put(ppt.key, ppt);
+					}else {
+						//We have seen this ppt before, thus merge it then save it
+						PptInfo originalPpt = final_ppts.get(ppt.key);
+						PptInfo mergedPpt = mergeTwoPpts(originalPpt, ppt);
+						final_ppts.remove(ppt.key);
+						final_ppts.put(mergedPpt.key, mergedPpt);
+						countProcesedPpts++;
+					}
+					
+					
+					//Storing ppts on hashMap based on their name
+					List<PptInfo> similar_ppts = all_ppts.get(ppt.key);
+				    if (similar_ppts == null) {
+				    	similar_ppts = new ArrayList<>();
+				    	all_ppts.put(ppt.key, similar_ppts);
+				    }
+				    similar_ppts.add(ppt);
+				    break;
+				case TRACE:
+					break;
+				case BLANK:
+					break;
+				case END:
+					endOfFileStmt = line;
+					break;
+				default:
+					throw new IllegalArgumentException("Line was not identified");					
+				}
 				
 				//progress feedback 
 				long currentTime = System.currentTimeMillis();
@@ -165,7 +234,7 @@ public class Unifier {
 	    
 	    try {
 	    	file = new FileReader(filename);
-	    	buffered = new BufferedReader(file ,8192); // 8 192 is the default change it as see fit
+	    	buffered = new BufferedReader(file ,8192); // 8192 is the default change it as see fit
 	    	
 	    } catch (IOException e){
 	    	
@@ -174,65 +243,32 @@ public class Unifier {
 		
 	}
 	
-	public static void processLine(BufferedReader reader, String line) throws IOException{
-		
+	public static Line identifyLine(String line){
+
 		String[] words = line.split("\\s+");
 		
 		if (words.length > 0 && words[0].matches("//")){
-			//this is a comment 
-			String currentComment = "";
-			for(int i = 1 ; i < words.length ; i++){
-				currentComment = currentComment + words[i] + " ";
-			}
-			comments.add(currentComment);
+			return Line.COMMENT;
 		
 		}else if(words.length > 0 && words[0].matches("decl-version")){
-			//this is the decl-version used 
-			if(words.length != 2)
-				throw new IllegalArgumentException("It wasn't a decl-version!");
-			declVersion = words[1];
+			return Line.VERSION; 
 			
 		}else if(words.length > 0 && words[0].matches("var-comparability")){
-			//this is the var-comparability (if it was given)
-			if(words.length != 2)
-				throw new IllegalArgumentException("It wasn't a var-comparability!");
-			varComparability = words[1];
+			return Line.COMPAT;
 			
 		}else if(words.length > 0 && words[0].matches("#")){
-			//doing nothing
-			System.out.println("Reached end of file.");
+			return Line.END;
 		
 		}else if (words[0].matches("ppt")){
+			return Line.PPT;
 			
-			if(words.length != 2)
-				throw new IllegalArgumentException("It wasn't a ppt!");
+		}else if(words.length >= 1 && words[0].length() != 0){
+			return Line.TRACE;
 			
-			String nextLine;
-			List<String> listOfPptData = new ArrayList<String>();
-			
-			while(!(nextLine = reader.readLine()).matches("\\s*$")){
-				listOfPptData.add(nextLine);
-				numberOfLinesProcessed++;
-			}
-			PptInfo ppt = constructPpptInfo(listOfPptData, words[1]);
-			
-			//writePpt(ppt);
-			//all_ppts.add(ppt);
-			countAllPpts++;
-			
-			if(!ppt_keys.contains(ppt.key))
-				ppt_keys.add(ppt.key);
-			
-			//Storing ppts on hashMap based on their name
-			List<PptInfo> similar_ppts = all_ppts.get(ppt.key);
-		    if (similar_ppts == null) {
-		    	similar_ppts = new ArrayList<>();
-		    	all_ppts.put(ppt.key, similar_ppts);
-		    }
-		    similar_ppts.add(ppt);
-			//all_ppts_map.put(key, value)
-			
-		}//Otherwise this is an empty line or a trace so do nothing
+		}else {
+			//Otherwise this is an empty line or a trace so do nothing
+			return Line.BLANK;
+		}
 		
 	}
 	
@@ -364,5 +400,106 @@ public class Unifier {
 			ppt.setParentName(words[i]);
 		}
 	}
+	
 
+	public static PptInfo mergeTwoPpts(PptInfo originalPpt, PptInfo newPpt){
+		
+		if(originalPpt.key == null) 
+			throw new IllegalArgumentException("The original Ppt is not established correctely (missing key)!");
+		
+		if(!originalPpt.key.equals(newPpt.key))
+			throw new IllegalArgumentException("The given Ppts do NOT have the same key!");
+	
+		if(originalPpt.name == null) 
+			throw new IllegalArgumentException("The original Ppt is not established correctely (missing name)!");
+		
+		if(!originalPpt.name.equals(newPpt.name))
+			throw new IllegalArgumentException("The given Ppts do NOT have the same name!");
+		
+		//Make sure the original Ppt has a type identified
+		if(originalPpt.type == null) 
+			throw new IllegalArgumentException("The original Ppt is not established correctely (missing type)!");
+		
+		//n_2 to n ppts must have the same type of current one
+		if(!originalPpt.type.equals(newPpt.type))
+			throw new IllegalArgumentException("The given Ppts are not of the same type!");
+	
+		if(originalPpt.cls == null)
+			throw new IllegalArgumentException("The original Ppt is not established correctly (missing cls info)!");
+	
+		if(originalPpt.pckg == null)
+			throw new IllegalArgumentException("The original Ppt is not established correctly (missing pckg info)!");
+	
+		if(originalPpt.point == null)
+			throw new IllegalArgumentException("The original Ppt is not established correctly (missing point info)!");
+	
+		if(!originalPpt.cls.equals(newPpt.cls) || !originalPpt.pckg.equals(newPpt.pckg) || !originalPpt.point.equals(newPpt.point))
+			throw new IllegalArgumentException("The given Ppts cls, pckg, or point do NOT match!");
+	
+		if (originalPpt.method != null && !originalPpt.method.equals(newPpt.method))
+			throw new IllegalArgumentException("The given Ppts are for a method but their signature does NOT match!");
+	
+		//if the ppts have a parent will execute only once, 
+		if(originalPpt.parentName == null && newPpt.parentName !=null)
+			throw new IllegalArgumentException("newPpt has parent [" + newPpt.parentName + "] but originalPpt doesn't have one!");
+		
+		if(originalPpt.parentName != null && newPpt.parentName ==null)
+			throw new IllegalArgumentException("originalPpt has parent [" + originalPpt.parentName + "] but newPpt doesn't have one!");
+		
+		if(originalPpt.parentName != null && newPpt.parentName !=null)
+			if(!originalPpt.parentName.equals(newPpt.parentName) || !originalPpt.parentID.equals(newPpt.parentID))
+				throw new IllegalArgumentException("parentName or parentID of originalPpt nad newPpt do NOT match");
+		
+		// iterating over all variables of the newPpt
+		for(String varName:newPpt.arrangedKeys){
+			
+			//get properties of the same variable from originalPpt
+			String[] currentProp = originalPpt.var_to_prop_reps.get(varName);
+			
+			// check if this is a new variable (from the originalPpt perspective)
+			if(currentProp == null){
+				String[] temp = newPpt.var_to_prop_reps.get(varName);
+				originalPpt.addNewVariable(varName, temp);
+			}else{
+				//make sure they are the same length of prop
+				/*
+				 * If the variable has new one or more properties compared to the current know 
+				 * properties in the final representation of the ppt, add the new properties
+				 * to the know properties. Otherwise, they are equal, so do nothing.
+				 */
+				if (currentProp.length != newPpt.var_to_prop_reps.get(varName).length){
+					
+					if(currentProp.length > newPpt.var_to_prop_reps.get(varName).length)
+						throw new IllegalArgumentException("Variable from newPpt has a prop that is missing! This must never happen according to how Chicory works.");
+					else if(currentProp.length < newPpt.var_to_prop_reps.get(varName).length){
+						String[] temp = mergePtopertiesOfSameVairable(originalPpt.name, varName, currentProp, newPpt.var_to_prop_reps.get(varName));
+						originalPpt.var_to_prop_reps.remove(varName);
+						originalPpt.var_to_prop_reps.put(varName, temp);
+					}
+				}	
+			}			
+		}
+		return originalPpt;
+	}
+
+	public static String[] mergePtopertiesOfSameVairable(String pptName, String varName, String[] knownVarProps, String[] newVarProps){
+		
+		// we don't need actually to merge the two properties arrays as much that we need to make sure all 
+		// properties in the old array are in the new one.
+		for(String propFromOldVar:knownVarProps){
+			boolean found = false;
+			for(String propFromNewVar:newVarProps){
+				if(propFromOldVar.equals(propFromNewVar))
+					found = true;
+			}
+			if (!found)
+				throw new IllegalArgumentException("The later var has a prop that is missing! This must never happen according to how Chicory works.");
+			
+		}
+		
+		System.out.println("One or more new properties add to '" + varName + "' of ppt '" + pptName + "'");
+		
+		return newVarProps;
+	}
+	
 }
