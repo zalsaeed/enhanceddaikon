@@ -71,6 +71,8 @@ public class UnifierTest {
 		//TODO you must try this file also and make sure it is proceesed correctly
 		//Server.SocketPackageDdsObserved.dtrace.gz
 		
+		//TODO also try an uncompressed file.
+		
 		// Making sure we processed all the observed ppts
 		//assertEquals(140, Unifier.countProcesedPpts);
 		
@@ -88,6 +90,9 @@ public class UnifierTest {
 	//TODO test the identifyLine(String line) method
 	//TODO add test to this method
 	//TODO add test for readPptNameString(String pptName, PptInfo pptinfo){
+	//TODO addParentInfo
+	//TODO mergeTwoPpts
+	//TODO mergePtopertiesOfSameVairable
 	
 
 }

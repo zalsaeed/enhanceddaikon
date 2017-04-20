@@ -2,15 +2,20 @@ package daikon;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.checkerframework.checker.initialization.qual.Initialized;
 import org.checkerframework.checker.interning.qual.UnknownInterned;
@@ -39,10 +44,6 @@ public class Unifier {
 	
 	/** End of file declaration value as it is given in the dtrace file to be written latter */
 	static String endOfFileStmt = "";
-	
-	//TODO delete once no need to use it (
-	/** All traces found in the dtrace file, holding them in an ArrayList to preserve order*/
-	static List<TraceInfo> all_traces = new ArrayList<TraceInfo>();
 	
 	/** All identical ppt are going to be identified by this key*/
 	public static List<String> ppt_keys = new ArrayList<String>();
@@ -163,17 +164,18 @@ public class Unifier {
 			e1.printStackTrace();
 		}
 		
-		readTraceFile(file_name, isCompressed, defaultBufferSize);
+		readFileForPpts(file_name, isCompressed, defaultBufferSize);
+		
+		readAndWriteFileForTrace(file_name, isCompressed, defaultBufferSize);
 		
 		//Combine traces and decals of all available objects to show traces based on them both
 		if(combine)
-			System.out.println("pass");
+			System.out.println("passed combine");
 			//writeCombinedTraces(file_name);
 
 	}
 	
 	/**
-
 	 * A method to read the a given .dtrace file. This method is dedicated to only read .dtrace file information 
 	 * (e.g. comments and version ... etc) and ppts. Trace are ignored when given this method. 
 	 * 
@@ -185,7 +187,10 @@ public class Unifier {
 	 * @param bufferSize The size of the BufferedReader that is going to be reading file. This is given to allow for 
 	 * 		manual adjustment in case it is needed. 
 	 */
-	private static void readTraceFile(String filename, boolean isCompressed, int bufferSize){
+	private static void readFileForPpts(String filename, boolean isCompressed, int bufferSize){
+		
+		// initializing the tracking variable
+		numberOfLinesProcessed=0;
 		
 		InputStream gzipStream;
 		Reader decoder;
@@ -293,6 +298,211 @@ public class Unifier {
 	}
 	
 	/**
+	 * A method to read the .dtrace file (again) and write traces at the same time. This is to save as much as 
+	 * possible of the memory space.
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param filename
+	 * @param isCompressed
+	 * @param bufferSize
+	 */
+	private static void readAndWriteFileForTrace(String filename, boolean isCompressed, int bufferSize){
+		
+		System.out.println("Reading an writing traces ...");
+		
+		// initializing the tracking variable
+		numberOfLinesProcessed=0;
+		// For writing purposes
+		String out_filename = String.format ("%sMerged.dtrace.gz", filename.substring(0 ,filename.lastIndexOf(".")));
+		OutputStream os;
+        PrintWriter writer; 
+		
+        // For reading purposes
+		InputStream gzipStream;
+		Reader decoder;
+		FileReader file;
+		BufferedReader buffered;
+		
+		try {
+			
+			os = new FileOutputStream(out_filename);
+			os = new GZIPOutputStream(os);
+			writer = new PrintWriter(os);
+			
+			writeTraceFileHeader(writer);
+			
+			// Write all know ppts
+			for(String ppt_name:ppt_keys)
+		    	writePpt(final_ppts.get(ppt_name), writer);
+			
+			if (isCompressed){
+				gzipStream = new GZIPInputStream(new FileInputStream(filename));
+				decoder = new InputStreamReader(gzipStream);
+				buffered = new BufferedReader(decoder ,bufferSize); // 8192 is the default change it as see fit
+				System.out.println("Reading .gz traces ...");
+			}else{
+				file = new FileReader(filename);
+		    	buffered = new BufferedReader(file ,bufferSize); // 8192 is the default change it as see fit
+		    	System.out.println("Reading .dtrace traces ...");
+			}
+			
+			
+			long startTime = System.currentTimeMillis();
+			long lastRecordedTime = startTime;
+			
+			String line;
+			
+			while ((line = buffered.readLine()) != null) {
+				numberOfLinesProcessed++;
+				
+				//processLine(buffered, line);
+				
+				Line lineType = identifyLine(line);
+				
+				switch (lineType){
+				case COMMENT:
+				case VERSION:
+				case COMPAT:
+				case END:
+				case BLANK:
+				    break;
+				case PPT:
+					// fast looping through the ppt lines that have being seen before
+					while(!(buffered.readLine()).matches("\\s*$")){ // while not a blank line
+						numberOfLinesProcessed++;
+					}
+					break;
+					
+				case TRACE:
+					
+					String nextLine;
+					List<String> listOfTraceData = new ArrayList<String>();
+					
+					//read all lines of this trace
+					while(!(nextLine = buffered.readLine()).matches("\\s*$")){
+						listOfTraceData.add(nextLine);
+						numberOfLinesProcessed++;
+					}
+					TraceInfo ti = constructTraceInfo(listOfTraceData, line);
+					
+					//Write the trace as soon as it is seen.
+				    traceWriting(ti, writer, final_ppts.get(ti.name));
+				    
+					break;
+				default:
+					throw new IllegalArgumentException("Line was not identified");					
+				}
+				
+				//progress feedback 
+				long currentTime = System.currentTimeMillis();
+				if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
+					lastRecordedTime = currentTime;
+					System.out.println("Still processing the file ... finished %" + 
+							(numberOfLinesProcessed / total_number_of_lines)*100 );
+				}
+			}
+			buffered.close();
+			
+			writer.println();
+		    writer.println(endOfFileStmt);
+		    writer.close();
+			
+		    System.out.println("Read %" + (numberOfLinesProcessed / total_number_of_lines)*100 + " of the file");
+			long finishTime = System.currentTimeMillis();
+			long sec = ((finishTime - startTime) / 1000) % 60;
+			long min = ((finishTime - startTime) / 1000) / 60;
+			System.out.println("Finished reading file in: " + min + ":" + sec + " min (" + (finishTime - startTime) 
+					+ " millis)");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	/**
+	 * Given a writing stream, the know .dtrace file header will be written to the given file.
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param writer
+	 */
+	public static void writeTraceFileHeader(PrintWriter writer){
+		
+		// write the header 
+	    for(String cmnt:comments){
+	    	writer.println(cmnt);
+	    }
+	    writer.println("// merged version\n");
+	    
+	    // decl-version
+	    writer.println(declVersion);
+	    
+	    // var-comparability
+	    writer.println(varComparability);
+	    
+	    writer.println();
+	}
+	
+	/**
+	 * Given a {@link PptInfo} and a writer it, the ppt will be fully written as it is arranged.
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param one
+	 * @param writer
+	 */
+	public static void writePpt(PptInfo one, PrintWriter writer) {
+		writer.println("ppt " + one.name );
+		writer.println("ppt-type " + one.type);
+		
+		if(one.parentName != null)
+			writer.println("parent parent " + one.parentName + " " + one.parentID);
+		
+		for(String varName:one.arrangedKeys){
+			writer.println("variable " + varName);
+			for(String props:one.var_to_prop_reps.get(varName)){
+				writer.println(props);
+			}
+		}
+		writer.println();
+		
+	}
+	
+	/**
+	 * Given a {@link TraceInfo}, its representing {@link PptInfo}, and a writing stream, The trace will be written 
+	 * according to its ppt.
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param ti
+	 * @param writer
+	 * @param ppt
+	 */
+	public static void traceWriting(TraceInfo ti, PrintWriter writer, PptInfo ppt) {
+		
+		writer.println(ti.name);
+		writer.println("this_invocation_nonce");
+		writer.println(ti.nonce);
+		
+		for(String varName:ppt.arrangedKeys){
+			Value val = ti.getValueByName(varName);
+			if (val != null){
+				writer.println(val.valueName);
+				writer.println(val.givenValue);
+				writer.println(val.sensicalModifier);
+			}else{
+				writer.println(varName);
+				writer.println("nonsensical");
+				writer.println("2");
+			}
+		}
+		
+		writer.println();
+	}
+	
+	/**
 	 * A method to break line down, identify it, and return its type based on the {@link Line} enumerator. 
 	 * 
 	 * @author zalsaeed
@@ -337,7 +547,7 @@ public class Unifier {
 	 * @author zalsaeed
 	 * 
 	 * @param pptData All the information of the ppt to be constructed given in the form of strings. Each string is a 
-	 * 		line in the dtrace fiel that belongs to the ppt. The lines are given based on the order in which they were 
+	 * 		line in the dtrace file that belongs to the ppt. The lines are given based on the order in which they were 
 	 * 		read. 
 	 * @param name The name of the ppt. For example, "[package_name].[class_name].[method_sigature]:::ENTER"
 	 * @return A well constructed {@link PptInfo} that can be easily handled in the future (e.g. for printing or 
@@ -399,6 +609,54 @@ public class Unifier {
 		}
 		
 		return currentPpt;
+	}
+	
+	/**
+	 * Given a trace for a specific ppt name (e.g. [package_name].[class_name].[method_sigature]:::ENTER) and a list 
+	 * of strings that has all the traces associated with the trace name, this method will construct a 
+	 * {@link TraceInfo} that will be easy to handle.  
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param traceData List of all the information found under the given trace from the original .dtrace file. 
+	 * @param name the name of the given ppr's trace (e.g. [package_name].[class_name].[method_sigature]:::ENTER). 
+	 * @return {@link TeaceInfo} file with all the given traces stored appropriately for later reading and handling. 
+	 */
+	public static TraceInfo constructTraceInfo(List<String> traceData, String name) {
+		TraceInfo ti = new TraceInfo(name);
+		
+		//TODO fix this to be using only one method for both traces and ppts
+		readTraceString(name, ti);
+		
+		String invocation_nonce = traceData.get(0);
+		
+		if(!invocation_nonce.matches("this_invocation_nonce"))
+			throw new IllegalArgumentException("It wasn't a trace header (can not find the invocation nonce)");
+		
+		String nonceValue = traceData.get(1);
+		
+		String[] isOneWord = nonceValue.split("\\s+");
+		if (isOneWord.length != 1 || !isNumeric(nonceValue))
+			throw new IllegalArgumentException("The given list wasn't for a trace point");
+		ti.setNonce(nonceValue);
+		
+		// Removing the trace header information to validate the values and more
+		traceData.remove(0);
+		traceData.remove(0); //<-- it was one before the removal precedes it
+		
+		if(traceData.size() % 3 != 0)
+			throw new IllegalArgumentException("The number of lines given doesn't add up for a trace record");
+
+		for(Iterator<String> iter = traceData.iterator(); iter.hasNext();){
+			String possibleTraceName = iter.next();
+			String givenValue = iter.next();
+			String sensModifier = iter.next();
+			
+			//add the variable trace to the trace info
+			ti.addValue(possibleTraceName, givenValue, sensModifier);
+		}
+		
+		return ti;
 	}
 	
 	/**
@@ -468,6 +726,69 @@ public class Unifier {
 	}
 	
 	/**
+	 * A method that is very similar to the {@link #readPptNameString(String, PptInfo)} method but for trace. They 
+	 * should be unified under a single method, but this would require a lot of redesigning. The redesign should 
+	 * consider making the {@link PptInfo} and {@link TraceInfo} extend a single parent.
+	 * 
+	 * @author zalsaeed
+	 * 
+	 * @param traceName
+	 * @param traceInfo
+	 */
+	public static void readTraceString(String traceName, TraceInfo traceInfo){
+		String fn_name; // the ppt full name without the point type (e.g. ":::ENTER")
+		String pkg_cls; // package and class name separated by a "." as given in the ppt
+		String point;  // point type (e.g. OBJECT, ENTER, or EXIT10)
+		String method; // the method and its arguments full name (e.g. setX(int))
+		String packageName; // the package name without any noise
+		String clsName; // the class name without any noise
+		
+	    int separatorPosition = traceName.indexOf( FileIO.ppt_tag_separator );
+	    if (separatorPosition == -1) {
+	    	throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+traceName+"'");
+	    }
+	    
+	    fn_name = traceName.substring(0, separatorPosition).intern();
+	    point = traceName.substring(separatorPosition + FileIO.ppt_tag_separator.length()).intern();
+
+	    int lparen = fn_name.indexOf('(');
+	    if (lparen == -1) {
+	    	pkg_cls = fn_name;
+	    	method = null;
+	    	//This is an obj"
+	    	String[] twoWords = pkg_cls.split("\\.+");
+	    	packageName = twoWords[0];	      
+	    	clsName = twoWords[1];
+
+	    	traceInfo.point = point;
+	    	traceInfo.cls = clsName;
+	    	traceInfo.pckg = packageName;
+	      
+	      return;
+	    }
+	    int dot = fn_name.lastIndexOf('.', lparen);
+	    if (dot == -1) {
+	      // throw new Daikon.TerminationMessage("No dot in function name " + fn_name);
+	      method = fn_name;
+	      pkg_cls = null;
+	      return;
+	    }
+	    // now 0 <= dot < lparen
+	    pkg_cls = fn_name.substring(0, dot).intern();
+	    // a ppt must have the package name and the class name, otherwise the traces are wrong. 
+	    String[] twoWords = pkg_cls.split("\\.+");
+	    packageName = twoWords[0];
+	    clsName = twoWords[1];
+	    method = fn_name.substring(dot + 1).intern();
+	    
+	    
+	    traceInfo.point = point;
+    	traceInfo.cls = clsName;
+    	traceInfo.pckg = packageName;
+    	traceInfo.method = method;
+	}
+	
+	/**
 	 * Helper method to handle storing a possible method parent information as it gets constructed. 
 	 * 
 	 * @author zalsaeed
@@ -489,7 +810,6 @@ public class Unifier {
 		}
 	}
 	
-
 	/**
 	 * Helper method for joining two program points ({@link PptInfo}). It takes two {@link PptInfo} that are "known" 
 	 * to be the for the same program point and merge their variables. It insure that if a variable exists before, the 
@@ -623,4 +943,18 @@ public class Unifier {
 		return newVarProps;
 	}
 	
+	/**
+	 * A method to check if a string represent a numeral string to cast it into a numeral variable safely.
+	 * <br>
+	 * <b> Disclosure</b>: This method is taken from StackOverflow See 
+	 * <a href="http://stackoverflow.com/questions/1102891/how-to-check-if-a-string-is-numeric-in-java">
+	 * How to check if a String is numeric in Java</a>. 
+	 * @param str The string to be checked.
+	 * @return <tt>True</tt> if the string represent a numeral, <tt>False</tt> if the string doesn't represent a 
+	 * numeral. 
+	 */
+	public static boolean isNumeric(String str)
+	{
+	  return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+	}
 }
