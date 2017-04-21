@@ -63,10 +63,10 @@ public class Unifier {
 	public static int countProcesedPpts = 0;
 	
 	/** Getting a sense of how far we got in reading the file */
-	static long numberOfLinesProcessed = 0;
+	static double numberOfLinesProcessed = 0;
 	
 	/** The total nuber of lines in the given trace file to show reading process percentage */
-	public static long total_number_of_lines= 0;
+	public static double total_number_of_lines= 0;
 	
 	
 	/**
@@ -158,8 +158,8 @@ public class Unifier {
 		
 		//Get the totla number of lines in the file 
 		try {
-			total_number_of_lines = UtilMDE.count_lines(file_name);
-			System.out.format("Total number of lines: %,8d%n", total_number_of_lines);
+			total_number_of_lines = (double)UtilMDE.count_lines(file_name);
+			System.out.format("Total number of lines: %,8.0f%n", total_number_of_lines);
 		} catch (@UnknownKeyFor @NonRaw @NonNull @Initialized @UnknownInterned  IOException e1) {
 			e1.printStackTrace();
 		}
@@ -279,16 +279,17 @@ public class Unifier {
 				long currentTime = System.currentTimeMillis();
 				if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
 					lastRecordedTime = currentTime;
-					System.out.println("Still processing the file ... finished %" + 
-							(numberOfLinesProcessed / total_number_of_lines)*100 );
+					double percentage = (numberOfLinesProcessed / total_number_of_lines)*100;
+					System.out.print("\rStill processing the file ... %" + String.format("%.2f", percentage));
 				}
 			}
 			buffered.close();
+			System.out.println();
 			System.out.println("Read %" + (numberOfLinesProcessed / total_number_of_lines)*100 + " of the file");
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading file in: " + min + ":" + sec + " min (" + (finishTime - startTime) 
+			System.out.println("Finished reading file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
 					+ " millis)");
 			
 		} catch (IOException e) {
@@ -398,12 +399,14 @@ public class Unifier {
 				long currentTime = System.currentTimeMillis();
 				if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
 					lastRecordedTime = currentTime;
-					System.out.println("Still processing the file ... finished %" + 
-							(numberOfLinesProcessed / total_number_of_lines)*100 );
+					double percentage = (numberOfLinesProcessed / total_number_of_lines)*100;
+					System.out.print("\rReading/Writing traces from/into file ... %" 
+							+ String.format("%.2f", percentage));
 				}
 			}
-			buffered.close();
+			System.out.println();
 			
+			buffered.close();
 			writer.println();
 		    writer.println(endOfFileStmt);
 		    writer.close();
