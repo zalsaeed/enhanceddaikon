@@ -286,8 +286,10 @@ public class Unifier {
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading " + (numberOfLinesProcessed / total_number_of_lines)*100 
-					+ "of the file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) + " millis)");
+			System.out.println("Finished reading " 
+					+ String.format("%.2f", (numberOfLinesProcessed / total_number_of_lines)*100) 
+					+ " of the traces in file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
+					+ " millis)");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -401,7 +403,7 @@ public class Unifier {
 				
 				//progress feedback 
 				long currentTime = System.currentTimeMillis();
-				if((currentTime - lastRecordedTime) > 2000){ //if a minute passed and not finished.
+				if((currentTime - lastRecordedTime) > 2000){ //if a 2 sec passed and not finished.
 					lastRecordedTime = currentTime;
 					double percentage = (numberOfLinesProcessed / total_number_of_lines)*100;
 					System.out.print("\rReading/Writing traces from/into file ... %" 
@@ -418,8 +420,9 @@ public class Unifier {
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading/writing " + (numberOfLinesProcessed / total_number_of_lines)*100 
-					+ "of the traces in file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
+			System.out.println("Finished reading/writing " 
+					+ String.format("%.2f", (numberOfLinesProcessed / total_number_of_lines)*100) 
+					+ " of the traces in file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
 					+ " millis)");
 			
 		} catch (IOException e) {
