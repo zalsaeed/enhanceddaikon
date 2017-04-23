@@ -65,6 +65,9 @@ public class Unifier {
 	/** Getting a sense of how far we got in reading the file */
 	static double numberOfLinesProcessed = 0;
 	
+	/** count all the observed and processed traces in file*/
+	static double numberofObservedTraces = 0;
+	
 	/** The total nuber of lines in the given trace file to show reading process percentage */
 	public static double total_number_of_lines= 0;
 	
@@ -171,6 +174,12 @@ public class Unifier {
 			System.out.println("passed combine");
 			//writeCombinedTraces(file_name);
 
+		System.out.println("Number of all observed ppts in file: " + countAllPpts);
+		System.out.println("Successfully processed %" + (countProcesedPpts/countAllPpts)*100 + 
+				" of the observed ppts");
+		System.out.println("Final number of ppts (merge result): " + ppt_keys.size());
+		System.out.println("Number of all observed and written traces: " + numberofObservedTraces);
+		
 	}
 	
 	/**
@@ -286,7 +295,7 @@ public class Unifier {
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading " 
+			System.out.println("Finished reading %" 
 					+ String.format("%.2f", (numberOfLinesProcessed / total_number_of_lines)*100) 
 					+ " of the traces in file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
 					+ " millis)");
@@ -396,6 +405,8 @@ public class Unifier {
 					//Write the trace as soon as it is seen.
 				    traceWriting(ti, writer, final_ppts.get(ti.name));
 				    
+				    numberofObservedTraces++;
+				    
 					break;
 				default:
 					throw new IllegalArgumentException("Line was not identified");					
@@ -420,7 +431,7 @@ public class Unifier {
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading/writing " 
+			System.out.println("Finished reading/writing %" 
 					+ String.format("%.2f", (numberOfLinesProcessed / total_number_of_lines)*100) 
 					+ " of the traces in file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
 					+ " millis)");
