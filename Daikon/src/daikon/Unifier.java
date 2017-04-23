@@ -154,8 +154,6 @@ public class Unifier {
 					+ "\n [filename].dtrace.gz [buffer_size],"
 					+ "\n or combine [filename].dtrace.gz [buffer_size]");
 		
-		System.out.println("Merging traces from file: " + file_name);
-		
 		//Get the totla number of lines in the file 
 		try {
 			total_number_of_lines = (double)UtilMDE.count_lines(file_name);
@@ -202,11 +200,11 @@ public class Unifier {
 				gzipStream = new GZIPInputStream(new FileInputStream(filename));
 				decoder = new InputStreamReader(gzipStream);
 				buffered = new BufferedReader(decoder ,bufferSize); // 8192 is the default change it as see fit
-				System.out.println("Reading .gz traces ...");
+				System.out.println("Reading traces: " + filename + " (compressed)  for processing ppts ...");
 			}else{
 				file = new FileReader(filename);
 		    	buffered = new BufferedReader(file ,bufferSize); // 8192 is the default change it as see fit
-		    	System.out.println("Reading .dtrace traces ...");
+		    	System.out.println("Reading traces: " + filename + " (uncompressed)  for processing ppts ...");
 			}
 			
 			
@@ -277,20 +275,19 @@ public class Unifier {
 				
 				//progress feedback 
 				long currentTime = System.currentTimeMillis();
-				if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
+				if((currentTime - lastRecordedTime) > 2000){ //if a minute passed and not finished.
 					lastRecordedTime = currentTime;
 					double percentage = (numberOfLinesProcessed / total_number_of_lines)*100;
 					System.out.print("\rStill processing the file ... %" + String.format("%.2f", percentage));
 				}
 			}
 			buffered.close();
-			System.out.println();
-			System.out.println("Read %" + (numberOfLinesProcessed / total_number_of_lines)*100 + " of the file");
+			System.out.println(); //jumping a line once done after showing the progress
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
-					+ " millis)");
+			System.out.println("Finished reading " + (numberOfLinesProcessed / total_number_of_lines)*100 
+					+ "of the file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) + " millis)");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -310,12 +307,17 @@ public class Unifier {
 	 */
 	private static void readAndWriteFileForTrace(String filename, boolean isCompressed, int bufferSize){
 		
-		System.out.println("Reading an writing traces ...");
-		
 		// initializing the tracking variable
 		numberOfLinesProcessed=0;
 		// For writing purposes
-		String out_filename = String.format ("%sMerged.dtrace.gz", filename.substring(0 ,filename.lastIndexOf(".")));
+		String out_filename;
+		if(isCompressed)
+			out_filename = String.format ("%sMerged.dtrace.gz", 
+					filename.substring(0 ,filename.lastIndexOf(".dtrace.gz")));
+		else
+			out_filename = String.format ("%sMerged.dtrace.gz", 
+					filename.substring(0 ,filename.lastIndexOf(".dtrace")));
+		
 		OutputStream os;
         PrintWriter writer; 
 		
@@ -341,11 +343,13 @@ public class Unifier {
 				gzipStream = new GZIPInputStream(new FileInputStream(filename));
 				decoder = new InputStreamReader(gzipStream);
 				buffered = new BufferedReader(decoder ,bufferSize); // 8192 is the default change it as see fit
-				System.out.println("Reading .gz traces ...");
+				System.out.println("Reading traces from: " + filename + " (compressed)  and writing new traces on " 
+				+ out_filename);
 			}else{
 				file = new FileReader(filename);
 		    	buffered = new BufferedReader(file ,bufferSize); // 8192 is the default change it as see fit
-		    	System.out.println("Reading .dtrace traces ...");
+		    	System.out.println("Reading traces from: " + filename + " (uncompressed)  and writing new traces on " 
+						+ out_filename);
 			}
 			
 			
@@ -397,25 +401,25 @@ public class Unifier {
 				
 				//progress feedback 
 				long currentTime = System.currentTimeMillis();
-				if((currentTime - lastRecordedTime) > 3000){ //if a minute passed and not finished.
+				if((currentTime - lastRecordedTime) > 2000){ //if a minute passed and not finished.
 					lastRecordedTime = currentTime;
 					double percentage = (numberOfLinesProcessed / total_number_of_lines)*100;
 					System.out.print("\rReading/Writing traces from/into file ... %" 
 							+ String.format("%.2f", percentage));
 				}
 			}
-			System.out.println();
+			System.out.println(); //go to new line once done from processing
 			
 			buffered.close();
 			writer.println();
 		    writer.println(endOfFileStmt);
 		    writer.close();
 			
-		    System.out.println("Read %" + (numberOfLinesProcessed / total_number_of_lines)*100 + " of the file");
 			long finishTime = System.currentTimeMillis();
 			long sec = ((finishTime - startTime) / 1000) % 60;
 			long min = ((finishTime - startTime) / 1000) / 60;
-			System.out.println("Finished reading file in: " + min + ":" + sec + " min (" + (finishTime - startTime) 
+			System.out.println("Finished reading/writing " + (numberOfLinesProcessed / total_number_of_lines)*100 
+					+ "of the traces in file in: " + min + ":" + sec + " min:sec (" + (finishTime - startTime) 
 					+ " millis)");
 			
 		} catch (IOException e) {
