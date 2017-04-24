@@ -250,10 +250,17 @@ public class Unifier {
 					
 					//read all lines of this ppt
 					while(!(nextLine = buffered.readLine()).matches("\\s*$")){
+						String[] splitted = nextLine.split("\\s+");
+						if(splitted.length > 0 && splitted[0].equals("ppt"))
+							throw new IllegalArgumentException("Found a ppt inside a ppt in line #" 
+									+ numberOfLinesProcessed);
 						listOfPptData.add(nextLine);
 						numberOfLinesProcessed++;
 					}
 					PptInfo ppt = constructPpptInfo(listOfPptData, words[1]);
+					
+//					if(ppt.name.equals("voldemort.store.bdb.PartitionPrefixedBdbStorageEngine$BdbPartitionEntriesIterator:::OBJECT"))
+//						System.out.print("found it! var_ro_prop_reps.size() = " + ppt.var_to_prop_reps.size());
 					
 					countAllPpts++;
 					
