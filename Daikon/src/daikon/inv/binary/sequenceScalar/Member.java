@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -24,7 +25,7 @@ import typequals.*;
  * values.
  * Prints as <code>x in y[]</code> where <code>x</code> is a long scalar
  * and <code>y[]</code> is a sequence of long.
- **/
+ */
 public final class Member
   extends SequenceScalar
 {
@@ -40,8 +41,8 @@ public final class Member
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff Member invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   protected Member(PptSlice ppt) {
     super(ppt);
@@ -53,17 +54,17 @@ public final class Member
 
   private static /*@Prototype*/ Member proto = new /*@Prototype*/ Member();
 
-  /** Returns the prototype invariant for Member **/
+  /** Returns the prototype invariant for Member */
   public static /*@Prototype*/ Member get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   protected Member instantiate_dyn (/*@Prototype*/ PptSlice slice) {
     return new Member (slice);
   }
@@ -81,8 +82,9 @@ public final class Member
   /**
    * Check whether sclvar is a member of seqvar can be determined
    * statically.
-   **/
-  /*@Pure*/ public static boolean isObviousMember(VarInfo sclvar, VarInfo seqvar) {
+   */
+  /*@Pure*/
+  public static boolean isObviousMember(VarInfo sclvar, VarInfo seqvar) {
 
     VarInfo sclvar_seq = sclvar.isDerivedSequenceMember();
 
@@ -104,8 +106,9 @@ public final class Member
     // This is satisfied, for instance, when determining that
     // max(B[0..I]) is an obvious member of B.
     VarInfo sclseqsuper = sclvar_seq.isDerivedSubSequenceOf();
-    if (sclseqsuper == seqvar)
+    if (sclseqsuper == seqvar) {
       return true;
+    }
 
     // We know the scalar was derived from some array, but not from the
     // sequence variable.  If also not from what the sequence variable was
@@ -165,18 +168,21 @@ public final class Member
         // determine if the scalar index is statically included in the
         // left/right sequence
         boolean left_included = false, right_included = false;
-        if (seq_left_index == null)
+        if (seq_left_index == null) {
           left_included = true;
+        }
         if (seq_left_index == scl_index) {
           if (seq_left_shift <= scl_shift) left_included = true;
         }
-        if (seq_right_index == null)
+        if (seq_right_index == null) {
           right_included = true;
+        }
         if (seq_right_index == scl_index) {
           if (seq_right_shift >= scl_shift) right_included = true;
         }
-        if (left_included && right_included)
+        if (left_included && right_included) {
           return true;
+        }
 
       // else if the scalar is a specific positional element (eg, b[0])
       } else if (sclvar.derived instanceof SequenceInitial) {
@@ -203,14 +209,17 @@ public final class Member
     return false;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied Member this*/) {
     return "Member" + varNames() + ": "
       + "falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied Member this,*/ OutputFormat format) {
 
-    if (format.isJavaFamily()) return format_java_family(format);
+    if (format.isJavaFamily()) {
+      return format_java_family(format);
+    }
 
     if (format == OutputFormat.DAIKON) {
       return format_daikon();
@@ -225,7 +234,7 @@ public final class Member
     }
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied Member this*/) {
     String sclname = sclvar().name();
     String seqname = seqvar().name();
     return sclname + " in " + seqname;
@@ -237,32 +246,32 @@ public final class Member
       + " , " + seqvar().name() + " ) == true ) ";
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied Member this,*/ OutputFormat format) {
     String sclname = sclvar().name_using(format);
     String seqname = seqvar().name_using(format);
     return "daikon.Quant.memberOf(" + sclname
       + " , " + seqname + " )";
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied Member this*/) {
     // "exists x in a..b : P(x)" gets written as "!(forall x in a..b : !P(x))"
     String[] form = VarInfo.esc_quantify (seqvar(), sclvar());
     return "!" + form[0] + "(" + form[1] + " != " + form[2] + ")" + form[3];
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied Member this*/) {
     String sclname = sclvar().csharp_name();
     String[] split = seqvar().csharp_array_split();
     return "Contract.Exists(" + split[0] + ", x => x" + split[1] + ".Equals(" + sclname + "))";
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied Member this*/) {
     if (Invariant.dkconfig_simplify_define_predicates) {
       String[] seq_name = seqvar().simplifyNameAndBounds();
       String scalar_name = sclvar().simplify_name();
       if (seq_name == null) {
-        return "format_simplify can't handle this sequence: "
-          + format();
+        return String.format("%s.format_simplify(%s): null seq_name for %s",
+                             getClass().getSimpleName(), this, format());
       }
       return "(member " + scalar_name + " " +
         seq_name[0] + " " + seq_name[1] + " " + seq_name[2] + ")";
@@ -287,17 +296,19 @@ public final class Member
   public InvariantStatus add_modified(long /*@Interned*/ [] a, long i, int count) {
 
     InvariantStatus is = check_modified(a, i, count);
-    if (debug.isLoggable(Level.FINE) && (is == InvariantStatus.FALSIFIED))
+    if (debug.isLoggable(Level.FINE) && (is == InvariantStatus.FALSIFIED)) {
       debug.fine ("Member destroyed:  " + format() + " because " + i +
                   " not in " + ArraysMDE.toString(a));
-    return (is);
+    }
+    return is;
   }
 
   protected double computeConfidence() {
     return Invariant.CONFIDENCE_JUSTIFIED;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof Member;
     return true;
   }
@@ -314,8 +325,9 @@ public final class Member
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically (VarInfo[] vis) {
 
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       Debug.log (getClass(), ppt.parent, vis, "is obvious check" + format());
+    }
 
     DiscardInfo super_result = super.isObviousDynamically(vis);
     if (super_result != null) {
@@ -324,15 +336,17 @@ public final class Member
 
     // Check for subscript in subsequence
     DiscardInfo di = subscript_in_subsequence (vis);
-    if (di != null)
-      return (di);
+    if (di != null) {
+      return di;
+    }
 
     // Check for (A subset B) ==> (A[i] member B)
     di = subset_in_subsequence (vis);
-    if (di != null)
-      return (di);
+    if (di != null) {
+      return di;
+    }
 
-    return (null);
+    return null;
   }
 
   /*
@@ -347,19 +361,23 @@ public final class Member
     VarInfo scl_var = sclvar (vis);
     VarInfo seq_var = seqvar (vis);
 
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       Debug.log (getClass(), ppt.parent, vis, "looking for subset in subseq");
+    }
 
     // If the scalar is not a subscript of a seq there is nothing to check.
-    if (scl_var.derived == null)
+    if (scl_var.derived == null) {
       return null;
-    if (!(scl_var.derived instanceof SequenceScalarSubscript))
+    }
+    if (!(scl_var.derived instanceof SequenceScalarSubscript)) {
       return null;
+    }
     SequenceScalarSubscript sssc = (SequenceScalarSubscript) scl_var.derived;
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       Debug.log (getClass(), ppt.parent, vis, "Looking for "
                  + sssc.seqvar().name() + " subset of "
                  + seq_var.name());
+    }
 
     // check to see if subscripts sequence is a subset of the sequence var
     if (ppt.parent.is_subset (sssc.seqvar(), seq_var)) {
@@ -371,7 +389,7 @@ public final class Member
                              + "] member " + seq_var.name());
     }
 
-    return (null);
+    return null;
   }
 
   /*
@@ -388,46 +406,52 @@ public final class Member
     VarInfo seq_var = seqvar (vis);
 
     // Both variables must be derived
-    if ((scl_var.derived == null) || (seq_var.derived == null))
-      return (null);
+    if ((scl_var.derived == null) || (seq_var.derived == null)) {
+      return null;
+    }
 
     // If the scalar is not SequenceScalarSubscript, there is nothing to check.
-    if (!(scl_var.derived instanceof SequenceScalarSubscript))
+    if (!(scl_var.derived instanceof SequenceScalarSubscript)) {
       return null;
+    }
     SequenceScalarSubscript sssc = (SequenceScalarSubscript) scl_var.derived;
 
     // If the sequence is not SequenceScalarSubsequence, nothing to check
-    if (!(seq_var.derived instanceof SequenceScalarSubsequence))
-      return (null);
+    if (!(seq_var.derived instanceof SequenceScalarSubsequence)) {
+      return null;
+    }
     SequenceScalarSubsequence ssss = (SequenceScalarSubsequence) seq_var.derived;
 
     // Both variables must be derived from equal sequences
-    if (!ppt.parent.is_equal (sssc.seqvar(), ssss.seqvar()))
-      return (null);
+    if (!ppt.parent.is_equal (sssc.seqvar(), ssss.seqvar())) {
+      return null;
+    }
 
     // if a[i] in a[0..n], look for i <= n
     if (ssss.from_start) {
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         Debug.log (getClass(), ppt.parent, vis,
           "Looking for " + sssc.sclvar().name() + sssc.index_shift
            + " <= " + ssss.sclvar().name() + ssss.index_shift);
+      }
       if (ppt.parent.is_less_equal (sssc.sclvar(), sssc.index_shift,
                              ssss.sclvar(), ssss.index_shift))
         return new DiscardInfo(this, DiscardCode.obvious,
                      "i <= n ==> a[i] in a[..n] for "
                      + scl_var.name() + " and " + seq_var.name());
     } else { // a[i] in a[n..], look for i >= n
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         Debug.log (getClass(), ppt.parent, vis,
           "Looking for " + ssss.sclvar().name() + ssss.index_shift
            + " <= " + sssc.sclvar().name() + sssc.index_shift);
+      }
       if (ppt.parent.is_less_equal (ssss.sclvar(), ssss.index_shift,
                              sssc.sclvar(), sssc.index_shift))
         return new DiscardInfo(this, DiscardCode.obvious,
                      "i >= n ==> a[i] in a[n..] for "
                      + scl_var.name() + " and " + seq_var.name());
     }
-    return (null);
+    return null;
   }
 
 }

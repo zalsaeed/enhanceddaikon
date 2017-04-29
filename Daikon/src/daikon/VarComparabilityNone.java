@@ -3,17 +3,15 @@ package daikon;
 import java.io.Serializable;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
 /**
- * Used when no VarComparability information is available (in the .dtrace file).
- * Every variable is considered comparable to every other variable.
- **/
-public final class VarComparabilityNone
-  extends VarComparability
-  implements Serializable
-{
+ * Used when no VarComparability information is available (in the {@code .dtrace} file). Every
+ * variable is considered comparable to every other variable.
+ */
+public final class VarComparabilityNone extends VarComparability implements Serializable {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
@@ -22,7 +20,7 @@ public final class VarComparabilityNone
   // There is only one VarComparabilityNone object.
   public static final VarComparabilityNone it = new VarComparabilityNone();
 
-  private VarComparabilityNone() { }
+  private VarComparabilityNone() {}
 
   static VarComparabilityNone parse(String rep, ProglangType vartype) {
     return it;
@@ -32,11 +30,11 @@ public final class VarComparabilityNone
     return it;
   }
 
-  public VarComparability elementType() {
+  public VarComparability elementType(/*>>>@GuardSatisfied VarComparabilityNone this*/) {
     return it;
   }
 
-  public VarComparability indexType(int dim) {
+  public VarComparability indexType(/*>>>@GuardSatisfied VarComparabilityNone this,*/ int dim) {
     return it;
   }
 
@@ -44,25 +42,29 @@ public final class VarComparabilityNone
     return it;
   }
 
-  /*@Pure*/ public int hashCode() {
+  /*@Pure*/
+  public int hashCode(/*>>>@GuardSatisfied VarComparabilityNone this*/) {
     return 0;
   }
 
-  public boolean alwaysComparable() {
+  public boolean alwaysComparable(/*>>>@GuardSatisfied VarComparabilityNone this*/) {
     return true;
   }
 
   /**
-   * The best we can do without comparability info is to check if the
-   * representation types in the data trace file are the same.  This
-   * lets us compare integers to longs, but not integers to arrays.
-   **/
-  static /*@Pure*/ boolean comparable(VarComparabilityNone vcomp1,
-                                      VarComparabilityNone vcomp2) {
+   * The best we can do without comparability info is to check if the representation types in the
+   * data trace file are the same. This lets us compare integers to longs, but not integers to
+   * arrays.
+   */
+  /*@Pure*/
+  static boolean comparable(
+      /*@GuardSatisfied*/ VarComparabilityNone vcomp1,
+      /*@GuardSatisfied*/ VarComparabilityNone vcomp2) {
     return true;
   }
 
-  /*@SideEffectFree*/ public String toString() {
-    return ("no-comparability");
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied VarComparabilityNone this*/) {
+    return "no-comparability";
   }
 }

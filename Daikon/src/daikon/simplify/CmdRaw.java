@@ -1,17 +1,15 @@
 package daikon.simplify;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
 /**
- * A Raw command provides no additional structure, allowing arbitrary
- * commands (as long as they have no ouput) to be sent to the
- * prover. It will not block.
- **/
-public class CmdRaw
-  implements Cmd
-{
+ * A Raw command provides no additional structure, allowing arbitrary commands (as long as they have
+ * no output) to be sent to the prover. It will not block.
+ */
+public class CmdRaw implements Cmd {
   public final String cmd;
 
   public CmdRaw(String cmd) {
@@ -20,18 +18,17 @@ public class CmdRaw
   }
 
   /** For documentation, read the class overview. */
-  public void apply(Session s) {
+  public void apply(final /*@GuardedBy("<self>")*/ Session s) {
 
     synchronized (s) {
       // send out the command
       s.sendLine(cmd);
       // there is no output from Simplify
     }
-
   }
 
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied CmdRaw this*/) {
     return "CmdRaw: " + cmd;
   }
-
 }

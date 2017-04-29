@@ -21,6 +21,7 @@ import java.util.*;
 /*>>>
 import org.checkerframework.checker.initialization.qual.*;
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -51,7 +52,7 @@ public final class OneOfScalar
 
   /**
    * Debugging logger.
-   **/
+   */
   public static final Logger debug
     = Logger.getLogger (OneOfScalar.class.getName());
 
@@ -59,13 +60,13 @@ public final class OneOfScalar
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff OneOf invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   /**
    * Positive integer.  Specifies the maximum set size for this type
    * of invariant (x is one of <code>size</code> items).
-   **/
+   */
 
   public static int dkconfig_size = 3;
 
@@ -82,7 +83,7 @@ public final class OneOfScalar
    * this is the same reason they print in the native Daikon format,
    * for instance, as <code>var has only one value</code> rather than
    * <code>var == 150924732</code>.
-   **/
+   */
   public static boolean dkconfig_omit_hashcode_values_Simplify = false;
 
   // Probably needs to keep its own list of the values, and number of each seen.
@@ -109,30 +110,33 @@ public final class OneOfScalar
 
   private static /*@Prototype*/ OneOfScalar proto = new /*@Prototype*/ OneOfScalar ();
 
-  /** Returns the prototype invariant for OneOfScalar **/
+  /** Returns the prototype invariant for OneOfScalar */
   public static /*@Prototype*/ OneOfScalar get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   public OneOfScalar instantiate_dyn (/*>>> @Prototype OneOfScalar this,*/ PptSlice slice) {
     return new OneOfScalar(slice);
   }
 
-  /*@Pure*/ public boolean is_boolean() {
+  /*@Pure*/
+  public boolean is_boolean(/*>>>@GuardSatisfied OneOfScalar this*/) {
      return (var().file_rep_type == ProglangType.BOOLEAN);
   }
-  /*@Pure*/ public boolean is_hashcode() {
+  /*@Pure*/
+  public boolean is_hashcode(/*>>>@GuardSatisfied OneOfScalar this*/) {
     return (var().file_rep_type == ProglangType.HASHCODE);
   }
 
   @SuppressWarnings("interning") // clone method re-does interning
-  /*@SideEffectFree*/ public OneOfScalar clone() {
+  /*@SideEffectFree*/
+  public OneOfScalar clone(/*>>>@GuardSatisfied OneOfScalar this*/) {
     OneOfScalar result = (OneOfScalar) super.clone();
     result.elts = elts.clone();
 
@@ -149,8 +153,9 @@ public final class OneOfScalar
   }
 
   public Object elt(int index) {
-    if (num_elts <= index)
+    if (num_elts <= index) {
       throw new Error("Represents " + num_elts + " elements, index " + index + " not valid");
+    }
 
     // Not sure whether interning is necessary (or just returning an Integer
     // would be sufficient), but just in case...
@@ -159,28 +164,31 @@ public final class OneOfScalar
 
   @SuppressWarnings("interning") // generics bug in (at least interning) checker
 
-  private void sort_rep() {
+  private void sort_rep(/*>>>@GuardSatisfied OneOfScalar this*/) {
     Arrays.sort(elts, 0, num_elts );
   }
 
   public long min_elt() {
-    if (num_elts == 0)
+    if (num_elts == 0) {
       throw new Error("Represents no elements");
+    }
     sort_rep();
     return elts[0];
   }
 
   public long max_elt() {
-    if (num_elts == 0)
+    if (num_elts == 0) {
       throw new Error("Represents no elements");
+    }
     sort_rep();
     return elts[num_elts-1];
   }
 
   // Assumes the other array is already sorted
   public boolean compare_rep(int num_other_elts, long[] other_elts) {
-    if (num_elts != num_other_elts)
+    if (num_elts != num_other_elts) {
       return false;
+    }
     sort_rep();
     for (int i=0; i < num_elts; i++)
       if (! ((elts[i]) == (other_elts[i]))) // elements are interned
@@ -188,15 +196,16 @@ public final class OneOfScalar
     return true;
   }
 
-  private String subarray_rep() {
+  private String subarray_rep(/*>>>@GuardSatisfied OneOfScalar this*/) {
     // Not so efficient an implementation, but simple;
     // and how often will we need to print this anyway?
     sort_rep();
     StringBuffer sb = new StringBuffer();
     sb.append("{ ");
     for (int i=0; i<num_elts; i++) {
-      if (i != 0)
+      if (i != 0) {
         sb.append(", ");
+      }
 
       if (PrintInvariants.dkconfig_static_const_infer) {
         boolean curVarMatch = false;
@@ -214,8 +223,7 @@ public final class OneOfScalar
         if (curVarMatch == false) {
           sb.append(((Integer.MIN_VALUE <= elts[i] && elts[i] <= Integer.MAX_VALUE) ? String.valueOf(elts[i]) : (String.valueOf(elts[i]) + "L")));
         }
-      }
-      else {
+      } else {
         sb.append(((Integer.MIN_VALUE <= elts[i] && elts[i] <= Integer.MAX_VALUE) ? String.valueOf(elts[i]) : (String.valueOf(elts[i]) + "L")));
       }
 
@@ -224,7 +232,7 @@ public final class OneOfScalar
     return sb.toString();
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied OneOfScalar this*/) {
     return "OneOfScalar" + varNames() + ": "
       + "falsified=" + falsified
       + ", num_elts=" + num_elts
@@ -239,10 +247,13 @@ public final class OneOfScalar
     return temp;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied OneOfScalar this,*/ OutputFormat format) {
     sort_rep();
 
-    if (format.isJavaFamily()) return format_java_family(format);
+    if (format.isJavaFamily()) {
+      return format_java_family(format);
+    }
 
     if (format == OutputFormat.DAIKON) {
       return format_daikon();
@@ -258,15 +269,16 @@ public final class OneOfScalar
     }
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied OneOfScalar this*/) {
     String varname = var().name();
     if (num_elts == 1) {
 
         if (is_boolean()) {
-          if ((elts[0] != 0) && (elts[0] != 1))
+          if ((elts[0] != 0) && (elts[0] != 1)) {
               System.out.println ("WARNING:: Variable "
               + varname + " is of type boolean, but has non boolean value: "
               + elts[0]);
+          }
           return varname + " == " + ((elts[0] == 0) ? "false" : "true");
         } else if (is_hashcode()) {
           if (elts[0] == 0) {
@@ -296,7 +308,7 @@ public final class OneOfScalar
     }
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied OneOfScalar this*/) {
     sort_rep();
 
     String varname = var().esc_name();
@@ -340,7 +352,7 @@ public final class OneOfScalar
     return result;
   }
 
-public String format_csharp_contract() {
+public String format_csharp_contract(/*>>>@GuardSatisfied OneOfScalar this*/) {
 
     /*@NonNull @NonRaw @Initialized*/ // UNDONE: don't understand why needed (markro)
     String result;
@@ -356,10 +368,10 @@ public String format_csharp_contract() {
       if (num_elts == 1) {
         if (elts[0] == 0) {
           result = varname + " == null";
-        } else
+        } else {
           result = varname + " != null";
         }
-      else { // num_elts == 2
+      } else { // num_elts == 2
         // I have never observed this case happening.
         // Daikon: does not handle this case
         // ESC: returns unimplemented
@@ -390,7 +402,7 @@ public String format_csharp_contract() {
     return result;
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied OneOfScalar this,*/ OutputFormat format) {
 
     String result;
 
@@ -424,7 +436,7 @@ public String format_csharp_contract() {
     return result;
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied OneOfScalar this*/) {
 
     // if (is_hashcode() && dkconfig_omit_hashcode_values_Simplify)
     //   return "(AND)";
@@ -474,8 +486,9 @@ public String format_csharp_contract() {
       }
     }
 
-    if (result.indexOf("format_simplify") == -1)
+    if (result.indexOf("format_simplify") == -1) {
       daikon.simplify.SimpUtil.assert_well_formed(result);
+    }
     return result;
   }
 
@@ -535,26 +548,26 @@ public String format_csharp_contract() {
       //if (logDetail())
       //  log ("add_modified (" + v + ")");
       if (((elts[i]) == ( v))) {
-        return (InvariantStatus.NO_CHANGE);
+        return InvariantStatus.NO_CHANGE;
       }
     }
 
     if (num_elts == dkconfig_size) {
-      return (InvariantStatus.FALSIFIED);
+      return InvariantStatus.FALSIFIED;
     }
 
     if ((is_boolean() && (num_elts == 1)) || (is_hashcode() && (num_elts == 2))) {
-      return (InvariantStatus.FALSIFIED);
+      return InvariantStatus.FALSIFIED;
     }
 
     if (is_hashcode() && (num_elts == 1)) {
       // Permit two object values only if one of them is null
       if ((elts[0] != 0) && (v != 0)) {
-        return (InvariantStatus.FALSIFIED);
+        return InvariantStatus.FALSIFIED;
       }
     }
 
-    return (InvariantStatus.WEAKENED);
+    return InvariantStatus.WEAKENED;
   }
 
   protected double computeConfidence() {
@@ -592,8 +605,9 @@ public String format_csharp_contract() {
 
     Debug dlog = new Debug (getClass(), ppt, vis);
 
-    if (logOn())
+    if (logOn()) {
       dlog.log ("enter isObviousDynamically");
+    }
 
       // We can use the minvalue and maxvalue custom attributes here: if
       // minimum value and maximum value are the same as the reported
@@ -642,9 +656,10 @@ public String format_csharp_contract() {
       @SuppressWarnings("nullness") // checker bug: flow
       /*@NonNull*/ VarInfo b = v.derived.getBase(0);
       if (!b.isDerived()) {
-        if (logOn())
+        if (logOn()) {
           dlog.log ("isObviousDynamically '" + v.name()
                     + " == 0' ==> '" + b.name() + " == []'");
+        }
         return new DiscardInfo(this, DiscardCode.obvious, "size(array) == 0 is implied by array == []");
       }
     }
@@ -691,15 +706,18 @@ public String format_csharp_contract() {
    * formula at an upper point.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant o) {
     OneOfScalar other = (OneOfScalar) o;
-    if (num_elts != other.num_elts)
+    if (num_elts != other.num_elts) {
       return false;
-    if (num_elts == 0 && other.num_elts == 0)
+    }
+    if (num_elts == 0 && other.num_elts == 0) {
       return true;
+    }
 
     sort_rep();
     other.sort_rep();
@@ -734,19 +752,22 @@ public String format_csharp_contract() {
     }
 
     for (int i=0; i < num_elts; i++) {
-      if (! ((elts[i]) == (other.elts[i])))
+      if (! ((elts[i]) == (other.elts[i]))) {
         return false;
+      }
     }
 
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant o) {
     if (o instanceof OneOfScalar) {
       OneOfScalar other = (OneOfScalar) o;
 
-      if (num_elts == 0 || other.num_elts == 0)
+      if (num_elts == 0 || other.num_elts == 0) {
         return false;
+      }
       for (int i=0; i < num_elts; i++) {
         for (int j=0; j < other.num_elts; j++) {
           if (((elts[i]) == (other.elts[j]))) // elements are interned
@@ -784,10 +805,12 @@ public String format_csharp_contract() {
       elts_min = Math.min(elts_min, elts[i]);
       elts_max = Math.max(elts_max, elts[i]);
     }
-    if ((o instanceof LowerBound) && (elts_max < ((LowerBound)o).min()))
+    if ((o instanceof LowerBound) && (elts_max < ((LowerBound)o).min())) {
       return true;
-    if ((o instanceof UpperBound) && (elts_min > ((UpperBound)o).max()))
+    }
+    if ((o instanceof UpperBound) && (elts_min > ((UpperBound)o).max())) {
       return true;
+    }
 
     return false;
   }
@@ -795,7 +818,8 @@ public String format_csharp_contract() {
   // OneOf invariants that indicate a small set of possible values are
   // uninteresting.  OneOf invariants that indicate exactly one value
   // are interesting.
-  /*@Pure*/ public boolean isInteresting() {
+  /*@Pure*/
+  public boolean isInteresting() {
     if (num_elts() > 1) {
       return false;
     } else {
@@ -806,14 +830,16 @@ public String format_csharp_contract() {
   public boolean hasUninterestingConstant() {
 
     for (int i = 0; i < num_elts; i++) {
-      if (elts[i] < -1 || elts[i] > 2)
+      if (elts[i] < -1 || elts[i] > 2) {
         return true;
+      }
     }
 
     return false;
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return (num_elts == 1);
   }
 
@@ -821,8 +847,9 @@ public String format_csharp_contract() {
   public static /*@Nullable*/ OneOfScalar find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof OneOfScalar)
+      if (inv instanceof OneOfScalar) {
         return (OneOfScalar) inv;
+      }
     }
     return null;
   }
@@ -834,8 +861,9 @@ public String format_csharp_contract() {
     ClassNotFoundException {
     in.defaultReadObject();
 
-    for (int i=0; i < num_elts; i++)
+    for (int i=0; i < num_elts; i++) {
       elts[i] = Intern.intern(elts[i]);
+    }
   }
 
   /**
@@ -843,11 +871,11 @@ public String format_csharp_contract() {
    * a OneOfScalar invariant.  This code finds all of the oneof values
    * from each of the invariants and returns the merged invariant (if any).
    *
-   * @param invs       List of invariants to merge.  The invariants must all be
+   * @param invs       list of invariants to merge.  The invariants must all be
    *                   of the same type and should come from the children of
    *                   parent_ppt.  They should also all be permuted to match
    *                   the variable order in parent_ppt.
-   * @param parent_ppt Slice that will contain the new invariant
+   * @param parent_ppt slice that will contain the new invariant
    */
   @SuppressWarnings("interning") // cloning requires re-interning
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
@@ -872,13 +900,13 @@ public String format_csharp_contract() {
         InvariantStatus status = result.add_mod_elem(val, 1);
         if (status == InvariantStatus.FALSIFIED) {
           result.log ("%s", "child value '" + val + "' destroyed oneof");
-          return (null);
+          return null;
         }
       }
     }
 
     result.log ("Merged '%s' from %s child invariants", result.format(), invs.size());
-    return (result);
+    return result;
   }
 
   /**
@@ -889,8 +917,9 @@ public String format_csharp_contract() {
   public void set_one_of_val (long[] vals) {
 
     num_elts = vals.length;
-    for (int i = 0; i < num_elts; i++)
+    for (int i = 0; i < num_elts; i++) {
       elts[i] = Intern.intern (vals[i]);
+    }
   }
 
   /**
@@ -900,12 +929,14 @@ public String format_csharp_contract() {
    */
   public boolean state_match (Object state) {
 
-    if (num_elts == 0)
-      return (false);
+    if (num_elts == 0) {
+      return false;
+    }
 
-    if (!(state instanceof long[]))
+    if (!(state instanceof long[])) {
       System.out.println ("state is of class '" + state.getClass().getName()
                           + "'");
+    }
     long[] e = (long[]) state;
     for (int i = 0; i < num_elts; i++) {
       boolean match = false;
@@ -915,10 +946,11 @@ public String format_csharp_contract() {
           break;
         }
       }
-      if (!match)
-        return (false);
+      if (!match) {
+        return false;
+      }
     }
-    return (true);
+    return true;
   }
 
   /**
@@ -926,19 +958,21 @@ public String format_csharp_contract() {
    * seen is assigned a small integer in the order they are seen.  These
    * values will be consistent as long as new hashcodes do not appear
    * in the output.  Not a perfect fix for regressions consistency, but
-   * workable
+   * workable.
    */
   private static Map<Long,Long> dummy_hashcode_vals
     = new LinkedHashMap<Long,Long>();
   private static long next_dummy_hashcode = 1001;
 
-  private long get_hashcode_val (long hashcode) {
-    if (!dkconfig_omit_hashcode_values_Simplify)
+  private long get_hashcode_val (/*>>>@GuardSatisfied OneOfScalar this,*/ long hashcode) {
+    if (!dkconfig_omit_hashcode_values_Simplify) {
       return hashcode;
+    }
 
     Long val = dummy_hashcode_vals.get (hashcode);
-    if (val != null)
+    if (val != null) {
       return val;
+    }
     dummy_hashcode_vals.put (hashcode, next_dummy_hashcode);
     return (next_dummy_hashcode++);
   }

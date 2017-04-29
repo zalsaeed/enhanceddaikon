@@ -13,10 +13,10 @@ import org.checkerframework.checker.nullness.qual.*;
 
 /**
  * Factory for SequencesJoin derived variables.
- **/
+ */
 public final class SequencesJoinFactory extends BinaryDerivationFactory {
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug =
     Logger.getLogger("daikon.derive.binary.SequencesJoinFactory");
 
@@ -47,11 +47,13 @@ public final class SequencesJoinFactory extends BinaryDerivationFactory {
 
     if (var1.name().equals(var2.name())) return null;
 
-    if (!var1.is_field() || !var2.is_field())
+    if (!var1.is_field() || !var2.is_field()) {
       return null;
+    }
 
-    if (!var1.has_same_parent (var2))
+    if (!var1.has_same_parent (var2)) {
       return null;
+    }
 
     // Now we finally can derive
 

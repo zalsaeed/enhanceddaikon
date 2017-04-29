@@ -13,6 +13,7 @@ import java.util.*;
 import plume.*;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -26,7 +27,7 @@ import typequals.*;
  * The constants <code>a</code>, <code>b</code>, <code>c</code>, and
  * <code>d</code> are mutually relatively prime, and the constant
  * <code>a</code> is always positive.
- **/
+ */
 
 public class LinearTernaryFloat
   extends ThreeFloat
@@ -40,8 +41,8 @@ public class LinearTernaryFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff LinearTernary invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final boolean debugLinearTernary = false;
   // public static final boolean debugLinearTernary = true;
@@ -61,27 +62,28 @@ public class LinearTernaryFloat
 
   private static /*@Prototype*/ LinearTernaryFloat proto = new /*@Prototype*/ LinearTernaryFloat ();
 
-  /** Returns the prototype invariant for LinearTernaryFloat **/
+  /** Returns the prototype invariant for LinearTernaryFloat */
   public static /*@Prototype*/ LinearTernaryFloat get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** LinearTernary is only valid on non-constant integral types **/
+  /** LinearTernary is only valid on non-constant integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // make sure the variables are integral
     if (!vis[0].file_rep_type.isFloat()
         || !vis[1].file_rep_type.isFloat()
         || !vis[2].file_rep_type.isFloat())
-      return (false);
+      return false;
 
     // Don't create if any of the variables are constant.
     // DynamicConstants will create this from LinearBinary
@@ -90,7 +92,7 @@ public class LinearTernaryFloat
     if (NIS.dkconfig_enabled && (parent.is_constant (vis[0])
                                  || parent.is_constant(vis[1])
                                  || parent.is_constant (vis[2])))
-      return (false);
+      return false;
 
     /*
     // JHP: This code is removed because these sorts of static checks
@@ -249,15 +251,16 @@ public class LinearTernaryFloat
     }
     */
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate the invariant on the specified slice **/
+  /** Instantiate the invariant on the specified slice */
   public LinearTernaryFloat instantiate_dyn (/*>>> @Prototype LinearTernaryFloat this,*/ PptSlice slice) {
     return new LinearTernaryFloat (slice);
   }
 
-  /*@SideEffectFree*/ public LinearTernaryFloat clone() {
+  /*@SideEffectFree*/
+  public LinearTernaryFloat clone(/*>>>@GuardSatisfied LinearTernaryFloat this*/) {
     LinearTernaryFloat result = (LinearTernaryFloat) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -269,13 +272,14 @@ public class LinearTernaryFloat
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LinearTernaryFloat this*/) {
     return "LinearTernaryFloat" + varNames() + ": "
       + "falsified=" + falsified
       + "; " + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied LinearTernaryFloat this,*/ OutputFormat format) {
     return core.format_using (format, var1().name_using (format),
                         var2().name_using(format), var3().name_using(format));
   }
@@ -284,7 +288,8 @@ public class LinearTernaryFloat
   //   return core.format_reversed(var1().name.name(), var2().name.name(), var3().name.name());
   // }
 
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive() {
     return core.isActive();
   }
 
@@ -306,7 +311,7 @@ public class LinearTernaryFloat
     return core.add_modified(x, y, z, count);
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LinearTernaryFloat this*/) {
     return core.enoughSamples();
   }
 
@@ -314,7 +319,8 @@ public class LinearTernaryFloat
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return true;
   }
 
@@ -333,11 +339,13 @@ public class LinearTernaryFloat
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((LinearTernaryFloat) other).core);
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof LinearTernaryFloat) {
       return core.isExclusiveFormula(((LinearTernaryFloat) other).core);
     }
@@ -348,8 +356,9 @@ public class LinearTernaryFloat
   public static /*@Nullable*/ LinearTernaryFloat find(PptSlice ppt) {
     assert ppt.arity() == 3;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof LinearTernaryFloat)
+      if (inv instanceof LinearTernaryFloat) {
         return (LinearTernaryFloat) inv;
+      }
     }
     return null;
   }
@@ -377,9 +386,9 @@ public class LinearTernaryFloat
    * Merge the invariants in invs to form a new invariant.  Each must be
    * a LinearTernaryFloat invariant.  The work is done by the LinearTernary core
    *
-   * @param invs        List of invariants to merge.  They should all be
+   * @param invs        list of invariants to merge.  They should all be
    *                    permuted to match the variable order in parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -392,10 +401,11 @@ public class LinearTernaryFloat
     // Merge the cores and build a new invariant containing the merged core
     LinearTernaryFloat result = new LinearTernaryFloat (parent_ppt);
     LinearTernaryCoreFloat newcore = core.merge (cores, result);
-    if (newcore == null)
-      return (null);
+    if (newcore == null) {
+      return null;
+    }
     result.core = newcore;
-    return (result);
+    return result;
   }
 
 }

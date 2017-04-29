@@ -9,6 +9,7 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
@@ -25,13 +26,13 @@ public final class SequenceStringSubscript
   /**
    * Boolean.  True iff SequenceStringSubscript derived variables should be
    * generated.
-   **/
+   */
   public static boolean dkconfig_enabled = true;
 
   // base1 is the sequence
   // base2 is the scalar
-  public VarInfo seqvar() { return base1; }
-  public VarInfo sclvar() { return base2; }
+  public VarInfo seqvar(/*>>>@GuardSatisfied SequenceStringSubscript this*/) { return base1; }
+  public VarInfo sclvar(/*>>>@GuardSatisfied SequenceStringSubscript this*/) { return base2; }
 
   public VarInfo seq_enclosing_var() {
     VarInfo result = seqvar().enclosing_var;
@@ -47,32 +48,38 @@ public final class SequenceStringSubscript
 
   public SequenceStringSubscript(VarInfo vi1, VarInfo vi2, boolean less1) {
     super(vi1, vi2);
-    if (less1)
+    if (less1) {
       index_shift = -1;
-    else
+    } else {
       index_shift = 0;
+    }
   }
 
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied SequenceStringSubscript this*/) {
     String shift = "";
-    if (index_shift < 0)
+    if (index_shift < 0) {
       shift = "" + index_shift;
-    else if (index_shift > 0)
+    } else if (index_shift > 0) {
       shift = "+" + index_shift;
+    }
     return (UtilMDE.replaceString (seqvar().name(), "[]", "")
              + "[" + sclvar().name() + shift + "]");
   }
 
   public ValueAndModified computeValueAndModifiedImpl (ValueTuple full_vt) {
     int mod1 = base1.getModified(full_vt);
-    if (mod1 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod1 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     int mod2 = base2.getModified(full_vt);
-    if (mod2 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod2 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     Object val1 = base1.getValue(full_vt);
-    if (val1 == null)
+    if (val1 == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     /*@Interned*/ String[] val1_array = (/*@Interned*/ String[]) val1;
     int val2 = base2.getIndexValue(full_vt) + index_shift;
     if ((val2 < 0) || (val2 >= val1_array.length)) {
@@ -94,71 +101,76 @@ public final class SequenceStringSubscript
     return VarInfo.make_subscript (seqvar(), sclvar(), index_shift);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     return (other instanceof SequenceStringSubscript)
       && (((SequenceStringSubscript) other).index_shift == this.index_shift);
   }
 
-  /** Returns the ESC name for sequence subscript **/
+  /** Returns the ESC name for sequence subscript */
   @SuppressWarnings("nullness")
-  /*@SideEffectFree*/ public String esc_name(String index) {
-    if (seqvar().isPrestate())
+  /*@SideEffectFree*/
+  public String esc_name(String index) {
+    if (seqvar().isPrestate()) {
       return String.format ("\\old(%s[%s])",
                             seqvar().enclosing_var.postState.esc_name(),
                             inside_esc_name (sclvar(), true, index_shift));
-    else
+    } else {
       return String.format ("%s[%s%s]", seqvar().enclosing_var.esc_name(),
                             sclvar().esc_name(), shift_str(index_shift));
+    }
 
   }
 
-  /** Returns the JML name for sequence subscript **/
+  /** Returns the JML name for sequence subscript */
   @SuppressWarnings("nullness")
   public String jml_name (String index) {
     String get_element = "daikon.Quant.getElement_String";
-    if (seqvar().file_rep_type.baseIsHashcode())
+    if (seqvar().file_rep_type.baseIsHashcode()) {
       get_element = "daikon.Quant.getElement_Object";
-    else if (seqvar().file_rep_type.baseIsBoolean())
+    } else if (seqvar().file_rep_type.baseIsBoolean()) {
       get_element = "daikon.Quant.getElement_boolean";
-    if (seqvar().isPrestate())
+    }
+    if (seqvar().isPrestate()) {
       return String.format ("\\old(%s(%s, %s))", get_element,
                             seqvar().enclosing_var.postState.jml_name(),
                             inside_jml_name (sclvar(), true, index_shift));
-    else
+    } else {
       return String.format ("%s(%s, %s%s)", get_element,
                             seqvar().enclosing_var.jml_name(),
                             sclvar().jml_name(), shift_str (index_shift));
+    }
   }
 
-  /** Returns the CSHARPCONTRACT name for sequence subscript **/
+  /** Returns the CSHARPCONTRACT name for sequence subscript */
   @SuppressWarnings("nullness")
-  /*@SideEffectFree*/ public String csharp_name (String index) {
+  /*@SideEffectFree*/
+  public String csharp_name (String index) {
     String[] split = seqvar().csharp_array_split();
-    if (seqvar().isPrestate())
-    {
+    if (seqvar().isPrestate()) {
       return String.format ("Contract.OldValue(%s[%s]%s)", seqvar().enclosing_var.postState.csharp_name(), inside_csharp_name (sclvar(), true, index_shift), split[1]);
-    }
-    else
-    {
+    } else {
       return String.format ("%s[%s%s]%s", split[0], sclvar().csharp_name(), shift_str (index_shift), split[1]);
     }
   }
 
-  /** Return the simplify name for sequence subscript **/
+  /** Return the simplify name for sequence subscript */
   @SuppressWarnings("nullness")
-  /*@SideEffectFree*/ public String simplify_name() {
+  /*@SideEffectFree*/
+  public String simplify_name() {
     String subscript = sclvar().simplify_name();
-    if (index_shift < 0)
+    if (index_shift < 0) {
       subscript = String.format ("(- %s %d)", subscript, -index_shift);
-    else if (index_shift > 0)
+    } else if (index_shift > 0) {
       subscript = String.format ("(+ %s %d)", subscript, index_shift);
+    }
 
     return String.format ("(select (select elems %s) %s)",
                           seqvar().enclosing_var.simplify_name(),
                           subscript);
   }
 
-  /** Adds one to the default complexity if index_shift is not 0 **/
+  /** Adds one to the default complexity if index_shift is not 0 */
   public int complexity() {
     return super.complexity() + ((index_shift != 0) ? 1 : 0);
   }

@@ -20,6 +20,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -27,7 +28,8 @@ import typequals.*;
 
 /**
  * Represents an invariant of == between two String scalars.
- **/
+ * Prints as <code>x == y</code>.
+ */
 public final class StringEqual
   extends TwoString {
 
@@ -40,8 +42,8 @@ public final class StringEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff StringEqual invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.twoScalar.StringEqual");
@@ -56,34 +58,36 @@ public final class StringEqual
 
   private static /*@Prototype*/ StringEqual proto = new /*@Prototype*/ StringEqual ();
 
-  /** Returns the prototype invariant for StringEqual **/
+  /** Returns the prototype invariant for StringEqual */
   public static /*@Prototype*/ StringEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Returns whether or not the specified var types are valid for StringEqual **/
+  /** Returns whether or not the specified var types are valid for StringEqual */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
         boolean result = (! (vis[0].has_typeof() ^ vis[0].has_typeof()));
         return result;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected StringEqual instantiate_dyn (/*>>> @Prototype StringEqual this,*/ PptSlice slice) {
 
     return new StringEqual (slice);
   }
 
-  /*@Pure*/ public boolean is_equality_inv() {
-    return (true);
+  /*@Pure*/
+  public boolean is_equality_inv() {
+    return true;
   }
 
   protected Invariant resurrect_done_swapped() {
@@ -92,8 +96,9 @@ public final class StringEqual
       return this;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
-    return (true);
+  /*@Pure*/
+  public boolean is_symmetric() {
+    return true;
   }
 
   // JHP: this should be removed in favor of checks in PptTopLevel
@@ -103,25 +108,27 @@ public final class StringEqual
   public static /*@Nullable*/ StringEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof StringEqual)
+      if (inv instanceof StringEqual) {
         return (StringEqual) inv;
+      }
     }
 
     // If the invariant is suppressed, create it
     if ((suppressions != null) && suppressions.suppressed (ppt)) {
       StringEqual inv = proto.instantiate_dyn (ppt);
       // System.out.printf ("%s is suppressed in ppt %s%n", inv.format(), ppt.name());
-      return (inv);
+      return inv;
     }
 
     return null;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied StringEqual this*/) {
     return "StringEqual" + varNames();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied StringEqual this,*/ OutputFormat format) {
 
     String var1name = var1().name_using(format);
     String var2name = var2().name_using(format);
@@ -174,9 +181,10 @@ public final class StringEqual
   }
 
   public InvariantStatus add_modified(/*@Interned*/ String v1, /*@Interned*/ String v2, int count) {
-    if (logDetail() || debug.isLoggable(Level.FINE))
+    if (logDetail() || debug.isLoggable(Level.FINE)) {
       log (debug, "add_modified (" + v1 + ", " + v2 + ",  "
            + "ppt.num_values = " + ppt.num_values() + ")");
+    }
     if ((logOn() || debug.isLoggable(Level.FINE)) &&
         check_modified(v1, v2, count) == InvariantStatus.FALSIFIED)
       log (debug, "destroy in add_modified (" + v1 + ", " + v2 + ",  "
@@ -207,19 +215,21 @@ public final class StringEqual
 
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied StringEqual this*/) {
     return (ppt.num_samples() > 0);
   }
 
   // For Comparison interface
   public double eq_confidence() {
-    if (isExact())
+    if (isExact()) {
       return getConfidence();
-    else
+    } else {
       return Invariant.CONFIDENCE_NEVER;
+    }
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return true;
   }
@@ -244,11 +254,13 @@ public final class StringEqual
     return super.add(v1, v2, mod_index, count);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     // Also ought to check against LinearBinary, etc.
 
@@ -294,7 +306,7 @@ public final class StringEqual
    *  relations.  We only check if this.ppt.var_infos imply
    *  obviousness rather than the cartesian product on the equality
    *  set.
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousStatically_SomeInEquality() {
     if (var1().equalitySet == var2().equalitySet) {
@@ -310,7 +322,7 @@ public final class StringEqual
    *  relations.  We only check if this.ppt.var_infos imply
    *  obviousness rather than the cartesian product on the equality
    *  set.
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically_SomeInEquality() {
     if (var1().equalitySet == var2().equalitySet) {
@@ -337,8 +349,9 @@ public final class StringEqual
 
       // Check for size(A[]) == Size(B[]) where A[] == B[]
       di = array_eq_implies (vis);
-      if (di != null)
-        return (di);
+      if (di != null) {
+        return di;
+      }
 
     return null;
   } // isObviousDynamically
@@ -353,31 +366,35 @@ public final class StringEqual
 
     // Make sure v1 and v2 are size(array) with the same shift
     VarInfo v1 = vis[0];
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceLength))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceLength)) {
+      return null;
+    }
     VarInfo v2 = vis[1];
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceLength))
-      return (null);
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceLength)) {
+      return null;
+    }
     assert v1.derived != null : "@AssumeAssertion(nullness): checker bug: flow";
     assert v2.derived != null : "@AssumeAssertion(nullness): checker bug: flow";
-    if (!v1.derived.isSameFormula (v2.derived))
-      return (null);
+    if (!v1.derived.isSameFormula (v2.derived)) {
+      return null;
+    }
 
     VarInfo seqvar1 = v1.derived.getBase(0);
     VarInfo seqvar2 = v2.derived.getBase(0);
-    if (ppt.parent.is_equal (seqvar1, seqvar2))
+    if (ppt.parent.is_equal (seqvar1, seqvar2)) {
       return new DiscardInfo (this, DiscardCode.obvious, "Implied by " +
                               seqvar1 + " == " + seqvar2 + " and "
                               + var1() + " == " + v1 + " and "
                               + var2() + " == " + v2);
+    }
 
-    return (null);
+    return null;
   }
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** Returns the non-instantiating suppressions for this invariant. **/
+  /** Returns the non-instantiating suppressions for this invariant. */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
     return null;

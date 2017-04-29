@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -23,14 +24,14 @@ import typequals.*;
  * Represents an invariant over sequences of long values between the
  * index of an element of the sequence and the element itself.
  * Prints as <code>x[i] != i</code>.
- **/
+ */
 public class SeqIndexIntNonEqual extends SingleScalarSequence {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20040203L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug
     = Logger.getLogger ("daikon.inv.unary.sequence.SeqIndexIntNonEqual");
 
@@ -38,7 +39,7 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SeqIndexIntNonEqual invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   private /*@Prototype*/ SeqIndexIntNonEqual () {
@@ -53,26 +54,28 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
 
   private static /*@Prototype*/ SeqIndexIntNonEqual proto = new /*@Prototype*/ SeqIndexIntNonEqual ();
 
-  /** Returns the prototype invariant for SeqIndexIntNonEqual **/
+  /** Returns the prototype invariant for SeqIndexIntNonEqual */
   public static /*@Prototype*/ SeqIndexIntNonEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not we are enabled **/
+  /** returns whether or not we are enabled */
   public boolean enabled() {
     return (dkconfig_enabled && !dkconfig_SeqIndexDisableAll);
   }
 
-  /** Check that SeqIndex comparisons make sense over these vars **/
+  /** Check that SeqIndex comparisons make sense over these vars */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // Don't compare indices to object addresses.
     ProglangType elt_type = vis[0].file_rep_type.elementType();
-    if (!elt_type.baseIsIntegral())
-      return (false);
+    if (!elt_type.baseIsIntegral()) {
+      return false;
+    }
 
     // Make sure that the indices are comparable to the elements
     VarInfo seqvar = vis[0];
@@ -80,18 +83,18 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
     VarComparability elt_compar = seqvar.comparability.elementType();
     VarComparability index_compar = seqvar.comparability.indexType(0);
     if (! VarComparability.comparable (elt_compar, index_compar)) {
-      return (false);
+      return false;
     }
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate the invariant on the specified slice **/
+  /** Instantiate the invariant on the specified slice */
   public SeqIndexIntNonEqual instantiate_dyn (/*>>> @Prototype SeqIndexIntNonEqual this,*/ PptSlice slice) {
     return new SeqIndexIntNonEqual (slice);
   }
 
-  /** returns the ni-suppressions for SeqIndexIntNonEqual **/
+  /** returns the ni-suppressions for SeqIndexIntNonEqual */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
     return null;
@@ -106,7 +109,8 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
     return "!=";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SeqIndexIntNonEqual this,*/ OutputFormat format) {
     if (format.isJavaFamily()) return format_java_family(format);
 
     // TODO: Eliminate the unnecessary format_xxx() below if the
@@ -120,7 +124,7 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied SeqIndexIntNonEqual this*/) {
 
     // If this is an array/container and not a subsequence
     if (var().isDerivedSubSequenceOf() == null) {
@@ -131,22 +135,22 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
   }
 
   // Bad code here: if the first index is changed from i this breaks
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied SeqIndexIntNonEqual this*/) {
     String[] form = VarInfo.esc_quantify (var());
     return form[0] + "(" + form[1] + " != i)" + form[2];
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied SeqIndexIntNonEqual this*/) {
     String[] split = var().csharp_array_split();
     return "Contract.ForAll(0, " + split[0] + ".Count(), i => " + split[0] + "[i]" + split[1] + " != i)";
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied SeqIndexIntNonEqual this,*/ OutputFormat format) {
     return "daikon.Quant.eltsNotEqualIndex("
       + var().name_using(format) + ")";
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied SeqIndexIntNonEqual this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.include_index(),
                                                var());
     return form[0] + "(NEQ " + form[1] + " " + form[2] + ")"
@@ -155,20 +159,23 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
 
   public InvariantStatus check_modified(long /*@Interned*/ [] a, int count) {
     for (int i=0; i<a.length; i++) {
-      if (!(a[i] != i))
+      if (!(a[i] != i)) {
         return InvariantStatus.FALSIFIED;
+      }
     }
     return InvariantStatus.NO_CHANGE;
   }
 
   public InvariantStatus add_modified(long /*@Interned*/ [] a, int count) {
 
-    if (logDetail())
+    if (logDetail()) {
       log ("Entered add_modified: ppt.num_values()==%s, sample==%s",
            ppt.num_values(), ArraysMDE.toString(a));
+    }
     InvariantStatus stat = check_modified (a, count);
-    if (logDetail())
+    if (logDetail()) {
       log ("Exiting add_modified status = %s", stat);
+    }
 
     return stat;
   }
@@ -177,21 +184,24 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
 
     // Make sure there have been some elements in the sequence
     ValueSet.ValueSetScalarArray vs = (ValueSet.ValueSetScalarArray) ppt.var_infos[0].get_value_set();
-    if (vs.elem_cnt() == 0)
+    if (vs.elem_cnt() == 0) {
       return Invariant.CONFIDENCE_UNJUSTIFIED;
+    }
 
     int num_values = ppt.num_values();
-    if (num_values == 0)
+    if (num_values == 0) {
       return Invariant.CONFIDENCE_UNJUSTIFIED;
+    }
 
       int max_indx = vs.max_length() - 1;
-      if ((vs.min() > max_indx) || (vs.max() < 0))
+      if ((vs.min() > max_indx) || (vs.max() < 0)) {
         return Invariant.CONFIDENCE_UNJUSTIFIED;
-      else {
+      } else {
         long overlap = (Math.min (vs.max(), max_indx) - Math.max (vs.min(), 0));
 
-        if (overlap < 0)
+        if (overlap < 0) {
           return Invariant.CONFIDENCE_UNJUSTIFIED;
+        }
         overlap++;
         double range1 = (double)max_indx + 1;
         double range2 = (double)(vs.max()) - vs.min() + 1;
@@ -217,11 +227,13 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
 
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -229,8 +241,9 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
   public static /*@Nullable*/ SeqIndexIntNonEqual find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SeqIndexIntNonEqual)
+      if (inv instanceof SeqIndexIntNonEqual) {
         return (SeqIndexIntNonEqual) inv;
+      }
     }
     return null;
   }
@@ -265,8 +278,9 @@ public class SeqIndexIntNonEqual extends SingleScalarSequence {
     PptTopLevel pptt = ppt.parent;
     for (int i=0; i<pptt.var_infos.length; i++) {
       VarInfo vi = pptt.var_infos[i];
-      if (vi.equalitySet == seqvar.equalitySet)
+      if (vi.equalitySet == seqvar.equalitySet) {
         continue;
+      }
       if (SubSequence.isObviousSubSequenceDynamically(this, seqvar, vi)) {
         PptSlice1 other_slice = pptt.findSlice(vi);
         if (other_slice != null) {

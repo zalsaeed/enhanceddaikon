@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -23,7 +24,7 @@ import typequals.*;
  * other.
  * Prints as either <code>x[] is a subset of y[]</code> or as
  * <code>x[] is a superset of y[]</code>.
- **/
+ */
 public class SuperSet
   extends TwoSequence
 {
@@ -39,7 +40,7 @@ public class SuperSet
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SubSet invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   protected SuperSet(PptSlice ppt) {
@@ -52,25 +53,26 @@ public class SuperSet
 
   private static /*@Prototype*/ SuperSet proto = new /*@Prototype*/ SuperSet ();
 
-  /** Returns the prototype invariant for SuperSet **/
+  /** Returns the prototype invariant for SuperSet */
   public static /*@Prototype*/ SuperSet get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-    return (true);
+    return true;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   public SuperSet instantiate_dyn (/*>>> @Prototype SuperSet this,*/ PptSlice slice) {
     return new SuperSet (slice);
   }
@@ -79,12 +81,13 @@ public class SuperSet
     return new SubSet(ppt);
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied SuperSet this*/) {
     return "SuperSet" + varNames() + ": "
       + ",falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SuperSet this,*/ OutputFormat format) {
     if (format == OutputFormat.DAIKON) return format();
     if (format == OutputFormat.ESCJAVA) return format_esc();
     if (format == OutputFormat.SIMPLIFY) return format_simplify();
@@ -96,33 +99,35 @@ public class SuperSet
     return format_unimplemented(format);
   }
 
-  /*@SideEffectFree*/ public String format() {
+  /*@SideEffectFree*/
+  public String format(/*>>>@GuardSatisfied SuperSet this*/) {
     String v1 = var1().name();
     String v2 = var2().name();
 
     return v1 + " is a superset of " + v2;
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied SuperSet this*/) {
     String v1 = var1().csharp_collection_string();
     String v2 = var2().csharp_collection_string();
 
     return "Contract.ForAll(" + v2 + ", i => " + v1 + ".Contains(i))";
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied SuperSet this*/) {
     String classname = this.getClass().toString().substring(6); // remove leading "class"
     return "warning: method " + classname + ".format_esc() needs to be implemented: " + format();
   }
 
-  public String format_simplify() {
-    if (Invariant.dkconfig_simplify_define_predicates)
+  public String format_simplify(/*>>>@GuardSatisfied SuperSet this*/) {
+    if (Invariant.dkconfig_simplify_define_predicates) {
       return format_simplify_defined();
-    else
+    } else {
       return format_simplify_explicit();
+    }
   }
 
-  private String format_simplify_defined() {
+  private String format_simplify_defined(/*>>>@GuardSatisfied SuperSet this*/) {
 
     VarInfo subvar = var2();
     VarInfo supervar = var1();
@@ -131,8 +136,9 @@ public class SuperSet
     String[] super_name = supervar.simplifyNameAndBounds();
 
     if (sub_name == null || super_name == null) {
-      return "format_simplify can't handle one of these sequences: "
-        + format();
+      return String.format("%s.format_simplify_defined(%s): sub_name=%s, super_name=%s, for %s",
+                           getClass().getSimpleName(), this,
+                           Arrays.toString(sub_name), Arrays.toString(super_name), format());
     }
 
     return "(subset " +
@@ -140,7 +146,7 @@ public class SuperSet
       super_name[0] + " " + super_name[1] + " " + super_name[2] + ")";
   }
 
-  private String format_simplify_explicit() {
+  private String format_simplify_explicit(/*>>>@GuardSatisfied SuperSet this*/) {
 
     VarInfo subvar = var2();
     VarInfo supervar = var1();
@@ -149,8 +155,9 @@ public class SuperSet
     String[] super_name = supervar.simplifyNameAndBounds();
 
     if (sub_name == null || super_name == null) {
-      return "format_simplify can't handle one of these sequences: "
-        + format();
+      return String.format("%s.format_simplify_explicit(%s): sub_name=%s, super_name=%s, for %s",
+                           getClass().getSimpleName(), this,
+                           Arrays.toString(sub_name), Arrays.toString(super_name), format());
     }
 
     String indices[] = VarInfo.get_simplify_free_indices (subvar, supervar);
@@ -174,7 +181,7 @@ public class SuperSet
 
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied SuperSet this,*/ OutputFormat format) {
 
     String v1 = var1().name_using(format);
     String v2 = var2().name_using(format);
@@ -184,11 +191,13 @@ public class SuperSet
 
   public InvariantStatus check_modified(long[] a1, long[] a2, int count) {
 
-    if (!ArraysMDE.isSubset(a2, a1))
-    {
+    if (!ArraysMDE.isSubset(a2, a1)) {
+
       return InvariantStatus.FALSIFIED;
+    } else {
+      return InvariantStatus.NO_CHANGE;
     }
-    return InvariantStatus.NO_CHANGE;
+
   }
 
   public InvariantStatus add_modified(long[] a1, long[] a2, int count) {
@@ -256,21 +265,23 @@ public class SuperSet
   public static /*@Nullable*/ SuperSet find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SuperSet)
+      if (inv instanceof SuperSet) {
         return (SuperSet) inv;
+      }
     }
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof SuperSet;
     return true;
   }
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** returns the ni-suppressions for SuperSet **/
+  /** returns the ni-suppressions for SuperSet */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
     if (suppressions == null) {
@@ -290,7 +301,7 @@ public class SuperSet
         });
     }
 
-    return (suppressions);
+    return suppressions;
   }
 
 }

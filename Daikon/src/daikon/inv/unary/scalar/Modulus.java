@@ -1,26 +1,23 @@
 package daikon.inv.unary.scalar;
 
 import daikon.*;
-import daikon.inv.*;
 import daikon.derive.unary.SequenceLength;
+import daikon.inv.*;
 import plume.*;
-import java.util.Iterator;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
 */
 
 /**
- * Represents the invariant <code>x == r (mod m)</code> where <code>x</code>
- * is a long scalar variable, <code>r</code> is the (constant) remainder,
- * and <code>m</code> is the (constant) modulus.
- **/
-
-public class Modulus
-  extends SingleScalar
-{
+ * Represents the invariant <code>x == r (mod m)</code> where <code>x</code> is a long scalar
+ * variable, <code>r</code> is the (constant) remainder, and <code>m</code> is the (constant)
+ * modulus.
+ */
+public class Modulus extends SingleScalar {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
@@ -28,9 +25,7 @@ public class Modulus
 
   // Variables starting with dkconfig_ should only be set via the
   // daikon.config.Configuration interface.
-  /**
-   * Boolean.  True iff Modulus invariants should be considered.
-   **/
+  /** Boolean. True iff Modulus invariants should be considered. */
   public static boolean dkconfig_enabled = false;
 
   long modulus = 0;
@@ -51,38 +46,37 @@ public class Modulus
     super();
   }
 
-  private static /*@Prototype*/ Modulus proto = new /*@Prototype*/ Modulus ();
+  private static /*@Prototype*/ Modulus proto = new /*@Prototype*/ Modulus();
 
-  /** Returns the prototype invariant for Modulus **/
+  /** Returns the prototype invariant for Modulus */
   public static /*@Prototype*/ Modulus get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Modulus is only valid on integral types **/
-  public boolean instantiate_ok (VarInfo[] vis) {
+  /** Modulus is only valid on integral types */
+  public boolean instantiate_ok(VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types(vis)) return false;
 
     return (vis[0].file_rep_type.baseIsIntegral());
   }
 
-  /** Instantiate an invariant on the specified slice **/
-  protected Modulus instantiate_dyn (/*>>> @Prototype Modulus this,*/ PptSlice slice) {
-    return new Modulus (slice);
+  /** Instantiate an invariant on the specified slice */
+  protected Modulus instantiate_dyn(/*>>> @Prototype Modulus this,*/ PptSlice slice) {
+    return new Modulus(slice);
   }
 
-  public String repr() {
-    return "Modulus" + varNames() + ": "
-      + "modulus=" + modulus + ",remainder=" + remainder;
+  public String repr(/*>>>@GuardSatisfied Modulus this*/) {
+    return "Modulus" + varNames() + ": " + "modulus=" + modulus + ",remainder=" + remainder;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied Modulus this,*/ OutputFormat format) {
     String name = var().name_using(format);
 
     if (format == OutputFormat.DAIKON) {
@@ -109,9 +103,13 @@ public class Modulus
 
     if (format == OutputFormat.SIMPLIFY) {
       if (modulus > 0) {
-        return "(EQ (MOD " + var().simplify_name() + " "
-          + simplify_format_long(modulus) + ") "
-          + simplify_format_long(remainder) + ")";
+        return "(EQ (MOD "
+            + var().simplify_name()
+            + " "
+            + simplify_format_long(modulus)
+            + ") "
+            + simplify_format_long(remainder)
+            + ")";
       } else {
         return format_too_few_samples(format, null);
       }
@@ -139,8 +137,7 @@ public class Modulus
     } else {
       long new_modulus_long = Math.abs(MathMDE.gcd(modulus, value1 - value));
       int new_modulus;
-      if (new_modulus_long > Integer.MAX_VALUE
-          || (new_modulus_long < Integer.MIN_VALUE)) {
+      if (new_modulus_long > Integer.MAX_VALUE || (new_modulus_long < Integer.MIN_VALUE)) {
         new_modulus = 1;
       } else {
         new_modulus = (int) new_modulus_long;
@@ -183,8 +180,7 @@ public class Modulus
     } else {
       long new_modulus_long = Math.abs(MathMDE.gcd(modulus, value1 - value));
       int new_modulus;
-      if (new_modulus_long > Integer.MAX_VALUE
-          || (new_modulus_long < Integer.MIN_VALUE)) {
+      if (new_modulus_long > Integer.MAX_VALUE || (new_modulus_long < Integer.MIN_VALUE)) {
         new_modulus = 1;
       } else {
         new_modulus = (int) new_modulus_long;
@@ -205,47 +201,47 @@ public class Modulus
 
   //  public InvariantStatus check_modified(long value, int count) {}
 
-
   protected double computeConfidence() {
-    if (modulus == 1)
+    if (modulus == 1) {
       return Invariant.CONFIDENCE_NEVER;
+    }
     if (modulus == 0) {
       return Invariant.CONFIDENCE_UNJUSTIFIED;
     }
-    double probability_one_elt_modulus = 1 - 1.0/modulus;
+    double probability_one_elt_modulus = 1 - 1.0 / modulus;
     // return 1 - Math.pow(probability_one_elt_modulus, ppt.num_mod_samples());
     return 1 - Math.pow(probability_one_elt_modulus, ppt.num_samples());
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     Modulus otherModulus = (Modulus) other;
 
     boolean thisMeaningless = (modulus == 0 || modulus == 1);
-    boolean otherMeaningless = (otherModulus.modulus == 0 ||
-                                otherModulus.modulus == 1);
+    boolean otherMeaningless = (otherModulus.modulus == 0 || otherModulus.modulus == 1);
 
     if (thisMeaningless && otherMeaningless) {
       return true;
     } else {
-      return
-        (modulus != 1) &&
-        (modulus != 0) &&
-        (modulus == otherModulus.modulus) &&
-        (remainder == otherModulus.remainder);
+      return (modulus != 1)
+          && (modulus != 0)
+          && (modulus == otherModulus.modulus)
+          && (remainder == otherModulus.remainder);
     }
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
-    if ((modulus == 0) || (modulus == 1))
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
+    if ((modulus == 0) || (modulus == 1)) {
       return false;
+    }
 
     // Weak test, can be strengthened.
     //  * x = 1 mod 4  is exclusive with  x = 6 mod 8
     //  * x = 1 mod 4  is exclusive with  x = 0 mod 2
     //  * x = 0 mod 4  is exclusive with  1 <= x <= 3
     if (other instanceof Modulus) {
-      return ((modulus == ((Modulus) other).modulus)
-              && (remainder != ((Modulus) other).remainder));
+      return ((modulus == ((Modulus) other).modulus) && (remainder != ((Modulus) other).remainder));
     } else if (other instanceof NonModulus) {
       return ((NonModulus) other).hasModulusRemainder(modulus, remainder);
     }
@@ -257,19 +253,20 @@ public class Modulus
   public static /*@Nullable*/ Modulus find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof Modulus)
+      if (inv instanceof Modulus) {
         return (Modulus) inv;
+      }
     }
     return null;
   }
 
   /**
-   * Checks to see if this is obvious over the specified variables.
-   * Implements the following checks:
+   * Checks to see if this is obvious over the specified variables. Implements the following checks:
+   *
    * <pre>
    *    size(x[]) = r (mod m) &rArr; size(x[])-1 = (r-1) (mod m)
    * </pre>
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically(VarInfo[] vis) {
 
@@ -277,14 +274,17 @@ public class Modulus
     // invariant over x.  JHP: This should really find the invariant rather
     // than presuming it is true.
     VarInfo x = vis[0];
-    if ((x.derived instanceof SequenceLength)
-         && (((SequenceLength) x.derived).shift != 0)) {
-      return (new DiscardInfo (this, DiscardCode.obvious, "The invariant "
-                          + format()  + " is implied by a mod invariant "
-                          + "over " + x.name() + " without the offset"));
-
+    if ((x.derived instanceof SequenceLength) && (((SequenceLength) x.derived).shift != 0)) {
+      return (new DiscardInfo(
+          this,
+          DiscardCode.obvious,
+          "The invariant "
+              + format()
+              + " is implied by a mod invariant "
+              + "over "
+              + x.name()
+              + " without the offset"));
     }
-    return (null);
+    return null;
   }
-
 }

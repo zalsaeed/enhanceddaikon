@@ -13,6 +13,7 @@ import java.util.*;
 import plume.*;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -26,7 +27,7 @@ import typequals.*;
  * The constants <code>a</code>, <code>b</code>, <code>c</code>, and
  * <code>d</code> are mutually relatively prime, and the constant
  * <code>a</code> is always positive.
- **/
+ */
 
 public class LinearTernary
   extends ThreeScalar
@@ -40,8 +41,8 @@ public class LinearTernary
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff LinearTernary invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final boolean debugLinearTernary = false;
   // public static final boolean debugLinearTernary = true;
@@ -61,27 +62,28 @@ public class LinearTernary
 
   private static /*@Prototype*/ LinearTernary proto = new /*@Prototype*/ LinearTernary ();
 
-  /** Returns the prototype invariant for LinearTernary **/
+  /** Returns the prototype invariant for LinearTernary */
   public static /*@Prototype*/ LinearTernary get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** LinearTernary is only valid on non-constant integral types **/
+  /** LinearTernary is only valid on non-constant integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // make sure the variables are integral
     if (!vis[0].file_rep_type.isIntegral()
         || !vis[1].file_rep_type.isIntegral()
         || !vis[2].file_rep_type.isIntegral())
-      return (false);
+      return false;
 
     // Don't create if any of the variables are constant.
     // DynamicConstants will create this from LinearBinary
@@ -90,7 +92,7 @@ public class LinearTernary
     if (NIS.dkconfig_enabled && (parent.is_constant (vis[0])
                                  || parent.is_constant(vis[1])
                                  || parent.is_constant (vis[2])))
-      return (false);
+      return false;
 
     /*
     // JHP: This code is removed because these sorts of static checks
@@ -249,15 +251,16 @@ public class LinearTernary
     }
     */
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate the invariant on the specified slice **/
+  /** Instantiate the invariant on the specified slice */
   public LinearTernary instantiate_dyn (/*>>> @Prototype LinearTernary this,*/ PptSlice slice) {
     return new LinearTernary (slice);
   }
 
-  /*@SideEffectFree*/ public LinearTernary clone() {
+  /*@SideEffectFree*/
+  public LinearTernary clone(/*>>>@GuardSatisfied LinearTernary this*/) {
     LinearTernary result = (LinearTernary) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -269,13 +272,14 @@ public class LinearTernary
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LinearTernary this*/) {
     return "LinearTernary" + varNames() + ": "
       + "falsified=" + falsified
       + "; " + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied LinearTernary this,*/ OutputFormat format) {
     return core.format_using (format, var1().name_using (format),
                         var2().name_using(format), var3().name_using(format));
   }
@@ -284,7 +288,8 @@ public class LinearTernary
   //   return core.format_reversed(var1().name.name(), var2().name.name(), var3().name.name());
   // }
 
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive() {
     return core.isActive();
   }
 
@@ -306,7 +311,7 @@ public class LinearTernary
     return core.add_modified(x, y, z, count);
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LinearTernary this*/) {
     return core.enoughSamples();
   }
 
@@ -314,7 +319,8 @@ public class LinearTernary
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return true;
   }
 
@@ -333,11 +339,13 @@ public class LinearTernary
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((LinearTernary) other).core);
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof LinearTernary) {
       return core.isExclusiveFormula(((LinearTernary) other).core);
     }
@@ -348,8 +356,9 @@ public class LinearTernary
   public static /*@Nullable*/ LinearTernary find(PptSlice ppt) {
     assert ppt.arity() == 3;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof LinearTernary)
+      if (inv instanceof LinearTernary) {
         return (LinearTernary) inv;
+      }
     }
     return null;
   }
@@ -377,9 +386,9 @@ public class LinearTernary
    * Merge the invariants in invs to form a new invariant.  Each must be
    * a LinearTernary invariant.  The work is done by the LinearTernary core
    *
-   * @param invs        List of invariants to merge.  They should all be
+   * @param invs        list of invariants to merge.  They should all be
    *                    permuted to match the variable order in parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -392,10 +401,11 @@ public class LinearTernary
     // Merge the cores and build a new invariant containing the merged core
     LinearTernary result = new LinearTernary (parent_ppt);
     LinearTernaryCore newcore = core.merge (cores, result);
-    if (newcore == null)
-      return (null);
+    if (newcore == null) {
+      return null;
+    }
     result.core = newcore;
-    return (result);
+    return result;
   }
 
 }

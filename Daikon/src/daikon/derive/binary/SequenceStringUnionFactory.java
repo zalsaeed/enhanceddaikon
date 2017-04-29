@@ -25,12 +25,14 @@ public final class SequenceStringUnionFactory extends BinaryDerivationFactory {
     }
 
     // Intersect only sets with the same declared element type
-    if (!seq1.type.base().equals(seq2.type.base()))
+    if (!seq1.type.base().equals(seq2.type.base())) {
       return null;
+    }
 
     // For now, do nothing if the sequences are derived.
-    if ((seq1.derived != null) || (seq2.derived != null))
+    if ((seq1.derived != null) || (seq2.derived != null)) {
       return null;
+    }
 
     return new BinaryDerivation[] {
       new SequenceStringUnion(seq1, seq2) };

@@ -3,20 +3,35 @@
 
 package daikon;
 
+import daikon.config.Configuration;
+import daikon.derive.Derivation;
+import daikon.inv.Equality;
+import daikon.inv.Invariant;
+import daikon.inv.OutputFormat;
+import daikon.inv.binary.sequenceScalar.*;
+import daikon.inv.binary.sequenceString.MemberString;
+import daikon.inv.binary.twoScalar.*;
+import daikon.inv.binary.twoSequence.*;
+import daikon.inv.binary.twoString.*;
+import daikon.inv.ternary.threeScalar.*;
+import daikon.inv.unary.scalar.*;
+import daikon.inv.unary.sequence.*;
+import daikon.inv.unary.string.*;
+import daikon.inv.unary.stringsequence.*;
+import daikon.split.*;
+import daikon.suppress.NIS;
+import daikon.suppress.NIS.SuppressionProcessor;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.LineNumberReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
@@ -28,48 +43,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import plume.EntryReader;
-import plume.FileIOException;
-import plume.Pair;
 import plume.RegexUtil;
 import plume.Stopwatch;
 import plume.UtilMDE;
-import daikon.config.Configuration;
-import daikon.derive.Derivation;
-import daikon.inv.Equality;
-import daikon.inv.Invariant;
-import daikon.inv.OutputFormat;
-import daikon.inv.binary.sequenceScalar.*;
-import daikon.inv.binary.sequenceString.MemberString;
-import daikon.inv.binary.twoScalar.*;
-import daikon.inv.binary.twoString.*;
-import daikon.inv.binary.twoSequence.*;
-import daikon.inv.binary.twoString.*;
-import daikon.inv.ternary.threeScalar.*;
-import daikon.inv.unary.scalar.*;
-import daikon.inv.unary.sequence.*;
-import daikon.inv.unary.string.*;
-import daikon.inv.unary.stringsequence.*;
-import daikon.split.*;
-import daikon.suppress.NIS;
-import daikon.suppress.NIS.SuppressionProcessor;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
+import org.checkerframework.checker.signature.qual.*;
 import typequals.*;
 */
 
-
 /**
- * The "main" method is the main entry point for the Daikon invariant detector.
- * The "mainHelper" method is the entry point, when called programmatically.
- **/
+ * The {@link #main} method is the main entry point for the Daikon invariant detector. The {@link
+ * #mainHelper} method is the entry point, when called programmatically.
+ */
 @SuppressWarnings("initialization.fields.uninitialized") // field all_ppts; deal with it later
 public final class Daikon {
 
@@ -78,56 +73,45 @@ public final class Daikon {
   }
 
   /**
-   * The amount of time to wait between updates of the progress
-   * display, measured in milliseconds. A value of -1 means do not
-   * print the progress display at all.
-   **/
+   * The amount of time to wait between updates of the progress display, measured in milliseconds. A
+   * value of -1 means do not print the progress display at all.
+   */
   public static int dkconfig_progress_delay = 1000;
 
   // Don't change the order of the modifiers on these strings as they
   // are automatically updated as part of the release process
-  public final static String release_version = "5.2.20";
-  public final static String release_date = "January 5, 2016";
-  public final static String release_string =
-    "Daikon version "
-      + release_version
-      + ", released "
-      + release_date
-      + "; http://plse.cs.washington.edu/daikon.";
+  public static final String release_version = "5.5.x";
+  public static final String release_date = "January 5, 2017";
+  public static final String release_string =
+      "Daikon version "
+          + release_version
+          + ", released "
+          + release_date
+          + "; http://plse.cs.washington.edu/daikon.";
 
   // Variables starting with dkconfig_ should only be set via the
   // daikon.config.Configuration interface.
-  /**
-   * Boolean.  Controls whether conditional program points
-   * are displayed.
-   **/
+  /** Boolean. Controls whether conditional program points are displayed. */
   public static boolean dkconfig_output_conditionals = true;
 
   // Variables starting with dkconfig_ should only be set via the
   // daikon.config.Configuration interface.
-  /**
-   * Boolean.  Controls whether invariants are reported over floating-point
-   * values.
-   **/
+  /** Boolean. Controls whether invariants are reported over floating-point values. */
   public static boolean dkconfig_enable_floats = true;
 
-  /**
-   * Boolean.  Just print the total number of possible invariants
-   * and exit.
-   */
+  /** Boolean. Just print the total number of possible invariants and exit. */
   public static boolean dkconfig_calc_possible_invs;
 
   /**
-   * Integer. Percentage of program points to process.  All program points
-   * are sorted by name, and all samples for
-   * the first <code>ppt_perc</code> program points are processed.
-   * A percentage of 100 matches all program points.
+   * Integer. Percentage of program points to process. All program points are sorted by name, and
+   * all samples for the first <code>ppt_perc</code> program points are processed. A percentage of
+   * 100 matches all program points.
    */
   public static int dkconfig_ppt_perc = 100;
 
   /**
-   * Boolean.  Controls whether or not the total samples read and processed
-   * are printed at the end of processing.
+   * Boolean. Controls whether or not the total samples read and processed are printed at the end of
+   * processing.
    */
   public static boolean dkconfig_print_sample_totals = false;
 
@@ -136,10 +120,9 @@ public final class Daikon {
   public static final String lineSep = Global.lineSep;
 
   /**
-   * Boolean.  Controls whether or not processing information is printed out.
-   * Setting this variable to true also automatically sets
-   * <code>progress_delay</code> to -1.
-   **/
+   * Boolean. Controls whether or not processing information is printed out. Setting this variable
+   * to true also automatically sets <code>progress_delay</code> to -1.
+   */
   public static boolean dkconfig_quiet = false;
 
   // Change this at your peril; high costs in time and space for "false",
@@ -170,76 +153,61 @@ public final class Daikon {
   public static boolean show_progress = false;
 
   /**
-   * Whether to use the "new" equality set mechanism for handling
-   * equality, using canonicals to have instantiation of invariants
-   * only over equality sets.
-   **/
+   * Whether to use the "new" equality set mechanism for handling equality, using canonicals to have
+   * instantiation of invariants only over equality sets.
+   */
   public static boolean use_equality_optimization = true;
 
   /**
-   * Boolean.  Controls whether the Daikon optimizations (equality
-   * sets, suppressions) are undone at the end to create a more
-   * complete set of invariants.  Output does not include
-   * conditional program points, implications, reflexive and
-   * partially reflexive invariants.
-   **/
+   * Boolean. Controls whether the Daikon optimizations (equality sets, suppressions) are undone at
+   * the end to create a more complete set of invariants. Output does not include conditional
+   * program points, implications, reflexive and partially reflexive invariants.
+   */
   public static boolean dkconfig_undo_opts = false;
 
   /**
-   * Boolean.  Indicates to Daikon classes and methods that the methods
-   * calls should be compatible to DaikonSimple because Daikon and DaikonSimple share
-   * methods.  Default value is 'false'.
-   **/
+   * Boolean. Indicates to Daikon classes and methods that the methods calls should be compatible to
+   * DaikonSimple because Daikon and DaikonSimple share methods. Default value is 'false'.
+   */
   public static boolean using_DaikonSimple = false;
 
   /**
-   * If "always", then invariants are always guarded.
-   * If "never", then invariants are never guarded.
-   * If "missing", then invariants are guarded only for variables that
-   * were missing ("can be missing") in the dtrace (the observed executions).
-   * If "default", then use "missing" mode for Java output and "never" mode otherwise.
-   * <p>
-   * Guarding means adding predicates that ensure that variables can be
-   * dereferenced.  For instance, if <code>a</code> can be null --- that is,
-   * if <code>a.b</code> can be nonsensical --- then the guarded version of
+   * If "always", then invariants are always guarded. If "never", then invariants are never guarded.
+   * If "missing", then invariants are guarded only for variables that were missing ("can be
+   * missing") in the dtrace (the observed executions). If "default", then use "missing" mode for
+   * Java output and "never" mode otherwise.
+   *
+   * <p>Guarding means adding predicates that ensure that variables can be dereferenced. For
+   * instance, if <code>a</code> can be null --- that is, if <code>a.b</code> can be nonsensical ---
+   * then the guarded version of
+   *
    * <pre>a.b == 5</pre>
+   *
    * is
-   * <pre>(a != null) &rArr; (a.b == 5)</pre>.
-   * <p>
-   * (To do:  Some configuration option (maybe this one) should add guards for
-   * other reasons that lead to nonsensical values (@pxref{Variable names}).)
+   *
+   * <pre>(a != null) &rArr; (a.b == 5)</pre>
+   *
+   * .
+   *
+   * <p>(To do: Some configuration option (maybe this one) should add guards for other reasons that
+   * lead to nonsensical values (@pxref{Variable names}).) <br>
    * &#64;cindex nonsensical values for variables, guarding
-   **/
+   */
   // Perhaps a better default would be "missing".
   public static /*@Interned*/ String dkconfig_guardNulls = "default";
 
   /**
-   * Whether to associate the program points in a dataflow hierarchy,
-   * as via Nimmer's thesis.  Deactivate only for languages and
-   * analyses where flow relation is nonsensical.
-   **/
+   * Whether to associate the program points in a dataflow hierarchy, as via Nimmer's thesis.
+   * Deactivate only for languages and analyses where flow relation is nonsensical.
+   */
   public static boolean use_dataflow_hierarchy = true;
 
   /**
-   * Whether to use the bottom up implementation of the dataflow
-   * hierarchy.  This mechanism builds invariants initially
-   * only at the leaves of the partial order.  Upper points are
-   * calculated by joining the invariants from each of their children
-   * points.
-   **/
+   * Whether to use the bottom up implementation of the dataflow hierarchy. This mechanism builds
+   * invariants initially only at the leaves of the partial order. Upper points are calculated by
+   * joining the invariants from each of their children points.
+   */
   // public static boolean dkconfig_df_bottom_up = true;
-
-  // When true, don't print invariants when their controlling ppt
-  // already has them.  For example, this is the case for invariants
-  // in public methods which are already given as part of the object
-  // invariant for that class.
-  public static boolean suppress_implied_controlled_invariants = true;
-
-  // When true, don't print EXIT invariants over strictly orig()
-  // variables when the corresponding entry ppt already has the
-  // invariant.
-  public static boolean suppress_implied_postcondition_over_prestate_invariants =
-    false;
 
   // When true, use the Simplify theorem prover (not part of Daikon)
   // to locate logically redundant invariants, and flag them as
@@ -260,9 +228,8 @@ public final class Daikon {
   public static /*@Nullable*/ Pattern var_omit_regexp;
 
   /**
-   * If set, only ppts less than ppt_max_name are included.  Used by the
-   * configuration option dkconfig_ppt_percent to only work on a specified
-   * percent of the ppts.
+   * If set, only ppts less than ppt_max_name are included. Used by the configuration option
+   * dkconfig_ppt_percent to only work on a specified percent of the ppts.
    */
   public static /*@Nullable*/ String ppt_max_name = null;
 
@@ -273,44 +240,35 @@ public final class Daikon {
   // Whether we want the memory monitor activated
   private static boolean use_mem_monitor = false;
 
-  /**
-   * Whether Daikon should print its version number and date.
-   **/
+  /** Whether Daikon should print its version number and date. */
   public static boolean noversion_output = false;
 
-  /**
-   * Whether Daikon is in its inferencing loop.  Used only for
-   * assertion checks.
-   **/
+  /** Whether Daikon is in its inferencing loop. Used only for assertion checks. */
   public static boolean isInferencing = false;
 
   /**
-   * When true, omit certain invariants from the output .inv
-   * file. Generally these are invariants that wouldn't be printed in
-   * any case; but by default, they're retained in the .inv file in
-   * case they would be useful for later processing. (For instance, we
-   * might at some point in the future support resuming processing
-   * with more data from an .inv file). These invariants can increase
-   * the size of the .inv file, though, so when only limited further
-   * processing is needed, it can save space to omit them.
-   **/
+   * When true, omit certain invariants from the output {@code .inv} file. Generally these are
+   * invariants that wouldn't be printed in any case; but by default, they're retained in the {@code
+   * .inv} file in case they would be useful for later processing. (For instance, we might at some
+   * point in the future support resuming processing with more data from an {@code .inv} file).
+   * These invariants can increase the size of the {@code .inv} file, though, so when only limited
+   * further processing is needed, it can save space to omit them.
+   */
   public static boolean omit_from_output = false;
 
   /**
-   * An array of flags, indexed by characters, in which a true entry
-   * means that invariants of that sort should be omitted from the
-   * output .inv file.
-   **/
+   * An array of flags, indexed by characters, in which a true entry means that invariants of that
+   * sort should be omitted from the output {@code .inv} file.
+   */
   public static boolean[] omit_types = new boolean[256];
 
+  // Command-line options / command-line arguments
   // These variables are public so other programs can reuse the same
   // command-line options.
-
   // Please use these switches in the same order in all places where they
   // appear (in the code and in the documentation); it makes the code
   // easier to read and the documentation easier to keep up to date.
 
-  // Control output
   public static final String help_SWITCH = "help";
   // "-o" switch: file to which serialized output is written
   public static final String no_text_output_SWITCH = "no_text_output";
@@ -324,6 +282,8 @@ public final class Daikon {
   // Control invariant detection
   public static final String conf_limit_SWITCH = "conf_limit";
   public static final String list_type_SWITCH = "list_type";
+  public static final String user_defined_invariant_SWITCH = "user-defined-invariant";
+  public static final String disable_all_invariants_SWITCH = "disable-all-invariants";
   public static final String no_dataflow_hierarchy_SWITCH = "nohierarchy";
   public static final String suppress_redundant_SWITCH = "suppress_redundant";
   // Process only part of the trace file
@@ -332,7 +292,8 @@ public final class Daikon {
   public static final String var_regexp_SWITCH = "var-select-pattern";
   public static final String var_omit_regexp_SWITCH = "var-omit-pattern";
   // Configuration options
-  public static final String server_SWITCH = "server"; //YOAV: server mode for Daikon: reads dtrace files as they appear
+  public static final String server_SWITCH =
+      "server"; //YOAV: server mode for Daikon: reads dtrace files as they appear
   public static final String config_SWITCH = "config";
   public static final String config_option_SWITCH = "config_option";
   // Debugging
@@ -343,31 +304,53 @@ public final class Daikon {
   public static final String mem_stat_SWITCH = "mem_stat";
   public static final String wrap_xml_SWITCH = "wrap_xml";
 
-  public static /*@MonotonicNonNull*/ File server_dir = null; //YOAV: the directory from which we read the dtrace files
+  /**
+   * Regular expression that matches class names in the format expected by {@link
+   * Class#getName(String)}.
+   */
+  // This regular expression is taken from
+  // checker-framework/checker/src/org/checkerframework/checker/signature/qual/ClassGetName.java
+  // .  It's a bit too lenient since we don't need to permit arrays and
+  // primitives.
+  private static final String classGetNameRegex =
+      "(^[A-Za-z_][A-Za-z_0-9]*(\\.[A-Za-z_][A-Za-z_0-9]*)*(\\$[A-Za-z_0-9]+)*$)|^\\[+([BCDFIJSZ]|L[A-Za-z_][A-Za-z_0-9]*(\\.[A-Za-z_][A-Za-z_0-9]*)*(\\$[A-Za-z_0-9]+)*;)$";
+
+  private static final Pattern classGetNamePattern;
+
+  static {
+    try {
+      classGetNamePattern = Pattern.compile(classGetNameRegex);
+    } catch (PatternSyntaxException e) {
+      // This shouldn't happen because classGetNameRegex is a legal regex
+      throw new Error(e);
+    }
+  }
+
+  public static /*@MonotonicNonNull*/ File server_dir =
+      null; //YOAV: the directory from which we read the dtrace files
 
   // A PptMap (mapping String -> PptTopLevel) that contains all the program points.
   // Set in mainHelper().
   public static PptMap all_ppts;
 
-  /** current invariant (used for debugging) **/
+  /** current invariant (used for debugging) */
   public static /*@Nullable*/ Invariant current_inv = null;
 
   /* List of prototype invariants (one for each type of invariant) */
-  public static ArrayList</*@Prototype*/ Invariant> proto_invs = new ArrayList</*@Prototype*/ Invariant>();
+  public static ArrayList</*@Prototype*/ Invariant> proto_invs =
+      new ArrayList</*@Prototype*/ Invariant>();
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debugTrace = Logger.getLogger("daikon.Daikon");
 
-  public static final Logger debugProgress =
-    Logger.getLogger("daikon.Progress");
+  public static final Logger debugProgress = Logger.getLogger("daikon.Progress");
 
-  public static final Logger debugEquality =
-    Logger.getLogger("daikon.Equality");
+  public static final Logger debugEquality = Logger.getLogger("daikon.Equality");
 
-  /** Debug tracer for ppt initialization. **/
+  /** Debug tracer for ppt initialization. */
   public static final Logger debugInit = Logger.getLogger("daikon.init");
 
-  /** Prints out statistics concerning equality sets, suppressions, etc. **/
+  /** Prints out statistics concerning equality sets, suppressions, etc. */
   public static final Logger debugStats = Logger.getLogger("daikon.stats");
 
   // Avoid problems if daikon.Runtime is loaded at analysis (rather than
@@ -379,63 +362,84 @@ public final class Daikon {
   private static Stopwatch stopwatch = new Stopwatch();
 
   static String usage =
-    UtilMDE.joinLines(
-      release_string,
-      "Daikon invariant detector, copyright 1998-2015",
-      // " by Michael Ernst <mernst@cs.washington.edu>",
-      "Uses the Java port of GNU getopt, copyright (c) 1998 Aaron M. Renn",
-      // "For licensing information, see the License section of the manual.",
-      "Usage:",
-      "    java daikon.Daikon [flags...] files...",
-      "  Each file is a declaration file or a data trace file; the file type",
-      "  is determined by the file name (containing \".decls\" or \".dtrace\").",
-      "  For a list of flags, see the Daikon manual, which appears in the ",
-      "  Daikon distribution and also at http://plse.cs.washington.edu/daikon/."
-      );
+      UtilMDE.joinLines(
+          release_string,
+          "Daikon invariant detector, copyright 1998-2016",
+          // " by Michael Ernst <mernst@cs.washington.edu>",
+          "Uses the Java port of GNU getopt, copyright (c) 1998 Aaron M. Renn",
+          // "For licensing information, see the License section of the manual.",
+          "Usage:",
+          "    java daikon.Daikon [flags...] files...",
+          "  Each file is a declaration file or a data trace file; the file type",
+          "  is determined by the file name (containing \".decls\" or \".dtrace\").",
+          "  For a list of flags, see the Daikon manual, which appears in the ",
+          "  Daikon distribution and also at http://plse.cs.washington.edu/daikon/.");
 
   /**
-   * Thrown to indicate that main should not print a stack trace, but only
-   * print the message itself to the user.
-   * Code in Daikon should throw this Exception in cases of user error, an
-   * throw other exceptions in cases of a Daikon bug or a system problem
-   * (like unpredictable IOExceptions).
-   * If the string is null, then this is normal termination, not an error;
-   * no message is printed.
-   **/
+   * Thrown to indicate that main should not print a stack trace, but only print the message itself
+   * to the user. Code in Daikon should throw this Exception in cases of user error, an throw other
+   * exceptions in cases of a Daikon bug or a system problem (like unpredictable IOExceptions). If
+   * the string is null, then this is normal termination, not an error; no message is printed.
+   */
   public static class TerminationMessage extends RuntimeException {
     static final long serialVersionUID = 20050923L;
-    public static String error_at_line_file(LineNumberReader reader, String filename) {
-      return "Error at line " + reader.getLineNumber() + " in file " + filename;
+
+    public static String error_at_line_file(LineNumberReader reader, String filename, Throwable e) {
+      String msg = e.getMessage();
+      if (msg == null) {
+        msg = " of type " + e.getClass() + " with no detail message";
+      }
+      return error_at_line_file(reader, filename, msg);
+    }
+
+    public static String error_at_line_file(LineNumberReader reader, String filename, String msg) {
+      if (msg == null) {
+        throw new Error("Null message supplied to error_at_line_file()");
+      }
+      return "Error at line " + reader.getLineNumber() + " in file " + filename + ": " + msg;
     }
 
     /// Constructors that take a Throwable
-    public TerminationMessage(Throwable e) { super(e.getMessage()); }
+    public TerminationMessage(Throwable e) {
+      super(e.getMessage());
+    }
     //    public TerminationMessage(Exception e) {
     //      super(e.getMessage() + lineSep + UtilMDE.backTrace(e)); }
-    public TerminationMessage (Throwable e, String msg) {
-      super (msg + ": " + e.getMessage());
+    public TerminationMessage(Throwable e, String msg) {
+      super(
+          ((e.getMessage() != null && msg.contains(e.getMessage()))
+              ? msg
+              : msg + ": " + e.getMessage()),
+          e);
     }
-    public TerminationMessage (Throwable e,
-                               FileIO.ParseState state) {
-      super (error_at_line_file(state.reader, state.filename), e);
+
+    public TerminationMessage(Throwable e, FileIO.ParseState state) {
+      this(e, error_at_line_file(state.reader, state.filename, e));
     }
-    public TerminationMessage (Throwable e,
-                               LineNumberReader reader, String filename) {
-      super (error_at_line_file(reader, filename), e);
+
+    public TerminationMessage(Throwable e, LineNumberReader reader, String filename) {
+      this(e, error_at_line_file(reader, filename, e));
     }
-    public TerminationMessage (Throwable e,
-                               String msg, LineNumberReader reader, String filename) {
-      super (error_at_line_file(reader, filename) +": " + msg, e);
+
+    public TerminationMessage(Throwable e, String msg, LineNumberReader reader, String filename) {
+      this(e, error_at_line_file(reader, filename, msg));
     }
 
     /// Constructors that do not take a Throwable
-    public TerminationMessage() { super(""); }
-    public TerminationMessage(String s) { super(s); }
-    public TerminationMessage (String msg, FileIO.ParseState state) {
-      super (error_at_line_file(state.reader, state.filename) + ": " + msg);
+    public TerminationMessage() {
+      super("");
     }
-    public TerminationMessage (String msg, LineNumberReader reader, String filename) {
-      super (error_at_line_file(reader, filename) + ": " + msg);
+
+    public TerminationMessage(String s) {
+      super(s);
+    }
+
+    public TerminationMessage(String msg, FileIO.ParseState state) {
+      super(error_at_line_file(state.reader, state.filename, msg));
+    }
+
+    public TerminationMessage(String msg, LineNumberReader reader, String filename) {
+      super(error_at_line_file(reader, filename, msg));
     }
     // This constructor is too error-prone:  it leads to throwing away
     // subsequent args if there are not enough % directives in the string.
@@ -445,39 +449,46 @@ public final class Daikon {
   }
 
   /**
-   * The arguments to daikon.Daikon are file names.  Declaration file names
-   * end in ".decls", and data trace file names end in ".dtrace".
-   **/
+   * The arguments to daikon.Daikon are file names. Declaration file names end in ".decls", and data
+   * trace file names end in ".dtrace".
+   */
   public static void main(final String[] args) {
     try {
       mainHelper(args);
     } catch (Configuration.ConfigException e) {
       // I don't think this can happen.  -MDE
+      System.err.println();
       System.err.println(e.getMessage());
       System.exit(1);
     } catch (TerminationMessage e) {
-      if (e.getMessage() != null) {
-        System.err.println(e.getMessage());
-        if (Debug.dkconfig_show_stack_trace)
-          e.printStackTrace();
-        System.exit(1);
-      } else {
-        System.exit(0);
-      }
+      handleTerminationMessage(e);
     }
     // Any exception other than TerminationMessage gets propagated.
     // This simplifies debugging by showing the stack trace.
     // (TerminationMessages should be clear enough not to need a stack trace.)
   }
 
+  /** Print a termination message and exit the JVM. */
+  public static void handleTerminationMessage(TerminationMessage e) {
+    System.err.println();
+    if (e.getMessage() != null) {
+      System.err.println(e.getMessage());
+      if (Debug.dkconfig_show_stack_trace) e.printStackTrace();
+      System.exit(1);
+    } else {
+      if (Debug.dkconfig_show_stack_trace) e.printStackTrace();
+      System.exit(0);
+    }
+  }
+
   /**
-   * This does the work of main, but it never calls System.exit, so it
-   * is appropriate to be called progrmmatically.
-   * Termination of the program with a message to the user is indicated by
-   * throwing TerminationMessage.
+   * This does the work of main, but it never calls System.exit, so it is appropriate to be called
+   * progrmmatically. Termination of the program with a message to the user is indicated by throwing
+   * TerminationMessage.
+   *
    * @see #main(String[])
    * @see TerminationMessage
-   **/
+   */
   @SuppressWarnings("contracts.precondition.not.satisfied") // private field
   public static void mainHelper(final String[] args) {
     // Cleanup from any previous runs
@@ -499,15 +510,19 @@ public final class Daikon {
       PptSplitter.dkconfig_disable_splitting = true;
     }
 
-    if (Daikon.dkconfig_quiet)
-      Daikon.dkconfig_progress_delay= -1;
+    if (Daikon.dkconfig_quiet) {
+      Daikon.dkconfig_progress_delay = -1;
+    }
+    if (System.console() == null) {
+      // not connected to a terminal
+      Daikon.dkconfig_progress_delay = -1;
+    }
 
     // Set up debug traces; note this comes after reading command line options.
     LogHelper.setupLogs(Global.debugAll ? LogHelper.FINE : LogHelper.INFO);
 
     if (!noversion_output) {
-      if (!Daikon.dkconfig_quiet)
-      System.out.println(release_string);
+      if (!Daikon.dkconfig_quiet) System.out.println(release_string);
     }
 
     // figure out which algorithm to use in NIS to process suppressions
@@ -541,6 +556,14 @@ public final class Daikon {
 
     all_ppts.trimToSize();
 
+    // Only for assertion checks
+    isInferencing = true;
+
+    // Infer invariants
+    process_data(all_ppts, dtrace_files);
+    isInferencing = false;
+    if (Debug.logOn()) Debug.check(all_ppts, "After process data");
+
     // If requested, just calculate the total number of invariants possible
     if (dkconfig_calc_possible_invs) {
       fileio_progress.shouldStop = true;
@@ -548,32 +571,19 @@ public final class Daikon {
       // Can't use new for syntax because the default iterator for all_ppts
       // is not the one I want here.
       for (PptTopLevel ppt : all_ppts.ppt_all_iterable()) {
-        System.out.printf("Processing %s with %d variables",
-                          ppt.name(), ppt.var_infos.length);
+        System.out.printf("Processing %s with %d variables", ppt.name(), ppt.var_infos.length);
         int inv_cnt = 0;
         if (ppt.var_infos.length > 1600) {
           System.out.println("Skipping, too many variables!");
         } else {
-          ppt.instantiate_views_and_invariants();
-          inv_cnt = ppt.invariant_cnt();
-          ppt.clean_for_merge();
-          System.out.println(
-            inv_cnt + " invariants in " + ppt.name());
+          inv_cnt = ppt.getInvariants().size();
+          System.out.println(" " + inv_cnt + " invariants");
           total_invs += inv_cnt;
         }
       }
       System.out.println(total_invs + "invariants total");
       return;
     }
-
-    // Only for assertion checks
-    isInferencing = true;
-
-    // Infer invariants
-    process_data(all_ppts, dtrace_files);
-    isInferencing = false;
-    if (Debug.logOn())
-      Debug.check(all_ppts, "After process data");
 
     if (suppress_redundant_invariants_with_simplify) {
       suppressWithSimplify(all_ppts);
@@ -592,31 +602,28 @@ public final class Daikon {
       try {
         FileIO.write_serialized_pptmap(all_ppts, inv_file);
       } catch (IOException e) {
-        throw new RuntimeException(
-          "Error while writing .inv file: " + inv_file,
-          e);
+        throw new RuntimeException("Error while writing .inv file: " + inv_file, e);
       }
     }
 
-//     if ((Daikon.dkconfig_guardNulls == "always") // interned
-//         || (Daikon.dkconfig_guardNulls == "missing")) { // interned
-//       // This side-effects the PptMap, but it has already been saved
-//       // to disk and is now being used only for printing.
-//       guardInvariants(all_ppts);
-//     }
+    //     if ((Daikon.dkconfig_guardNulls == "always") // interned
+    //         || (Daikon.dkconfig_guardNulls == "missing")) { // interned
+    //       // This side-effects the PptMap, but it has already been saved
+    //       // to disk and is now being used only for printing.
+    //       guardInvariants(all_ppts);
+    //     }
 
     // Debug print information about the variables
     if (false) {
       for (PptTopLevel ppt : all_ppts.all_ppts()) {
-        System.out.printf ("Dumping variables for ppt %s%n", ppt.name());
+        System.out.printf("Dumping variables for ppt %s%n", ppt.name());
         for (VarInfo vi : ppt.var_infos) {
-          System.out.printf ("  vi %s%n", vi);
-          System.out.printf ("    file_rep_type = %s%n", vi.file_rep_type);
-          System.out.printf ("    type = %s%n", vi.type);
+          System.out.printf("  vi %s%n", vi);
+          System.out.printf("    file_rep_type = %s%n", vi.file_rep_type);
+          System.out.printf("    type = %s%n", vi.type);
         }
       }
     }
-
 
     // print out the invariants for each program point
     if (Daikon.dkconfig_undo_opts) {
@@ -635,29 +642,25 @@ public final class Daikon {
         // samples seen due to differences in how Daikon and DaikonSimple
         // see the variable hierarchy.
         if (false) {
-          System.out.println(
-          "====================================================");
+          System.out.println("====================================================");
           System.out.println(ppt.name());
           System.out.println(ppt.num_samples());
 
           for (Invariant inv : filtered_invs) {
-              System.out.println(inv.getClass());
-              System.out.println(inv);
+            System.out.println(inv.getClass());
+            System.out.println(inv);
           }
         }
       }
 
       // exit the program
-      if (false)
-        return;
+      if (false) return;
     }
 
     // Display invariants
     if (output_num_samples) {
-      System.out.println(
-        "The --output_num_samples debugging flag is on.");
-      System.out.println(
-        "Some of the debugging output may only make sense to Daikon programmers.");
+      System.out.println("The --output_num_samples debugging flag is on.");
+      System.out.println("Some of the debugging output may only make sense to Daikon programmers.");
     }
 
     // If they want to see discarded invariants, they probably don't
@@ -671,8 +674,9 @@ public final class Daikon {
     if (output_num_samples) {
       Global.output_statistics();
     }
-    if (dkconfig_print_sample_totals)
+    if (dkconfig_print_sample_totals) {
       System.out.println(FileIO.samples_processed + " samples processed");
+    }
 
     // print statistics concerning what invariants are printed
     if (debugStats.isLoggable(Level.FINE)) {
@@ -687,23 +691,19 @@ public final class Daikon {
     }
   }
 
-  /**
-   * Cleans up static variables so that mainHelper can be called more
-   * than once.
-   */
+  /** Cleans up static variables so that mainHelper can be called more than once. */
   @SuppressWarnings("nullness") // reinitialization
   public static void cleanup() {
 
     // Stop the thread that prints out progress information
-    if ((fileio_progress != null)
-        && (fileio_progress.getState() != Thread.State.NEW)) {
+    if ((fileio_progress != null) && (fileio_progress.getState() != Thread.State.NEW)) {
       fileio_progress.shouldStop = true;
       try {
-        fileio_progress.join (2000);
+        fileio_progress.join(2000);
       } catch (InterruptedException e) {
       }
       if (fileio_progress.getState() != Thread.State.TERMINATED) {
-        throw new TerminationMessage ("Can't stop fileio_progress thead");
+        throw new TerminationMessage("Can't stop fileio_progress thead");
       }
     }
     fileio_progress = null;
@@ -738,6 +738,7 @@ public final class Daikon {
     public Set<String> dtrace;
     public Set<File> spinfo;
     public Set<File> map;
+
     public FileOptions(Set<File> decls, Set<String> dtrace, Set<File> spinfo, Set<File> map) {
       this.decls = decls;
       this.dtrace = dtrace;
@@ -751,8 +752,7 @@ public final class Daikon {
   // Return {decls, dtrace, spinfo, map} files.
   protected static FileOptions read_options(String[] args, String usage) {
     if (args.length == 0) {
-      System.out.println(
-        "Daikon error: no files supplied on command line.");
+      System.out.println("Daikon error: no files supplied on command line.");
       System.out.println(usage);
       throw new Daikon.TerminationMessage();
     }
@@ -766,44 +766,46 @@ public final class Daikon {
     HashSet<File> map_files = new LinkedHashSet<File>();
 
     LongOpt[] longopts =
-      new LongOpt[] {
-        // Control output
-        new LongOpt(help_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(no_text_output_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(format_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(show_progress_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(no_show_progress_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(noversion_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(output_num_samples_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(files_from_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(omit_from_output_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        // Control invariant detection
-        new LongOpt(conf_limit_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(list_type_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(no_dataflow_hierarchy_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(suppress_redundant_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        // Process only part of the trace file
-        new LongOpt(ppt_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(ppt_omit_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(var_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(var_omit_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        // Configuration options
-        new LongOpt(server_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(config_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(config_option_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        // Debugging
-        new LongOpt(debugAll_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
-        new LongOpt(debug_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(track_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(disc_reason_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
-        new LongOpt(mem_stat_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+        new LongOpt[] {
+          // Control output
+          new LongOpt(help_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(no_text_output_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(format_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(show_progress_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(no_show_progress_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(noversion_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(output_num_samples_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(files_from_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(omit_from_output_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          // Control invariant detection
+          new LongOpt(conf_limit_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(list_type_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(user_defined_invariant_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(disable_all_invariants_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(no_dataflow_hierarchy_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(suppress_redundant_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          // Process only part of the trace file
+          new LongOpt(ppt_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(ppt_omit_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(var_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(var_omit_regexp_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          // Configuration options
+          new LongOpt(server_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(config_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(config_option_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          // Debugging
+          new LongOpt(debugAll_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
+          new LongOpt(debug_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(track_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(disc_reason_SWITCH, LongOpt.REQUIRED_ARGUMENT, null, 0),
+          new LongOpt(mem_stat_SWITCH, LongOpt.NO_ARGUMENT, null, 0),
         };
     Getopt g = new Getopt("daikon.Daikon", args, "ho:", longopts);
     int c;
 
     while ((c = g.getopt()) != -1) {
       switch (c) {
-        case 0 :
+        case 0:
           // got a long option
           String option_name = longopts[g.getLongind()].getName();
 
@@ -818,7 +820,7 @@ public final class Daikon {
             Daikon.output_format = OutputFormat.get(format_name);
             if (Daikon.output_format == null) {
               throw new Daikon.TerminationMessage(
-                "Unknown output format:  --format " + format_name);
+                  "Unknown output format:  --format " + format_name);
             }
           } else if (show_progress_SWITCH.equals(option_name)) {
             show_progress = true;
@@ -842,8 +844,7 @@ public final class Daikon {
                 // on the end (eg, a date, or ".gz").
                 File file = new File(filename);
                 if (!file.exists()) {
-                  throw new Daikon.TerminationMessage(
-                    "File " + filename + " not found.");
+                  throw new Daikon.TerminationMessage("File " + filename + " not found.");
                 }
                 if (filename.indexOf(".decls") != -1) {
                   decl_files.add(file);
@@ -854,23 +855,21 @@ public final class Daikon {
                 } else if (filename.indexOf(".map") != -1) {
                   map_files.add(file);
                 } else {
-                  throw new Daikon.TerminationMessage(
-                    "Unrecognized file extension: "
-                      + filename);
+                  throw new Daikon.TerminationMessage("Unrecognized file extension: " + filename);
                 }
               }
             } catch (IOException e) {
-              throw new RuntimeException(String.format("Error reading --files_from file: %s", files_from_filename));
+              throw new RuntimeException(
+                  String.format("Error reading --files_from file: %s", files_from_filename));
             }
             break;
           } else if (omit_from_output_SWITCH.equals(option_name)) {
             String f = getOptarg(g);
             for (int i = 0; i < f.length(); i++) {
-              if ("0rs".indexOf(f.charAt(i)) == -1)
+              if ("0rs".indexOf(f.charAt(i)) == -1) {
                 throw new Daikon.TerminationMessage(
-                  "omit_from_output flag letter '"
-                    + f.charAt(i)
-                    + "' is unknown");
+                    "omit_from_output flag letter '" + f.charAt(i) + "' is unknown");
+              }
               omit_types[f.charAt(i)] = true;
             }
             omit_from_output = true;
@@ -879,23 +878,102 @@ public final class Daikon {
           else if (conf_limit_SWITCH.equals(option_name)) {
             double limit = Double.parseDouble(getOptarg(g));
             if ((limit < 0.0) || (limit > 1.0)) {
-              throw new Daikon.TerminationMessage(
-                conf_limit_SWITCH + " must be between [0..1]");
+              throw new Daikon.TerminationMessage(conf_limit_SWITCH + " must be between [0..1]");
             }
-            Configuration.getInstance().apply(
-              "daikon.inv.Invariant.confidence_limit",
-              String.valueOf(limit));
+            Configuration.getInstance()
+                .apply("daikon.inv.Invariant.confidence_limit", String.valueOf(limit));
           } else if (list_type_SWITCH.equals(option_name)) {
             try {
               String list_type_string = getOptarg(g);
-              ProglangType.list_implementors.add(
-                list_type_string);
+              ProglangType.list_implementors.add(list_type_string);
             } catch (Exception e) {
-              throw new Daikon.TerminationMessage("Problem parsing " + list_type_SWITCH + " option: " + e);
+              throw new Daikon.TerminationMessage(
+                  "Problem parsing " + list_type_SWITCH + " option: " + e);
             }
             break;
-          } else if (
-            no_dataflow_hierarchy_SWITCH.equals(option_name)) {
+          } else if (user_defined_invariant_SWITCH.equals(option_name)) {
+            try {
+              String user_defined_invariant_string = getOptarg(g);
+              Matcher m = classGetNamePattern.matcher(user_defined_invariant_string);
+              if (!m.matches()) {
+                throw new Daikon.TerminationMessage(
+                    "Bad argument "
+                        + user_defined_invariant_string
+                        + " for "
+                        + ppt_regexp_SWITCH
+                        + ": not in the format required by Class.getName(String)");
+              }
+              @SuppressWarnings("signature") // Regex match guarantees the format of Class.getName()
+              /*@ClassGetName*/ String cname = user_defined_invariant_string;
+              userDefinedInvariants.add(cname);
+            } catch (Exception e) {
+              throw new Daikon.TerminationMessage(
+                  "Problem parsing " + user_defined_invariant_SWITCH + " option: " + e);
+            }
+            break;
+          } else if (disable_all_invariants_SWITCH.equals(option_name)) {
+            // There are two possibilities:
+            //  * a given invariant class is not yet loaded, in which case
+            //    we set the default value for its dkconfig_enabled field.
+            //  * a given invariant class is already loaded, in which case
+            //    we reflectively set its dkconfig_enabled to false.
+
+            // Set the default for not-yet-loaded invariants.
+            Invariant.invariantEnabledDefault = false;
+
+            // Get all loaded classes.  This solution is from
+            // http://stackoverflow.com/a/10261850/173852 .  Alternate approach:
+            // http://stackoverflow.com/questions/2548384/java-get-a-list-of-all-classes-loaded-in-the-jvm
+            Field f;
+            try {
+              f = ClassLoader.class.getDeclaredField("classes");
+            } catch (NoSuchFieldException e) {
+              throw new Daikon.TerminationMessage("Didn't find field ClassLoader.classes");
+            }
+            f.setAccessible(true);
+            Object classesAsObject;
+            try {
+              classesAsObject = f.get(Thread.currentThread().getContextClassLoader());
+            } catch (IllegalAccessException e) {
+              throw new Daikon.TerminationMessage(
+                  "Field ClassLoader.classes was not made accessible");
+            }
+            @SuppressWarnings({
+              "unchecked",
+              "nullness"
+            }) // type of ClassLoader.classes field is known, and is non-null
+            /*@NonNull*/ Vector<Class<?>> classes = (Vector<Class<?>>) classesAsObject;
+            for (int i = 0; i < classes.size(); i++) {
+              Class<?> loadedClass = classes.get(i);
+              if (Invariant.class.isAssignableFrom(loadedClass)) {
+                @SuppressWarnings("unchecked") // loadedClass is a subclass of Invariant
+                Class<? extends Invariant> invType = (Class<? extends Invariant>) loadedClass;
+                try {
+                  Field field = invType.getField("dkconfig_enabled");
+                  if (field.getType() != Boolean.TYPE) {
+                    throw new Daikon.TerminationMessage(
+                        "Field "
+                            + invType
+                            + ".dkconfig_enabled has type "
+                            + field.getType()
+                            + " instead of boolean");
+                  } else {
+                    field.set(null, false);
+                    // System.out.println(
+                    //     "Set field "
+                    //         + invType
+                    //         + ".dkconfig_enabled to false");
+                  }
+                } catch (NoSuchFieldException e) {
+                  // System.out.println(
+                  //     "Class " + invType + " does not have a dkconfig_enabled field");
+                } catch (IllegalAccessException e) {
+                  throw new Daikon.TerminationMessage(
+                      "IllegalAccessException for field " + invType + ".dkconfig_enabled");
+                }
+              }
+            }
+          } else if (no_dataflow_hierarchy_SWITCH.equals(option_name)) {
             use_dataflow_hierarchy = false;
           } else if (suppress_redundant_SWITCH.equals(option_name)) {
             suppress_redundant_invariants_with_simplify = true;
@@ -903,74 +981,101 @@ public final class Daikon {
 
           // Process only part of the trace file
           else if (ppt_regexp_SWITCH.equals(option_name)) {
-            if (ppt_regexp != null)
+            if (ppt_regexp != null) {
               throw new Daikon.TerminationMessage(
-                "multiple --"
-                  + ppt_regexp_SWITCH
-                  + " regular expressions supplied on command line");
+                  "multiple --"
+                      + ppt_regexp_SWITCH
+                      + " regular expressions supplied on command line");
+            }
             String regexp_string = getOptarg(g);
             if (!RegexUtil.isRegex(regexp_string)) {
-              throw new Daikon.TerminationMessage("Bad regexp " + regexp_string + " for " + ppt_regexp_SWITCH + ": " + RegexUtil.regexError(regexp_string));
+              throw new Daikon.TerminationMessage(
+                  "Bad regexp "
+                      + regexp_string
+                      + " for "
+                      + ppt_regexp_SWITCH
+                      + ": "
+                      + RegexUtil.regexError(regexp_string));
             }
             ppt_regexp = Pattern.compile(regexp_string);
             break;
           } else if (ppt_omit_regexp_SWITCH.equals(option_name)) {
-            if (ppt_omit_regexp != null)
+            if (ppt_omit_regexp != null) {
               throw new Daikon.TerminationMessage(
-                "multiple --"
-                  + ppt_omit_regexp_SWITCH
-                  + " regular expressions supplied on command line");
+                  "multiple --"
+                      + ppt_omit_regexp_SWITCH
+                      + " regular expressions supplied on command line");
+            }
             String regexp_string = getOptarg(g);
             if (!RegexUtil.isRegex(regexp_string)) {
-              throw new Daikon.TerminationMessage("Bad regexp " + regexp_string + " for " + ppt_omit_regexp_SWITCH + ": " + RegexUtil.regexError(regexp_string));
+              throw new Daikon.TerminationMessage(
+                  "Bad regexp "
+                      + regexp_string
+                      + " for "
+                      + ppt_omit_regexp_SWITCH
+                      + ": "
+                      + RegexUtil.regexError(regexp_string));
             }
             ppt_omit_regexp = Pattern.compile(regexp_string);
             break;
           } else if (var_regexp_SWITCH.equals(option_name)) {
-            if (var_regexp != null)
+            if (var_regexp != null) {
               throw new Daikon.TerminationMessage(
-                "multiple --"
-                  + var_regexp_SWITCH
-                  + " regular expressions supplied on command line");
+                  "multiple --"
+                      + var_regexp_SWITCH
+                      + " regular expressions supplied on command line");
+            }
             String regexp_string = getOptarg(g);
             if (!RegexUtil.isRegex(regexp_string)) {
-              throw new Daikon.TerminationMessage("Bad regexp " + regexp_string + " for " + var_regexp_SWITCH + ": " + RegexUtil.regexError(regexp_string));
+              throw new Daikon.TerminationMessage(
+                  "Bad regexp "
+                      + regexp_string
+                      + " for "
+                      + var_regexp_SWITCH
+                      + ": "
+                      + RegexUtil.regexError(regexp_string));
             }
             var_regexp = Pattern.compile(regexp_string);
             break;
           } else if (var_omit_regexp_SWITCH.equals(option_name)) {
-            if (var_omit_regexp != null)
+            if (var_omit_regexp != null) {
               throw new Daikon.TerminationMessage(
-                "multiple --"
-                  + var_omit_regexp_SWITCH
-                  + " regular expressions supplied on command line");
+                  "multiple --"
+                      + var_omit_regexp_SWITCH
+                      + " regular expressions supplied on command line");
+            }
             String regexp_string = getOptarg(g);
             if (!RegexUtil.isRegex(regexp_string)) {
-              throw new Daikon.TerminationMessage("Bad regexp " + regexp_string + " for " + var_omit_regexp_SWITCH + ": " + RegexUtil.regexError(regexp_string));
+              throw new Daikon.TerminationMessage(
+                  "Bad regexp "
+                      + regexp_string
+                      + " for "
+                      + var_omit_regexp_SWITCH
+                      + ": "
+                      + RegexUtil.regexError(regexp_string));
             }
             var_omit_regexp = Pattern.compile(regexp_string);
             break;
-          }
-          else if (server_SWITCH.equals(option_name)) {
+          } else if (server_SWITCH.equals(option_name)) {
             String input_dir = getOptarg(g);
             server_dir = new File(input_dir);
-            if (!server_dir.isDirectory() || !server_dir.canRead() || !server_dir.canWrite())
+            if (!server_dir.isDirectory() || !server_dir.canRead() || !server_dir.canWrite()) {
               throw new RuntimeException(
-                "Could not open config file in server directory " + server_dir);
+                  "Could not open config file in server directory " + server_dir);
+            }
             break;
 
-          // Configuration options
+            // Configuration options
 
           } else if (config_SWITCH.equals(option_name)) {
             String config_file = getOptarg(g);
             try {
-              InputStream stream =
-                new FileInputStream(config_file);
+              InputStream stream = new FileInputStream(config_file);
               Configuration.getInstance().apply(stream);
             } catch (IOException e) {
               throw new Daikon.TerminationMessage(
-                // Is this the only possible reason for an IOException?
-                "Could not open config file " + config_file);
+                  // Is this the only possible reason for an IOException?
+                  "Could not open config file " + config_file);
             }
             break;
           } else if (config_option_SWITCH.equals(option_name)) {
@@ -981,8 +1086,7 @@ public final class Daikon {
               throw new Daikon.TerminationMessage(e);
             }
             break;
-          }
-          else if (debugAll_SWITCH.equals(option_name)) {
+          } else if (debugAll_SWITCH.equals(option_name)) {
             Global.debugAll = true;
           } else if (debug_SWITCH.equals(option_name)) {
             LogHelper.setLevel(getOptarg(g), LogHelper.FINE);
@@ -991,10 +1095,7 @@ public final class Daikon {
             String error = Debug.add_track(getOptarg(g));
             if (error != null) {
               throw new Daikon.TerminationMessage(
-                "Error parsing track argument '"
-                  + getOptarg(g)
-                  + "' - "
-                  + error);
+                  "Error parsing track argument '" + getOptarg(g) + "' - " + error);
             }
           } else if (disc_reason_SWITCH.equals(option_name)) {
             try {
@@ -1006,32 +1107,37 @@ public final class Daikon {
             use_mem_monitor = true;
           } else {
             throw new Daikon.TerminationMessage(
-              "Unknown option " + option_name + " on command line");
+                "Unknown option " + option_name + " on command line");
           }
           break;
-        case 'h' :
+        case 'h':
           System.out.println(usage);
           throw new Daikon.TerminationMessage();
-        case 'o' :
+        case 'o':
           String inv_filename = getOptarg(g);
 
           if (inv_file != null) {
-            throw new Daikon.TerminationMessage("multiple serialization output files supplied on command line: " + inv_file + " " + inv_filename);
+            throw new Daikon.TerminationMessage(
+                "multiple serialization output files supplied on command line: "
+                    + inv_file
+                    + " "
+                    + inv_filename);
           }
 
           inv_file = new File(inv_filename);
 
           if (!UtilMDE.canCreateAndWrite(inv_file)) {
-            throw new Daikon.TerminationMessage("Cannot write to serialization output file " + inv_file);
+            throw new Daikon.TerminationMessage(
+                "Cannot write to serialization output file " + inv_file);
           }
           break;
           //
-        case '?' :
+        case '?':
           // break; // getopt() already printed an error
           System.out.println(usage);
           throw new Daikon.TerminationMessage();
           //
-        default :
+        default:
           System.out.println("getopt() returned " + c);
           break;
       }
@@ -1070,10 +1176,10 @@ public final class Daikon {
           int base_end = basename.indexOf(".dtrace");
           String inv_filename = basename.substring(0, base_end) + ".inv.gz";
 
-            inv_file = new File(inv_filename);
-             if (!UtilMDE.canCreateAndWrite(inv_file)) {
-           throw new Daikon.TerminationMessage("Cannot write to file " + inv_file);
-           }
+          inv_file = new File(inv_filename);
+          if (!UtilMDE.canCreateAndWrite(inv_file)) {
+            throw new Daikon.TerminationMessage("Cannot write to file " + inv_file);
+          }
         }
       } else if (filename.indexOf(".spinfo") != -1) {
         spinfo_files.add(file);
@@ -1101,8 +1207,8 @@ public final class Daikon {
   }
 
   /**
-   * Just like g.getOptarg(), but only to be called in circumstances when
-   * the programmer knows that the return value is non-null.
+   * Just like {@code g.getOptarg()}, but only to be called in circumstances when the programmer
+   * knows that the return value is non-null.
    */
   public static String getOptarg(Getopt g) {
     String result = g.getOptarg();
@@ -1113,8 +1219,15 @@ public final class Daikon {
   }
 
   /**
-   * Creates the list of prototype invariants for all Daikon invariants.
-   * New invariants must be added to this list
+   * Invariants passed on the command line with the {@code --user_defined_invariant} option. A list
+   * of class names in the format required by {@link Class#forName(String)}.
+   */
+  private static List</*@ClassGetName*/ String> userDefinedInvariants =
+      new ArrayList</*@ClassGetName*/ String>();
+
+  /**
+   * Creates the list of prototype invariants for all Daikon invariants. New invariants must be
+   * added to this list.
    */
   public static void setup_proto_invs() {
 
@@ -1146,11 +1259,11 @@ public final class Daikon {
       proto_invs.addAll(RangeFloat.get_proto_all());
 
       // Printable String
-      proto_invs.add (PrintableString.get_proto());
+      proto_invs.add(PrintableString.get_proto());
 
       // Complete One Of
-      proto_invs.add (CompleteOneOfString.get_proto());
-      proto_invs.add (CompleteOneOfScalar.get_proto());
+      proto_invs.add(CompleteOneOfString.get_proto());
+      proto_invs.add(CompleteOneOfScalar.get_proto());
 
       // Positive (x > 0) (Postive.java).  Positive is a sample invariant
       // that is only included as an example.
@@ -1212,11 +1325,12 @@ public final class Daikon {
       proto_invs.add(EltUpperBoundFloat.get_proto());
 
       // CommonSequence (CommonSequence.java.jpp)
-      proto_invs.add (CommonSequence.get_proto());
-      proto_invs.add (CommonFloatSequence.get_proto());
+      proto_invs.add(CommonSequence.get_proto());
+      proto_invs.add(CommonFloatSequence.get_proto());
 
       // CommonStringSequence (CommonStringSubsequence.java)
-      proto_invs.add (CommonStringSequence.get_proto());    }
+      proto_invs.add(CommonStringSequence.get_proto());
+    }
 
     // Binary scalar-scalar invariants
     {
@@ -1347,20 +1461,72 @@ public final class Daikon {
       proto_invs.add(LinearTernaryFloat.get_proto());
     }
 
+    // User-defined invariants
+    for (String invariantClassName : userDefinedInvariants) {
+      Class<?> invClass;
+      try {
+        invClass = Class.forName(invariantClassName);
+      } catch (ClassNotFoundException e) {
+        throw new Daikon.TerminationMessage(
+            "Cannot load class "
+                + invariantClassName
+                + " in "
+                + user_defined_invariant_SWITCH
+                + " command-line argument; is it on the classpath?");
+      }
+      Method get_proto_method;
+      try {
+        get_proto_method = invClass.getMethod("get_proto");
+      } catch (NoSuchMethodException e) {
+        throw new Daikon.TerminationMessage(
+            "No get_proto() method in user-defined invariant class " + invariantClassName);
+      } catch (SecurityException e) {
+        throw new Daikon.TerminationMessage(
+            e,
+            "SecurityException while looking up get_proto() method in user-defined invariant class "
+                + invariantClassName);
+      }
+      Invariant inv;
+      try {
+        @SuppressWarnings("nullness") // null argument is OK because get_proto_method is static
+        Object inv_as_object = get_proto_method.invoke(null);
+        if (inv_as_object == null) {
+          throw new Daikon.TerminationMessage(
+              invariantClassName
+                  + ".get_proto() returned null but should have returned an Invariant");
+        }
+        if (!(inv_as_object instanceof Invariant)) {
+          @SuppressWarnings(
+              "nullness") // looks like a Checker Framework bug, since inv_as_object is known to be non-null at this point
+          Class<?> cls = inv_as_object.getClass();
+          throw new Daikon.TerminationMessage(
+              invariantClassName
+                  + ".get_proto() returned object of the wrong type.  It should have been a subclass of invariant, but was "
+                  + cls
+                  + ": "
+                  + inv_as_object);
+        }
+        inv = (Invariant) inv_as_object;
+      } catch (Exception e) {
+        throw new Daikon.TerminationMessage(
+            e, "Exception while invoking " + invariantClassName + ".get_proto()");
+      }
+      proto_invs.add(inv);
+    }
+
     // Remove any elements that are not enabled
     for (Iterator</*@Prototype*/ Invariant> i = proto_invs.iterator(); i.hasNext(); ) {
       /*@Prototype*/ Invariant inv = i.next();
       assert inv != null;
-      if (!inv.enabled())
-        i.remove();
+      if (!inv.enabled()) i.remove();
     }
   }
 
   /**
-   * Creates invariants for upper program points by merging together the invariants
-   * from all of the lower points.
+   * Creates invariants for upper program points by merging together the invariants from all of the
+   * lower points.
    */
-  public static void createUpperPpts (PptMap all_ppts) {
+  public static void createUpperPpts(PptMap all_ppts) {
 
     // Process each ppt that doesn't have a parent
     // (mergeInvs is called on a root, and recursively processes children)
@@ -1373,24 +1539,22 @@ public final class Daikon {
     }
   }
 
-  /**
-   * Setup splitters.
-   * Add orig and derived variables.
-   * Recursively call init_ppt on splits.
-   */
-  public static void init_ppt (PptTopLevel ppt, PptMap all_ppts) {
+  /** Setup splitters. Add orig and derived variables. Recursively call init_ppt on splits. */
+  public static void init_ppt(PptTopLevel ppt, PptMap all_ppts) {
 
     if (!Daikon.using_DaikonSimple) {
-      // Setup splitters.  This must be done before adding derived variables.
+      // Create orig variables and set up splitters.
+      // This must be done before adding derived variables.
       // Do not add splitters to ppts that were already created by splitters!
-      if (! (ppt instanceof PptConditional)) {
+      // Also, ppts created by splitters already have their orig_vars.
+      if (!(ppt instanceof PptConditional)) {
+        progress = "Creating orig variables and splitters for: " + ppt.name;
+        create_orig_vars(ppt, all_ppts);
         setup_splitters(ppt);
       }
     }
 
-    // Create orig and derived variables
-    progress = "Creating orig variables for: " + ppt.name;
-    create_orig_vars (ppt, all_ppts);
+    // Create derived variables
     if (!Derivation.dkconfig_disable_derived_variables) {
       progress = "Creating derived variables for: " + ppt.name;
       ppt.create_derived_variables();
@@ -1405,7 +1569,7 @@ public final class Daikon {
       // Recursively initialize ppts created by splitters
       if (ppt.has_splitters()) {
         for (PptConditional ppt_cond : ppt.cond_iterable()) {
-          init_ppt (ppt_cond, all_ppts);
+          init_ppt(ppt_cond, all_ppts);
         }
       }
     }
@@ -1417,10 +1581,7 @@ public final class Daikon {
     }
   }
 
-
-  /**
-   * Create EXIT program points as needed for EXITnn program points.
-   */
+  /** Create EXIT program points as needed for EXITnn program points. */
   public static void create_combined_exits(PptMap ppts) {
 
     // We can't add the newly created exit Ppts directly to ppts while we
@@ -1428,18 +1589,17 @@ public final class Daikon {
     PptMap exit_ppts = new PptMap();
 
     for (PptTopLevel ppt : ppts.pptIterable()) {
-      // skip unless its an EXITnn
-      if (!ppt.is_subexit())
-        continue;
+      // skip unless it's an EXITnn
+      if (!ppt.is_subexit()) continue;
 
       PptTopLevel exitnn_ppt = ppt;
       PptName exitnn_name = exitnn_ppt.ppt_name;
       PptName exit_name = ppt.ppt_name.makeExit();
       PptTopLevel exit_ppt = exit_ppts.get(exit_name);
 
-      if (debugInit.isLoggable(Level.FINE))
-        debugInit.fine ("create_combined_exits: encounted exit "
-                        + exitnn_ppt.name());
+      if (debugInit.isLoggable(Level.FINE)) {
+        debugInit.fine("create_combined_exits: encountered exit " + exitnn_ppt.name());
+      }
 
       // Create the exit, if necessary
       if (exit_ppt == null) {
@@ -1460,16 +1620,20 @@ public final class Daikon {
           exit_vars[j].equalitySet = es;
         }
 
-        exit_ppt
-          = new PptTopLevel(exit_name.getName(), PptTopLevel.PptType.EXIT,
-                            ppt.parent_relations, ppt.flags, exit_vars);
+        exit_ppt =
+            new PptTopLevel(
+                exit_name.getName(),
+                PptTopLevel.PptType.EXIT,
+                ppt.parent_relations,
+                ppt.flags,
+                exit_vars);
 
         // exit_ppt.ppt_name.setVisibility(exitnn_name.getVisibility());
         exit_ppts.add(exit_ppt);
-        if (debugInit.isLoggable(Level.FINE))
-          debugInit.fine ("create_combined_exits: created exit "
-                          + exit_name);
-        init_ppt (exit_ppt, ppts);
+        if (debugInit.isLoggable(Level.FINE)) {
+          debugInit.fine("create_combined_exits: created exit " + exit_name);
+        }
+        init_ppt(exit_ppt, ppts);
       }
     }
 
@@ -1495,8 +1659,8 @@ public final class Daikon {
 
         // Filter out the reflexive and partially reflexive invs in the
         // ternary slices
-        if (!((inv.ppt instanceof PptSlice3) && (vars[0] == vars[1]
-            || vars[1] == vars[2] || vars[0] == vars[2]))) {
+        if (!((inv.ppt instanceof PptSlice3)
+            && (vars[0] == vars[1] || vars[1] == vars[2] || vars[0] == vars[2]))) {
           if (inv.ppt.num_values() != 0) {
 
             // filters out "warning: too few samples for
@@ -1513,11 +1677,11 @@ public final class Daikon {
   }
 
   /**
-   * Add orig() variables to the given EXIT/EXITnn point.
-   * Does nothing if exit_ppt is not an EXIT/EXITnn.
+   * Add orig() variables to the given EXIT/EXITnn point. Does nothing if exit_ppt is not an
+   * EXIT/EXITnn.
    */
   private static void create_orig_vars(PptTopLevel exit_ppt, PptMap ppts) {
-    if (! exit_ppt.ppt_name.isExitPoint()) {
+    if (!exit_ppt.ppt_name.isExitPoint()) {
       if (VarInfo.assertionsEnabled()) {
         for (VarInfo vi : exit_ppt.var_infos) {
           try {
@@ -1532,13 +1696,13 @@ public final class Daikon {
     }
 
     if (debugInit.isLoggable(Level.FINE)) {
-      debugInit.fine ("Doing create and relate orig vars for: "
-                       + exit_ppt.name());
+      debugInit.fine("Doing create and relate orig vars for: " + exit_ppt.name());
     }
 
     PptTopLevel entry_ppt = ppts.get(exit_ppt.ppt_name.makeEnter());
     if (entry_ppt == null) {
-      throw new Daikon.TerminationMessage("exit found with no corresponding entry: " + exit_ppt.name());
+      throw new Daikon.TerminationMessage(
+          "exit found with no corresponding entry: " + exit_ppt.name());
     }
 
     // Add "orig(...)" (prestate) variables to the program point.
@@ -1553,18 +1717,18 @@ public final class Daikon {
       for (int k = 0; k < entry_ppt.num_declvars; k++) {
         VarInfo vi = entry_ppt_vis[k];
         assert !vi.isDerived() : "Derived when making orig(): " + vi.name();
-        if (vi.isStaticConstant())
-          continue;
+        if (vi.isStaticConstant()) continue;
         VarInfo origvar = VarInfo.origVarInfo(vi);
         // Fix comparability
-        VarInfo postvar = exit_ppt.find_var_by_name (vi.name());
+        VarInfo postvar = exit_ppt.find_var_by_name(vi.name());
         if (postvar == null) {
-          System.out.printf ("Cant find var %s in exit of ppt %s%n", vi,
-                             exit_ppt.name());
-          for (VarInfo cvi : entry_ppt.var_infos)
-            System.out.printf ("  entry var = %s%n", cvi);
-          for (VarInfo cvi : exit_ppt.var_infos)
-            System.out.printf ("  exit var = %s%n", cvi);
+          System.out.printf("Can't find var %s in exit of ppt %s%n", vi, exit_ppt.name());
+          for (VarInfo cvi : entry_ppt.var_infos) {
+            System.out.printf("  entry var = %s%n", cvi);
+          }
+          for (VarInfo cvi : exit_ppt.var_infos) {
+            System.out.printf("  exit var = %s%n", cvi);
+          }
           throw new RuntimeException("this can't happen: postvar is null");
         }
         origvar.postState = postvar;
@@ -1573,13 +1737,17 @@ public final class Daikon {
         // add parents for override relations
         // exit_ppt.parents has not been loaded at this point
         for (VarParent pi : postvar.parents) {
-          assert pi.parent_ppt != null : "@AssumeAssertion(nullness)"; // Checker Framework bug:  parent_ppt is declared as @NonNull
+          assert pi.parent_ppt != null
+              : "@AssumeAssertion(nullness)"; // Checker Framework bug:  parent_ppt is declared as @NonNull
           PptTopLevel parentppt = ppts.get(pi.parent_ppt);
           if (parentppt != null) {
             if (!parentppt.is_object() && !parentppt.is_class()) {
-              VarInfo pvi = parentppt.find_var_by_name(pi.parent_variable == null ? postvar.name() : pi.parent_variable);
+              VarInfo pvi =
+                  parentppt.find_var_by_name(
+                      pi.parent_variable == null ? postvar.name() : pi.parent_variable);
               if (pvi != null) {
-                origvar.parents.add(new VarParent(pi.parent_ppt, pi.parent_relation_id, pvi.prestate_name()));
+                origvar.parents.add(
+                    new VarParent(pi.parent_ppt, pi.parent_relation_id, pvi.prestate_name()));
               }
             }
           }
@@ -1605,14 +1773,13 @@ public final class Daikon {
         }
       }
     }
-
   }
-
 
   ///////////////////////////////////////////////////////////////////////////
   // Read decls, dtrace, etc. files
 
-  /*@RequiresNonNull("fileio_progress")*/ // set in mainHelper
+  /*@RequiresNonNull("fileio_progress")*/
+  // set in mainHelper
   private static PptMap load_decls_files(Set<File> decl_files) {
     stopwatch.reset();
     try {
@@ -1635,8 +1802,7 @@ public final class Daikon {
       // e.printStackTrace();
       throw new Daikon.TerminationMessage(e, "Error parsing decl file");
     } finally {
-      debugProgress.fine(
-        "Time spent on read_declaration_files: " + stopwatch.format());
+      debugProgress.fine("Time spent on read_declaration_files: " + stopwatch.format());
     }
   }
 
@@ -1658,8 +1824,7 @@ public final class Daikon {
       e.printStackTrace();
       throw new Error(e);
     } finally {
-      debugProgress.fine("Time spent on load_spinfo_files: "
-                         + stopwatch.format());
+      debugProgress.fine("Time spent on load_spinfo_files: " + stopwatch.format());
     }
   }
 
@@ -1668,22 +1833,23 @@ public final class Daikon {
     if (!PptSplitter.dkconfig_disable_splitting && map_files.size() > 0) {
       System.out.print("Reading map (context) files ");
       ContextSplitterFactory.load_mapfiles_into_splitterlist(
-        map_files,
-        ContextSplitterFactory.dkconfig_granularity);
+          map_files, ContextSplitterFactory.dkconfig_granularity);
       System.out.print("\r(read ");
-      System.out.print(
-        UtilMDE.nplural(map_files.size(), "map (context) file"));
+      System.out.print(UtilMDE.nplural(map_files.size(), "map (context) file"));
       System.out.println(")");
-      debugProgress.fine(
-        "Time spent on load_map_files: " + stopwatch.format());
+      debugProgress.fine("Time spent on load_map_files: " + stopwatch.format());
     }
   }
 
   /**
-   * Sets up splitting on all ppts.  Currently only binary splitters
-   * over boolean returns or exactly two return statements are enabled
-   * by default (though other splitters can be defined by the user)
+   * Sets up splitting on all ppts. Currently only binary splitters over boolean returns or exactly
+   * two return statements are enabled by default (though other splitters can be defined by the
+   * user).
    */
+  // TODO: When Checker Framework issue 752 is fixed, remove this
+  // @SuppressWarnings and address the type checking error issued
+  // for the call to SplitterFactory.load_splitters.
+  @SuppressWarnings("contracts.precondition.not.satisfied")
   public static void setup_splitters(PptTopLevel ppt) {
     if (PptSplitter.dkconfig_disable_splitting) {
       return;
@@ -1700,8 +1866,8 @@ public final class Daikon {
       pconds = SplitterList.get(ppt.name());
     }
     if (pconds != null) {
-      Global.debugSplit.fine("Got " + UtilMDE.nplural(pconds.length, "splitter")
-                             + " for " + ppt.name());
+      Global.debugSplit.fine(
+          "Got " + UtilMDE.nplural(pconds.length, "splitter") + " for " + ppt.name());
       ppt.addConditions(pconds);
     }
 
@@ -1712,16 +1878,15 @@ public final class Daikon {
   // Infer invariants over the trace data
 
   /**
-   * The number of columns of progress information to display. In many
-   * Unix shells, this can be set to an appropriate value by
-   * <tt>--config_option daikon.Daikon.progress_display_width=$COLUMNS</tt>.
+   * The number of columns of progress information to display. In many Unix shells, this can be set
+   * to an appropriate value by <tt>--config_option
+   * daikon.Daikon.progress_display_width=$COLUMNS</tt>.
    */
   public static int dkconfig_progress_display_width = 80;
 
   /**
-   * Human-friendly progress status message.
-   * If fileio_progress is non-null, then this is ignored.
-   * So this is primarily for progress reports that are not IO-related.
+   * Human-friendly progress status message. If {@code fileio_progress} is non-null, then this is
+   * ignored. So this is primarily for progress reports that are not IO-related.
    */
   public static String progress = "";
 
@@ -1729,26 +1894,24 @@ public final class Daikon {
   /** Takes precedence over the progress variable. */
   private static /*@MonotonicNonNull*/ FileIOProgress fileio_progress = null;
 
-  /**
-   * Outputs FileIO progress information.
-   * Uses global variable FileIO.data_trace_state.
-   */
+  /** Outputs FileIO progress information. Uses global variable FileIO.data_trace_state. */
   public static class FileIOProgress extends Thread {
     public FileIOProgress() {
       setDaemon(true);
-      df = DateFormat.getTimeInstance(/*DateFormat.LONG*/);
+      df = DateFormat.getTimeInstance(/*DateFormat.LONG*/ );
     }
     /**
-     * Clients should set this variable instead of calling Thread.stop(),
-     * which is deprecated.  Typically a client calls "display()" before
-     * setting this.  The stopping happens later, and calls clear() anyway.
-     **/
+     * Clients should set this variable instead of calling Thread.stop(), which is deprecated.
+     * Typically a client calls "display()" before setting this. The stopping happens later, and
+     * calls clear() anyway.
+     */
     public boolean shouldStop = false;
+
     private final DateFormat df;
+
     @Override
     public void run() {
-      if (dkconfig_progress_delay == -1)
-        return;
+      if (dkconfig_progress_delay == -1) return;
       while (true) {
         if (shouldStop) {
           clear();
@@ -1762,25 +1925,22 @@ public final class Daikon {
         }
       }
     }
-    /** Clear the display; good to do before printing to System.out. **/
+    /** Clear the display; good to do before printing to System.out. */
     public void clear() {
-      if (dkconfig_progress_delay == -1)
-        return;
+      if (dkconfig_progress_delay == -1) return;
       // "display("");" is wrong becuase it leaves the timestamp and writes
       // spaces across the screen.
-      String status =
-        UtilMDE.rpad("", dkconfig_progress_display_width - 1);
+      String status = UtilMDE.rpad("", dkconfig_progress_display_width - 1);
       System.out.print("\r" + status);
       System.out.print("\r"); // return to beginning of line
       System.out.flush();
     }
     /**
-     * Displays the current status.
-     * Call this if you don't want to wait until the next automatic display.
-     **/
+     * Displays the current status. Call this if you don't want to wait until the next automatic
+     * display.
+     */
     public void display() {
-      if (dkconfig_progress_delay == -1)
-        return;
+      if (dkconfig_progress_delay == -1) return;
 
       String message;
       if (FileIO.data_trace_state != null) {
@@ -1794,30 +1954,26 @@ public final class Daikon {
       }
       display(message);
     }
-    /** Displays the given message. **/
+    /** Displays the given message. */
     public void display(String message) {
-      if (dkconfig_progress_delay == -1)
-        return;
+      if (dkconfig_progress_delay == -1) return;
       String status =
-        UtilMDE.rpad(
-          "[" + df.format(new Date()) + "]: " + message,
-          dkconfig_progress_display_width - 1);
+          UtilMDE.rpad(
+              "[" + df.format(new Date()) + "]: " + message, dkconfig_progress_display_width - 1);
       System.out.print("\r" + status);
       System.out.flush();
       // System.out.println (status); // for debugging
 
       if (debugTrace.isLoggable(Level.FINE)) {
+        debugTrace.fine("Free memory: " + java.lang.Runtime.getRuntime().freeMemory());
         debugTrace.fine(
-          "Free memory: "
-            + java.lang.Runtime.getRuntime().freeMemory());
-        debugTrace.fine(
-          "Used memory: "
-            + (java.lang.Runtime.getRuntime().totalMemory()
-              - java.lang.Runtime.getRuntime().freeMemory()));
+            "Used memory: "
+                + (java.lang.Runtime.getRuntime().totalMemory()
+                    - java.lang.Runtime.getRuntime().freeMemory()));
         try {
-          if (FileIO.data_trace_state != null)
-            debugTrace.fine("Active slices: " +
-                            FileIO.data_trace_state.all_ppts.countSlices());
+          if (FileIO.data_trace_state != null) {
+            debugTrace.fine("Active slices: " + FileIO.data_trace_state.all_ppts.countSlices());
+          }
         } catch (ConcurrentModificationException e) {
           // Because this code is a separate thread, the number of ppts
           // could change during countSlices.  Just ignore and continue.
@@ -1827,14 +1983,13 @@ public final class Daikon {
   }
 
   /**
-   * The data-processing routine of the daikon engine.  At this
-   * point, the decls and spinfo files have been loaded, all of the
-   * program points have been setup, and candidate invariants have
-   * been instantiated.  This routine processes data to falsify the
-   * candidate invariants.
-   **/
+   * The data-processing routine of the daikon engine. At this point, the decls and spinfo files
+   * have been loaded, all of the program points have been setup, and candidate invariants have been
+   * instantiated. This routine processes data to falsify the candidate invariants.
+   */
   @SuppressWarnings("contracts.precondition.not.satisfied") // private field
-  /*@RequiresNonNull("fileio_progress")*/ // set in mainHelper
+  /*@RequiresNonNull("fileio_progress")*/
+  // set in mainHelper
   private static void process_data(PptMap all_ppts, Set<String> dtrace_files) {
     MemMonitor monitor = null;
     if (use_mem_monitor) {
@@ -1852,13 +2007,15 @@ public final class Daikon {
       fileio_progress.clear();
       if (!Daikon.dkconfig_quiet) {
         System.out.println(
-          "Processing trace data; reading "
-            + UtilMDE.nplural(dtrace_files.size(), "dtrace file")
-            + ":");
+            "Processing trace data; reading "
+                + UtilMDE.nplural(dtrace_files.size(), "dtrace file")
+                + ":");
       }
       FileIO.read_data_trace_files(dtrace_files, all_ppts);
-      fileio_progress.shouldStop = true;
       // Final update, so "100%", not "99.70%", is the last thing printed.
+      // (This doesn't seem to achieve that, though...)
+      fileio_progress.display();
+      fileio_progress.shouldStop = true;
       fileio_progress.display();
       if (!Daikon.dkconfig_quiet) {
         System.out.println();
@@ -1874,8 +2031,7 @@ public final class Daikon {
       // e.printStackTrace();
       throw new Error(e);
     } finally {
-      debugProgress.fine(
-        "Time spent on read_data_trace_files: " + stopwatch.format());
+      debugProgress.fine("Time spent on read_data_trace_files: " + stopwatch.format());
     }
 
     if (monitor != null) {
@@ -1884,30 +2040,30 @@ public final class Daikon {
 
     if (FileIO.dkconfig_read_samples_only) {
       throw new Daikon.TerminationMessage(
-        String.format("Finished reading %d samples", FileIO.samples_processed));
+          String.format("Finished reading %d samples", FileIO.samples_processed));
     }
 
     if (all_ppts.size() == 0) {
       String message = "No program point declarations were found.";
       if (FileIO.omitted_declarations != 0) {
-        message += lineSep + "  " + FileIO.omitted_declarations + " "
-          + ((FileIO.omitted_declarations == 1)
-             ? "declaration was"
-             : "declarations were")
-          + " omitted by regexps (e.g., --ppt-select-pattern).";
+        message +=
+            lineSep
+                + "  "
+                + FileIO.omitted_declarations
+                + " "
+                + ((FileIO.omitted_declarations == 1) ? "declaration was" : "declarations were")
+                + " omitted by regexps (e.g., --ppt-select-pattern).";
       }
       throw new Daikon.TerminationMessage(message);
     }
 
     // System.out.println("samples processed: " + FileIO.samples_processed);
-    // if  {
+
     int unmatched_count = FileIO.call_stack.size() + FileIO.call_hashmap.size();
-    if ((use_dataflow_hierarchy
-         && FileIO.samples_processed == unmatched_count)
+    if ((use_dataflow_hierarchy && FileIO.samples_processed == unmatched_count)
         || (FileIO.samples_processed == 0)) {
-      throw new Daikon.TerminationMessage("No samples found for any of "
-                                          + UtilMDE.nplural(all_ppts.size(),
-                                                            "program point"));
+      throw new Daikon.TerminationMessage(
+          "No samples found for any of " + UtilMDE.nplural(all_ppts.size(), "program point"));
     }
 
     // ppt_stats (all_ppts);
@@ -1933,45 +2089,51 @@ public final class Daikon {
 
     // Postprocessing
 
-    stopwatch.reset();
-
     debugProgress.fine("Create Combined Exits ... ");
+    stopwatch.reset();
     create_combined_exits(all_ppts);
+    debugProgress.fine("Create Combined Exits ... done [" + stopwatch.format() + "]");
 
     // Post process dynamic constants
     if (DynamicConstants.dkconfig_use_dynamic_constant_optimization) {
       debugProgress.fine("Constant Post Processing ... ");
+      stopwatch.reset();
       for (PptTopLevel ppt : all_ppts.ppt_all_iterable()) {
-        if (ppt.constants != null)
-          ppt.constants.post_process();
+        if (ppt.constants != null) ppt.constants.post_process();
       }
+      debugProgress.fine("Constant Post Processing ... done [" + stopwatch.format() + "]");
     }
 
     // Initialize the partial order hierarchy
     debugProgress.fine("Init Hierarchy ... ");
-    assert FileIO.new_decl_format != null : "@AssumeAssertion(nullness): read data, so new_decl_format is set";
-    if (FileIO.new_decl_format)
-      PptRelation.init_hierarchy_new (all_ppts);
-    else
+    stopwatch.reset();
+    assert FileIO.new_decl_format != null
+        : "@AssumeAssertion(nullness): read data, so new_decl_format is set";
+    if (FileIO.new_decl_format) {
+      PptRelation.init_hierarchy_new(all_ppts);
+    } else {
       PptRelation.init_hierarchy(all_ppts);
-    debugProgress.fine("Init Hierarchy ... done");
+    }
+    debugProgress.fine("Init Hierarchy ... done [" + stopwatch.format() + "]");
 
     // Calculate invariants at all non-leaf ppts
     if (use_dataflow_hierarchy) {
-      debugProgress.fine("createUpperPpts");
+      debugProgress.fine("createUpperPpts ... ");
+      stopwatch.reset();
       // calculates invariants; does not actually create any ppts
       createUpperPpts(all_ppts);
-      debugProgress.fine("createUpperPpts ... done");
+      debugProgress.fine("createUpperPpts ... done [" + stopwatch.format() + "]");
     }
 
     // Equality data for each PptTopLevel.
     if (Daikon.use_equality_optimization && !Daikon.dkconfig_undo_opts) {
       debugProgress.fine("Equality Post Process ... ");
+      stopwatch.reset();
       for (PptTopLevel ppt : all_ppts.ppt_all_iterable()) {
         // ppt.equality_view can be null here
         ppt.postProcessEquality();
       }
-      debugProgress.fine("Equality Post Process ... done");
+      debugProgress.fine("Equality Post Process ... done [" + stopwatch.format() + "]");
     }
 
     // undo optimizations; results in a more redundant but more complete
@@ -1987,74 +2149,65 @@ public final class Daikon {
       }
     }
 
-    debugProgress.fine ("Time spent on non-implication postprocessing: "
-                        + stopwatch.format());
+    debugProgress.fine("Non-implication postprocessing ... done");
 
     isInferencing = false;
 
     // Add implications
     stopwatch.reset();
     fileio_progress.clear();
-    if (! PptSplitter.dkconfig_disable_splitting) {
+    if (!PptSplitter.dkconfig_disable_splitting) {
       debugProgress.fine("Adding Implications ... ");
       for (PptTopLevel ppt : all_ppts.pptIterable()) {
         // debugProgress.fine ("  Adding implications for " + ppt.name);
         ppt.addImplications();
       }
-      debugProgress.fine("Time spent adding implications: "
-                         + stopwatch.format());
+      debugProgress.fine("Time spent adding implications: " + stopwatch.format());
     }
   }
 
   private static class Count {
     public int val;
-    Count (int val) {
+
+    Count(int val) {
       this.val = val;
     }
   }
 
-  /**
-   * Print out basic statistics (samples, invariants, variables, etc)
-   * about each ppt
-   */
-  public static void ppt_stats (PptMap all_ppts) {
+  /** Print out basic statistics (samples, invariants, variables, etc) about each ppt. */
+  public static void ppt_stats(PptMap all_ppts) {
 
     int all_ppt_cnt = 0;
     int ppt_w_sample_cnt = 0;
     for (PptTopLevel ppt : all_ppts.pptIterable()) {
       all_ppt_cnt++;
-      if (ppt.num_samples() == 0)
-        continue;
+      if (ppt.num_samples() == 0) continue;
       ppt_w_sample_cnt++;
-      System.out.printf ("%s%n", ppt.name());
-      System.out.printf ("  samples    = %n%d", ppt.num_samples());
-      System.out.printf ("  invariants = %n%d", ppt.invariant_cnt());
-      Map<ProglangType,Count> type_map = new LinkedHashMap<ProglangType,Count>();
+      System.out.printf("%s%n", ppt.name());
+      System.out.printf("  samples    = %n%d", ppt.num_samples());
+      System.out.printf("  invariants = %n%d", ppt.invariant_cnt());
+      Map<ProglangType, Count> type_map = new LinkedHashMap<ProglangType, Count>();
       int leader_cnt = 0;
       for (VarInfo v : ppt.var_infos) {
-        if (!v.isCanonical())
-          continue;
+        if (!v.isCanonical()) continue;
         leader_cnt++;
-        Count cnt = type_map.get (v.file_rep_type);
-        if (cnt == null)
-          type_map.put (v.file_rep_type, cnt = new Count(0));
+        Count cnt = type_map.get(v.file_rep_type);
+        if (cnt == null) type_map.put(v.file_rep_type, cnt = new Count(0));
         cnt.val++;
       }
-      System.out.println ("  vars       = " + ppt.var_infos.length);
-      System.out.println ("  leaders    = " + leader_cnt);
-      for (Map.Entry</*@KeyFor("type_map")*/ ProglangType,Count> e : type_map.entrySet()) {
+      System.out.println("  vars       = " + ppt.var_infos.length);
+      System.out.println("  leaders    = " + leader_cnt);
+      for (Map.Entry</*@KeyFor("type_map")*/ ProglangType, Count> e : type_map.entrySet()) {
         ProglangType file_rep_type = e.getKey();
         Count cnt = e.getValue();
-        System.out.printf ("  %s  = %d%n", file_rep_type, cnt.val);
+        System.out.printf("  %s  = %d%n", file_rep_type, cnt.val);
       }
     }
-    System.out.println ("Total ppt count     = " + all_ppt_cnt);
-    System.out.println ("PPts w/sample count = " + ppt_w_sample_cnt);
+    System.out.println("Total ppt count     = " + all_ppt_cnt);
+    System.out.println("PPts w/sample count = " + ppt_w_sample_cnt);
   }
 
-  /**
-   * Process the invariants with simplify to remove redundant invariants
-   */
+  /** Process the invariants with simplify to remove redundant invariants. */
   private static void suppressWithSimplify(PptMap all_ppts) {
     System.out.print("Invoking Simplify to identify redundant invariants");
     System.out.flush();
@@ -2072,26 +2225,20 @@ public final class Daikon {
     }
   }
 
-  /**
-   * Initialize NIS suppression
-   */
+  /** Initialize NIS suppression. */
   public static void setup_NISuppression() {
     NIS.init_ni_suppression();
   }
 
-  /**
-   * Initialize the equality sets for each variable
-   */
-  public static void setupEquality (PptTopLevel ppt) {
+  /** Initialize the equality sets for each variable. */
+  public static void setupEquality(PptTopLevel ppt) {
 
-    if (!Daikon.use_equality_optimization)
-      return;
+    if (!Daikon.use_equality_optimization) return;
 
     // Skip points that are not leaves.
     if (use_dataflow_hierarchy) {
       PptTopLevel p = ppt;
-      if (ppt instanceof PptConditional)
-        p = ((PptConditional)ppt).parent;
+      if (ppt instanceof PptConditional) p = ((PptConditional) ppt).parent;
 
       // Rather than defining leaves as :::GLOBAL or :::EXIT54 (numbered
       // exit), we define them as everything except
@@ -2099,16 +2246,15 @@ public final class Daikon {
       //  and :::CLASS program points.  This scheme ensures that arbitrarly
       //  named program points such as :::POINT (used by convertcsv.pl)
       //  will be treated as leaves.
-      if (p.ppt_name.isCombinedExitPoint() ||
-          p.ppt_name.isEnterPoint() ||
-          p.ppt_name.isThrowsPoint() ||
-          p.ppt_name.isObjectInstanceSynthetic() ||
-          p.ppt_name.isClassStaticSynthetic()) {
+      if (p.ppt_name.isCombinedExitPoint()
+          || p.ppt_name.isEnterPoint()
+          || p.ppt_name.isThrowsPoint()
+          || p.ppt_name.isObjectInstanceSynthetic()
+          || p.ppt_name.isClassStaticSynthetic()) {
         return;
       }
 
-      if (ppt.has_splitters())
-        return;
+      if (ppt.has_splitters()) return;
     }
 
     // Create the initial equality sets
@@ -2120,66 +2266,61 @@ public final class Daikon {
   private static List<SpinfoFile> spinfoFiles = new ArrayList<SpinfoFile>();
 
   /**
-   * Create user-defined splitters.  For each file in the input,
-   * add a SpinfoFile to the spinfoFiles variable.
+   * Create user-defined splitters. For each file in the input, add a SpinfoFile to the spinfoFiles
+   * variable.
    */
-  public static void create_splitters(Set<File> spinfo_files)
-    throws IOException {
+  public static void create_splitters(Set<File> spinfo_files) throws IOException {
     for (File filename : spinfo_files) {
-      SpinfoFile sf = SplitterFactory.parse_spinfofile (filename);
+      SpinfoFile sf = SplitterFactory.parse_spinfofile(filename);
       spinfoFiles.add(sf);
     }
   }
 
+  //   /**
+  //    * Guard the invariants at all PptTopLevels. Note that this changes
+  //    * the contents of the PptTopLevels, and the changes made should
+  //    * probably not be written out to an inv file (save the file before
+  //    * this is called).
+  //    */
+  //   public static void guardInvariants(PptMap allPpts) {
+  //     for (PptTopLevel ppt : allPpts.asCollection()) {
+  //       if (ppt.num_samples() == 0)
+  //         continue;
+  //       // Make sure isDerivedParam is set before guarding.  Otherwise
+  //       // we'll never get it correct.
+  //       for (int iVarInfo = 0;
+  //         iVarInfo < ppt.var_infos.length;
+  //         iVarInfo++) {
+  //         boolean temp =
+  //           ppt.var_infos[iVarInfo].isDerivedParamAndUninteresting();
+  //       }
+  //
+  //       ppt.guardInvariants();
+  //     }
+  //   }
 
-//   /**
-//    * Guard the invariants at all PptTopLevels. Note that this changes
-//    * the contents of the PptTopLevels, and the changes made should
-//    * probably not be written out to an inv file (save the file before
-//    * this is called).
-//    */
-//   public static void guardInvariants(PptMap allPpts) {
-//     for (PptTopLevel ppt : allPpts.asCollection()) {
-//       if (ppt.num_samples() == 0)
-//         continue;
-//       // Make sure isDerivedParam is set before guarding.  Otherwise
-//       // we'll never get it correct.
-//       for (int iVarInfo = 0;
-//         iVarInfo < ppt.var_infos.length;
-//         iVarInfo++) {
-//         boolean temp =
-//           ppt.var_infos[iVarInfo].isDerivedParamAndUninteresting();
-//       }
-//
-//       ppt.guardInvariants();
-//     }
-//   }
-
-  /**
-   * Removed invariants as specified in omit_types
-   */
+  /** Removed invariants as specified in omit_types. */
   private static void processOmissions(PptMap allPpts) {
-    if (omit_types['0'])
-      allPpts.removeUnsampled();
+    if (omit_types['0']) allPpts.removeUnsampled();
     for (PptTopLevel ppt : allPpts.asCollection()) {
       ppt.processOmissions(omit_types);
     }
   }
 
   /**
-   * Returns the ppt name, max_ppt, that corresponds to the specified
-   * percentage of ppts (presuming that only those ppts &le; max_ppt will be
-   * processed).
+   * Returns the ppt name, max_ppt, that corresponds to the specified percentage of ppts (presuming
+   * that only those ppts &le; max_ppt will be processed).
    */
   private static /*@Nullable*/ String setup_ppt_perc(Collection<File> decl_files, int ppt_perc) {
 
     // Make sure the percentage is valid
-    if ((ppt_perc < 1) || (ppt_perc > 100))
+    if ((ppt_perc < 1) || (ppt_perc > 100)) {
       // The number should already have been checked, so use Error instead of Daikon.TerminationMessage
-      throw new Error(
-        "ppt_perc of " + ppt_perc + " is out of range 1..100");
-    if (ppt_perc == 100)
+      throw new Error("ppt_perc of " + ppt_perc + " is out of range 1..100");
+    }
+    if (ppt_perc == 100) {
       return null;
+    }
 
     // Keep track of all of the ppts in a set ordered by the ppt name
     Set<String> ppts = new TreeSet<String>();
@@ -2192,16 +2333,13 @@ public final class Daikon {
         LineNumberReader fp = UtilMDE.lineNumberFileReader(file);
 
         // Read each ppt name from the file
-        for (String line = fp.readLine();
-             line != null;
-             line = fp.readLine()) {
-          if (line.equals("") || FileIO.isComment(line))
-            continue;
-          if (!line.equals("DECLARE"))
-            continue;
+        for (String line = fp.readLine(); line != null; line = fp.readLine()) {
+          if (line.equals("") || FileIO.isComment(line)) continue;
+          if (!line.equals("DECLARE")) continue;
           String ppt_name = fp.readLine();
-          if (ppt_name == null)
+          if (ppt_name == null) {
             throw new Daikon.TerminationMessage("File " + file + " terminated prematurely");
+          }
           ppts.add(ppt_name);
         }
 
@@ -2216,36 +2354,32 @@ public final class Daikon {
     // return the last exit point from the method (so we don't get half the
     // exits from a method or enters without exits, etc)
     int ppt_cnt = (ppts.size() * ppt_perc) / 100;
-    if (ppt_cnt == 0)
+    if (ppt_cnt == 0) {
       throw new Daikon.TerminationMessage(
-        "ppt_perc of "
-        + ppt_perc
-        + "% results in processing 0 out of "
-        + ppts.size()
-        + " ppts");
-    for (Iterator<String> i = ppts.iterator(); i.hasNext();) {
+          "ppt_perc of " + ppt_perc + "% results in processing 0 out of " + ppts.size() + " ppts");
+    }
+    for (Iterator<String> i = ppts.iterator(); i.hasNext(); ) {
       String ppt_name = i.next();
       if (--ppt_cnt <= 0) {
         String last_ppt_name = ppt_name;
         while (i.hasNext()) {
           ppt_name = i.next();
-          if ((last_ppt_name.indexOf("EXIT") != -1)
-            && (ppt_name.indexOf("EXIT") == -1))
-            return (last_ppt_name);
+          if ((last_ppt_name.indexOf("EXIT") != -1) && (ppt_name.indexOf("EXIT") == -1)) {
+            return last_ppt_name;
+          }
           last_ppt_name = ppt_name;
         }
-        return (ppt_name);
+        return ppt_name;
       }
     }
     // Execution should not reach this line
     throw new Error("ppt_cnt " + ppt_cnt + " ppts.size " + ppts.size());
   }
 
- /**
-  * Undoes the invariants suppressed for the dynamic constant,
-  * suppression and equality set optimizations (should yield the same
-  * invariants as the simple incremental algorithm
-  */
+  /**
+   * Undoes the invariants suppressed for the dynamic constant, suppression and equality set
+   * optimizations (should yield the same invariants as the simple incremental algorithm.
+   */
   @SuppressWarnings("flowexpr.parse.error") // private field
   /*@RequiresNonNull({"NIS.all_suppressions", "NIS.suppressor_map"})*/
   public static void undoOpts(PptMap all_ppts) {
@@ -2260,11 +2394,10 @@ public final class Daikon {
       PptSliceEquality sliceEquality = ppt.equality_view;
 
       // some program points have no equality sets?
-       if (sliceEquality == null) {
-         // System.out.println(ppt.name);
-         continue;
-       }
-
+      if (sliceEquality == null) {
+        // System.out.println(ppt.name);
+        continue;
+      }
 
       // get the new leaders
       List<Equality> allNewInvs = new ArrayList<Equality>();
@@ -2296,7 +2429,6 @@ public final class Daikon {
       }
 
       sliceEquality.invs.addAll(allNewInvs);
-
     }
   }
 }

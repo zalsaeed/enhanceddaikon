@@ -20,6 +20,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -27,7 +28,8 @@ import typequals.*;
 
 /**
  * Represents an invariant of != between two long scalars.
- **/
+ * Prints as <code>x != y</code>.
+ */
 public final class IntNonEqual
   extends TwoScalar {
 
@@ -40,15 +42,15 @@ public final class IntNonEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff IntNonEqual invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.twoScalar.IntNonEqual");
 
   /**
    * Boolean.  True iff IntNonEqual invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_integral_only = true;
 
   protected IntNonEqual(PptSlice ppt) {
@@ -61,29 +63,31 @@ public final class IntNonEqual
 
   private static /*@Prototype*/ IntNonEqual proto = new /*@Prototype*/ IntNonEqual ();
 
-  /** Returns the prototype invariant for IntNonEqual **/
+  /** Returns the prototype invariant for IntNonEqual */
   public static /*@Prototype*/ IntNonEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Returns whether or not the specified var types are valid for IntNonEqual **/
+  /** Returns whether or not the specified var types are valid for IntNonEqual */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-        if (dkconfig_integral_only)
+        if (dkconfig_integral_only) {
           return (vis[0].file_rep_type.isIntegral()
                   && vis[1].file_rep_type.isIntegral());
-        return (true);
+        }
+        return true;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected IntNonEqual instantiate_dyn (/*>>> @Prototype IntNonEqual this,*/ PptSlice slice) {
 
     // System.out.printf ("Instantiating non-equal on %s and %s%n",
@@ -98,8 +102,9 @@ public final class IntNonEqual
       return this;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
-    return (true);
+  /*@Pure*/
+  public boolean is_symmetric() {
+    return true;
   }
 
   // JHP: this should be removed in favor of checks in PptTopLevel
@@ -109,25 +114,27 @@ public final class IntNonEqual
   public static /*@Nullable*/ IntNonEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof IntNonEqual)
+      if (inv instanceof IntNonEqual) {
         return (IntNonEqual) inv;
+      }
     }
 
     // If the invariant is suppressed, create it
     if ((suppressions != null) && suppressions.suppressed (ppt)) {
       IntNonEqual inv = proto.instantiate_dyn (ppt);
       // System.out.printf ("%s is suppressed in ppt %s%n", inv.format(), ppt.name());
-      return (inv);
+      return inv;
     }
 
     return null;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied IntNonEqual this*/) {
     return "IntNonEqual" + varNames();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied IntNonEqual this,*/ OutputFormat format) {
 
     String var1name = var1().name_using(format);
     String var2name = var2().name_using(format);
@@ -176,9 +183,10 @@ public final class IntNonEqual
   }
 
   public InvariantStatus add_modified(long v1, long v2, int count) {
-    if (logDetail() || debug.isLoggable(Level.FINE))
+    if (logDetail() || debug.isLoggable(Level.FINE)) {
       log (debug, "add_modified (" + v1 + ", " + v2 + ",  "
            + "ppt.num_values = " + ppt.num_values() + ")");
+    }
     if ((logOn() || debug.isLoggable(Level.FINE)) &&
         check_modified(v1, v2, count) == InvariantStatus.FALSIFIED)
       log (debug, "destroy in add_modified (" + v1 + ", " + v2 + ",  "
@@ -205,13 +213,15 @@ public final class IntNonEqual
 
   // For Comparison interface
   public double eq_confidence() {
-    if (isExact())
+    if (isExact()) {
       return getConfidence();
-    else
+    } else {
       return Invariant.CONFIDENCE_NEVER;
+    }
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return false;
   }
@@ -236,16 +246,19 @@ public final class IntNonEqual
     return super.add(v1, v2, mod_index, count);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     // Also ought to check against LinearBinary, etc.
 
-      if (other instanceof IntEqual)
+      if (other instanceof IntEqual) {
         return true;
+      }
 
     return false;
   }
@@ -306,16 +319,19 @@ public final class IntNonEqual
 
       // (A[] no dups) ^ (i != j) ==> a[i] != a[j]
       di = no_dups_implies (vis);
-      if (di != null)
-        return (di);
+      if (di != null) {
+        return di;
+      }
 
     { // Sequence length tests
       SequenceLength sl1 = null;
-      if (var1.isDerived() && (var1.derived instanceof SequenceLength))
+      if (var1.isDerived() && (var1.derived instanceof SequenceLength)) {
         sl1 = (SequenceLength) var1.derived;
+      }
       SequenceLength sl2 = null;
-      if (var2.isDerived() && (var2.derived instanceof SequenceLength))
+      if (var2.isDerived() && (var2.derived instanceof SequenceLength)) {
         sl2 = (SequenceLength) var2.derived;
+      }
 
       // "size(a)-1 cmp size(b)-1" is never even instantiated;
       // use "size(a) cmp size(b)" instead.
@@ -348,10 +364,12 @@ public final class IntNonEqual
     // Make sure v1 and v2 are SequenceScalarSubscript from the same array
     VarInfo v1 = vis[0];
     VarInfo v2 = vis[1];
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceScalarSubscript))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceScalarSubscript))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceScalarSubscript)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceScalarSubscript)) {
+      return null;
+    }
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceScalarSubscript der1 = (SequenceScalarSubscript) v1.derived;
     @SuppressWarnings("nullness") // checker bug: flow
@@ -360,28 +378,30 @@ public final class IntNonEqual
     // The sequence vars must be equal (or the same)
     if (!ppt.parent.is_equal (der1.seqvar().canonicalRep(),
                               der2.seqvar().canonicalRep()))
-      return (null);
+      return null;
 
     // The subscripts must be non_equal
     DiscardInfo di1 = ppt.parent.check_implied_canonical (this, der1.sclvar(),
                                         der2.sclvar(), IntNonEqual.get_proto());
-    if (di1 == null)
-      return (null);
+    if (di1 == null) {
+      return null;
+    }
 
     // The array must have no-dups
     DiscardInfo di2 = ppt.parent.check_implied_canonical (this, der1.seqvar(),
                                                           NoDuplicates.get_proto());
-    if (di2 == null)
-      return (null);
+    if (di2 == null) {
+      return null;
+    }
 
     return new DiscardInfo (this, DiscardCode.obvious, di1.discardString()
                             + " and " + di2.discardString());
   }
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** Returns the non-instantiating suppressions for this invariant. **/
+  /** Returns the non-instantiating suppressions for this invariant. */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
     if (suppressions == null) {
@@ -403,7 +423,7 @@ public final class IntNonEqual
 
         });
     }
-    return (suppressions);
+    return suppressions;
   }
 
 }

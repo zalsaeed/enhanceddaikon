@@ -12,6 +12,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -24,7 +25,7 @@ import typequals.*;
  * Thus, <code>x[0]</code> is compared to <code>y[0]</code>,
  * <code>x[1]</code> to <code>y[1]</code> and so forth.
  * Prints as <code>y[] = a * x[] + b</code>.
- **/
+ */
 public class PairwiseLinearBinary
   extends TwoSequence
 {
@@ -37,8 +38,8 @@ public class PairwiseLinearBinary
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff PairwiseLinearBinary invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public LinearBinaryCore core;
 
@@ -57,22 +58,23 @@ public class PairwiseLinearBinary
 
   private static /*@Prototype*/ PairwiseLinearBinary proto = new /*@Prototype*/ PairwiseLinearBinary ();
 
-  /** Returns the prototype invariant for PairwiseLinearBinary **/
+  /** Returns the prototype invariant for PairwiseLinearBinary */
   public static /*@Prototype*/ PairwiseLinearBinary get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Instantiates the invariant on the specified slice **/
+  /** Instantiates the invariant on the specified slice */
   protected PairwiseLinearBinary instantiate_dyn (/*>>> @Prototype PairwiseLinearBinary this,*/ PptSlice slice) {
     return new PairwiseLinearBinary (slice);
   }
 
-  /*@SideEffectFree*/ public PairwiseLinearBinary clone() {
+  /*@SideEffectFree*/
+  public PairwiseLinearBinary clone(/*>>>@GuardSatisfied PairwiseLinearBinary this*/) {
     PairwiseLinearBinary result = (PairwiseLinearBinary) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -84,13 +86,14 @@ public class PairwiseLinearBinary
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied PairwiseLinearBinary this*/) {
     return "PairwiseLinearBinary" + varNames() + ": "
       + "falsified=" + falsified
       + "; " + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied PairwiseLinearBinary this,*/ OutputFormat format) {
     if (core.a == 0 && core.b == 0 && core.c == 0) {
       return format_too_few_samples(format, null);
     }
@@ -103,12 +106,12 @@ public class PairwiseLinearBinary
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied PairwiseLinearBinary this*/) {
     return core.format_using(OutputFormat.DAIKON, var1().name(),
                              var2().name());
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied PairwiseLinearBinary this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.element_wise(),
                                                var1(), var2());
     return form[0] + LinearBinaryCore.format_simplify(form[1], form[2],
@@ -116,7 +119,7 @@ public class PairwiseLinearBinary
       + form[3];
   }
 
-  public String format_csharp() {
+  public String format_csharp(/*>>>@GuardSatisfied PairwiseLinearBinary this*/) {
 
     String[] split1 = var1().csharp_array_split();
     String[] split2 = var2().csharp_array_split();
@@ -153,11 +156,13 @@ public class PairwiseLinearBinary
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((PairwiseLinearBinary) other).core);
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof PairwiseLinearBinary) {
       return core.isExclusiveFormula(((PairwiseLinearBinary) other).core);
     }
@@ -186,7 +191,8 @@ public class PairwiseLinearBinary
     return null;
   }
 
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive() {
     return core.isActive();
   }
 
@@ -198,9 +204,9 @@ public class PairwiseLinearBinary
    * Merge the invariants in invs to form a new invariant.  Each must be
    * a PairwiseLinearBinary invariant.  The work is done by the LinearBinary core
    *
-   * @param invs        List of invariants to merge.  They should all be
+   * @param invs        list of invariants to merge.  They should all be
    *                    permuted to match the variable order in parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -213,10 +219,11 @@ public class PairwiseLinearBinary
     // Merge the cores and build a new invariant containing the merged core
     PairwiseLinearBinary result = new PairwiseLinearBinary (parent_ppt);
     LinearBinaryCore newcore = core.merge (cores, result);
-    if (newcore == null)
-      return (null);
+    if (newcore == null) {
+      return null;
+    }
     result.core = newcore;
-    return (result);
+    return result;
   }
 
 }

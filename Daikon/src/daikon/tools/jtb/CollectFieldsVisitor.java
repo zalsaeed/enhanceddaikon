@@ -10,9 +10,9 @@ import org.checkerframework.checker.nullness.qual.*;
 */
 
 /**
- * Method "fieldDeclarations" returns a list of all FieldDeclarations
- * declared in this class (or, optionally, in nested classes).
- **/
+ * Method "fieldDeclarations" returns a list of all FieldDeclarations declared in this class (or,
+ * optionally, in nested classes).
+ */
 class CollectFieldsVisitor extends DepthFirstVisitor {
 
   public CollectFieldsVisitor(ClassOrInterfaceDeclaration n, boolean include_nested_classes) {
@@ -23,7 +23,7 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
     updateCache();
   }
 
-  /** True if this visitor should include nested classes, false otherwise. **/
+  /** True if this visitor should include nested classes, false otherwise. */
   private boolean include_nested_classes;
 
   private List<FieldDeclaration> fieldDecls = new ArrayList<FieldDeclaration>();
@@ -36,6 +36,7 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
   // True if the above three lists are up-to-date.
   private boolean cached = false;
 
+  /*@RequiresNonNull("fieldDecls")*/
   /*@EnsuresNonNull({"allNames" , "ownedNames", "finalNames"})*/
   private void updateCache(/*>>> @UnknownInitialization @Raw CollectFieldsVisitor this*/) {
     if (cached) {
@@ -61,14 +62,12 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
       {
         String name = name(fd.f1);
         allNames.add(name);
-        if (isFinal)
-          finalNames.add(name);
-        if (isOwned)
-          ownedNames.add(name);
+        if (isFinal) finalNames.add(name);
+        if (isOwned) ownedNames.add(name);
       }
       NodeListOptional fds = fd.f2;
       if (fds.present()) {
-        for (int j=0; j<fds.size(); j++) {
+        for (int j = 0; j < fds.size(); j++) {
           // System.out.println("" + j + ": " + fds.elementAt(j));
           NodeSequence ns = (NodeSequence) fds.elementAt(j);
           if (ns.size() != 2) {
@@ -76,10 +75,8 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
           }
           String name = name((VariableDeclarator) ns.elementAt(1));
           allNames.add(name);
-          if (isFinal)
-            finalNames.add(name);
-          if (isOwned)
-            ownedNames.add(name);
+          if (isFinal) finalNames.add(name);
+          if (isOwned) ownedNames.add(name);
         }
       }
     }
@@ -97,26 +94,25 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
     return Ast.contains(n.f0, mod);
   }
 
-  /** Returns a list of all FieldDeclarations declared in this class or in
-   * nested/inner classes. **/
+  /** Returns a list of all FieldDeclarations declared in this class or in nested/inner classes. */
   public List<FieldDeclaration> fieldDeclarations() {
     updateCache();
     return fieldDecls;
   }
 
-  /** Returns a list of all fields. **/
+  /** Returns a list of all fields. */
   public List<String> allFieldNames() {
     updateCache();
     return allNames;
   }
 
-  /** Returns a list of names of all fields with owner annotations. **/
+  /** Returns a list of names of all fields with owner annotations. */
   public List<String> ownedFieldNames() {
     updateCache();
     return ownedNames;
   }
 
-  /** Returns a list of all final fields. **/
+  /** Returns a list of all final fields. */
   public List<String> finalFieldNames() {
     updateCache();
     return finalNames;
@@ -125,15 +121,16 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
   // Don't continue into nested classes, but do
   // explore them if they are the root.
   private boolean in_class = false;
+
   public void visit(ClassOrInterfaceDeclaration n) {
-    assert ! cached;
+    assert !cached;
     if (include_nested_classes) {
-      super.visit(n);             // call "accept(this)" on each field
-    } else if (! in_class) {
+      super.visit(n); // call "accept(this)" on each field
+    } else if (!in_class) {
       // Can't combine these two bodies.  It's wrong to reset in_class to
       // false if it was true (eg, for second level of nested class).
       in_class = true;
-      super.visit(n);             // call "accept(this)" on each field
+      super.visit(n); // call "accept(this)" on each field
       in_class = false;
     }
   }
@@ -144,9 +141,8 @@ class CollectFieldsVisitor extends DepthFirstVisitor {
   // f3 -> ( "," VariableDeclarator() )*
   // f4 -> ";"
   public void visit(FieldDeclaration n) {
-    assert ! cached;
+    assert !cached;
     fieldDecls.add(n);
-    super.visit(n);             // call "accept(this)" on each field
+    super.visit(n); // call "accept(this)" on each field
   }
-
 }

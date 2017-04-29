@@ -22,6 +22,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -42,7 +43,7 @@ import typequals.*;
  * If the auxiliary information (e.g., order matters)
  * doesn't match between two variables, then this invariant cannot
  * apply to those variables.
- **/
+ */
 public class SeqSeqStringEqual
   extends TwoSequenceString
   implements Comparison
@@ -56,12 +57,12 @@ public class SeqSeqStringEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SeqSeqStringEqual invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   /**
    * Debugging logger.
-   **/
+   */
   static final Logger debug = Logger.getLogger ("daikon.inv.binary.twoSequence.SeqSeqStringEqual");
 
   @SuppressWarnings("interning")  // bug with generics
@@ -81,31 +82,32 @@ public class SeqSeqStringEqual
 
   private static /*@Prototype*/ SeqSeqStringEqual proto = new /*@Prototype*/ SeqSeqStringEqual (true);
 
-  /** Returns the prototype invariant for SeqSeqStringEqual **/
+  /** Returns the prototype invariant for SeqSeqStringEqual */
   public static /*@Prototype*/ SeqSeqStringEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Non-Equal SeqComparison is only valid on integral types **/
+  /** Non-Equal SeqComparison is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     VarInfo var1 = vis[0];
     VarInfo var2 = vis[1];
     ProglangType type1 = var1.type;
     ProglangType type2 = var2.type;
 
-    return (true);
+    return true;
   }
 
-  /** Instantiates the invariant on the specified slice **/
+  /** Instantiates the invariant on the specified slice */
   protected SeqSeqStringEqual instantiate_dyn (/*>>> @Prototype SeqSeqStringEqual this,*/ PptSlice slice) {
     boolean has_order = slice.var_infos[0].aux.hasOrder()
                       && slice.var_infos[1].aux.hasOrder();
@@ -117,30 +119,29 @@ public class SeqSeqStringEqual
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied SeqSeqStringEqual this*/) {
     return "SeqSeqStringEqual" + varNames() + ": "
       + ",orderMatters=" + orderMatters
       + ",enoughSamples=" + enoughSamples()
       ;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SeqSeqStringEqual this,*/ OutputFormat format) {
     // System.out.println("Calling SeqSeqStringEqual.format for: " + repr());
 
     if (format == OutputFormat.SIMPLIFY) {
       return format_simplify();
     }
 
-    if (format == OutputFormat.DAIKON)
-    {
+    if (format == OutputFormat.DAIKON) {
       String name1 = var1().name_using(format);
       String name2 = var2().name_using(format);
 
       return name1 + " == " + name2;
     }
 
-    if (format == OutputFormat.CSHARPCONTRACT)
-    {
+    if (format == OutputFormat.CSHARPCONTRACT) {
       String name1 = var1().csharp_collection_string();
       String name2 = var2().csharp_collection_string();
 
@@ -160,26 +161,28 @@ public class SeqSeqStringEqual
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
-    if (Invariant.dkconfig_simplify_define_predicates)
+  public String format_simplify(/*>>>@GuardSatisfied SeqSeqStringEqual this*/) {
+    if (Invariant.dkconfig_simplify_define_predicates) {
       return format_simplify_defined();
-    else
+    } else {
       return format_simplify_explicit();
+    }
   }
 
-  private String format_simplify_defined() {
+  private String format_simplify_defined(/*>>>@GuardSatisfied SeqSeqStringEqual this*/) {
     String[] var1_name = var1().simplifyNameAndBounds();
     String[] var2_name = var2().simplifyNameAndBounds();
     if (var1_name == null || var2_name == null) {
-      return "format_simplify can't handle one of these sequences: "
-        + format();
+      return String.format("%s.format_simplify_defined(%s): var1_name=%s, var2_name=%s, for %s",
+                           getClass().getSimpleName(), this,
+                           Arrays.toString(var1_name), Arrays.toString(var2_name), format());
     }
     return "(|lexical-==| " +
       var1_name[0] + " " + var1_name[1] + " " + var1_name[2] + " " +
       var2_name[0] + " " + var2_name[1] + " " + var2_name[2] + ")";
   }
 
-  private String format_simplify_explicit() {
+  private String format_simplify_explicit(/*>>>@GuardSatisfied SeqSeqStringEqual this*/) {
 
       // A simple case: if two sequences are lexically equal iff they
       // are elementwise equal.
@@ -214,8 +217,9 @@ public class SeqSeqStringEqual
   }
 
   public InvariantStatus add_modified(String /*@Interned*/ [] v1, String /*@Interned*/ [] v2, int count) {
-    if (logDetail())
+    if (logDetail()) {
       log ("add_modified (%s, %s)", ArraysMDE.toString(v1), ArraysMDE.toString(v2));
+    }
         return check_modified(v1, v2, count);
   }
 
@@ -236,11 +240,13 @@ public class SeqSeqStringEqual
       return getConfidence();
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant o) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant o) {
     return false;
   }
 
@@ -248,7 +254,7 @@ public class SeqSeqStringEqual
    *  Since this invariant can be a postProcessed equality, we have to
    *  handle isObvious especially to avoid circular isObvious
    *  relations.
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousStatically_SomeInEquality() {
     if (var1().equalitySet == var2().equalitySet) {
@@ -262,11 +268,12 @@ public class SeqSeqStringEqual
    *  Since this invariant can be a postProcessed equality, we have to
    *  handle isObvious especially to avoid circular isObvious
    *  relations.
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically_SomeInEquality() {
-    if (logOn())
+    if (logOn()) {
       log ("Considering dynamically_someInEquality");
+    }
     if (var1().equalitySet == var2().equalitySet) {
       return isObviousDynamically (this.ppt.var_infos);
     } else {
@@ -304,7 +311,8 @@ public class SeqSeqStringEqual
     */
   }
 
-  /*@Pure*/ public boolean isEqual() {
+  /*@Pure*/
+  public boolean isEqual() {
 
     return true;
   }
@@ -313,8 +321,9 @@ public class SeqSeqStringEqual
   public static /*@Nullable*/ SeqSeqStringEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SeqSeqStringEqual)
+      if (inv instanceof SeqSeqStringEqual) {
         return (SeqSeqStringEqual) inv;
+      }
     }
     return null;
   }
@@ -324,10 +333,10 @@ public class SeqSeqStringEqual
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** Definition of this invariant (the suppressee) **/
+  /** Definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (SeqSeqStringEqual.class, 2);
 

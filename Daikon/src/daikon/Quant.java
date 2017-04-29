@@ -19,13 +19,9 @@ import org.checkerframework.framework.qual.PolyAll;
  * These routines are used by the Java family of output
  * formats. This allows invariants to be output as snippets of
  * executable (Java) code. For example, an invariant like
- * <pre>
- *  a[] elements &ge; 1
- * </pre>
+ * <pre>a[] elements &ge; 1</pre>
  * is output (in the Java, JML, and DBC formats) as something like
- * <pre>
- *  daikon.Quant.eltsGTE(a, 1)
- * </pre>
+ * <pre>daikon.Quant.eltsGTE(a, 1)</pre>
  *
  * <h3>Naming</h3>
  *
@@ -85,7 +81,8 @@ public final class Quant {
    * Thus, for an array a, this never throws an exception, though a.length may.
    */
   // Not called from Quant; provided only for external use.
-  /*@Pure*/ public static int size(Object o) {
+  /*@Pure*/
+  public static int size(Object o) {
     if (o == null) { return Integer.MAX_VALUE; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -101,14 +98,16 @@ public final class Quant {
    * If the argument is null, returns a default value (Integer.MAX_VALUE).
    */
   // Not called from Quant; provided only for external use.
-  /*@Pure*/ public static int size(Collection<?> o) {
+  /*@Pure*/
+  public static int size(Collection<?> o) {
     if (o == null) { return Integer.MAX_VALUE; } // return default value
     return o.size();
   }
 
   /** True iff the sequence contains no null elements. */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNonNull(final Object[] seq1) {
+  /*@Pure*/
+  public static boolean eltsNonNull(Object[] seq1) {
     if (seq1 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
       if (seq1[i] == null) {
@@ -125,12 +124,13 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (false).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
 
-  /*@Pure*/ public static boolean getElement_boolean (final Object o, long i) {
+  /*@Pure*/
+  public static boolean getElement_boolean (Object o, long i) {
     if (o == null) { return false; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -146,7 +146,8 @@ public final class Quant {
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
 
-  /*@Pure*/ public static boolean getElement_boolean (final boolean[] arr, long i) {
+  /*@Pure*/
+  public static boolean getElement_boolean (boolean[] arr, long i) {
     if (arr == null) { return false; } // return default value
     return arr[(int)i];
   }
@@ -161,7 +162,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -174,7 +176,8 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static boolean /*@PolyNull*/ [] concat(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static boolean /*@PolyNull*/ [] concat(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
@@ -186,7 +189,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static boolean /*@PolyNull*/ [] union(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static boolean /*@PolyNull*/ [] union(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -198,7 +202,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static boolean /*@PolyNull*/ [] intersection(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static boolean /*@PolyNull*/ [] intersection(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     boolean[] intermediate = new boolean[Math.min(seq1.length, seq2.length)];
@@ -217,7 +222,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static boolean /*@PolyNull*/ [] setDiff(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static boolean /*@PolyNull*/ [] setDiff(boolean /*@PolyNull*/ [] seq1, boolean /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     boolean[] intermediate = new boolean[seq1.length];
@@ -234,7 +240,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -261,7 +268,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final boolean[] seq1, final boolean[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(boolean[] seq1, boolean[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -278,7 +286,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -293,7 +302,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final boolean /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(boolean /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -302,7 +312,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(boolean elt, final boolean /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(boolean elt, boolean /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -314,7 +325,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -325,13 +337,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static boolean /*@PolyNull*/ [] slice(boolean /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -343,7 +358,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final boolean /*@Nullable*/ [] arr, boolean elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(boolean /*@Nullable*/ [] arr, boolean elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -359,7 +375,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final boolean /*@Nullable*/ [] arr, boolean elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(boolean /*@Nullable*/ [] arr, boolean elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -377,7 +394,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -397,7 +415,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -413,7 +432,8 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -423,7 +443,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final boolean /*@Nullable*/ [] seq1, final boolean /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(boolean /*@Nullable*/ [] seq1, boolean /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -437,7 +458,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final boolean /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(boolean /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -457,7 +479,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final boolean /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(boolean /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -504,13 +527,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static boolean /*@Nullable*/ [] collectboolean (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static boolean /*@Nullable*/ [] collectboolean (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -528,7 +552,8 @@ public final class Quant {
    * @see collectboolean(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static boolean /*@Nullable*/ [] collectboolean (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static boolean /*@Nullable*/ [] collectboolean (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -612,7 +637,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static boolean collectboolean_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static boolean collectboolean_field (Object object, String fieldStr) {
 
     if (object == null) { return false; } // return default value
     if (fieldStr == null) { return false; } // return default value
@@ -655,10 +681,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Byte.MAX_VALUE).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static byte getElement_byte (final Object o, long i) {
+  /*@Pure*/
+  public static byte getElement_byte (Object o, long i) {
     if (o == null) { return Byte.MAX_VALUE; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -672,7 +699,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static byte getElement_byte (final byte[] arr, long i) {
+  /*@Pure*/
+  public static byte getElement_byte (byte[] arr, long i) {
     if (arr == null) { return Byte.MAX_VALUE; } // return default value
     return arr[(int)i];
   }
@@ -703,7 +731,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -711,7 +740,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -728,7 +758,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final byte[] seq1, final byte[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(byte[] seq1, byte[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -739,7 +770,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final byte[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(byte[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -761,7 +793,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final byte[] seq1, final byte[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(byte[] seq1, byte[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -772,7 +805,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final byte[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(byte[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -792,13 +826,15 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static byte /*@PolyNull*/ [] concat(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static byte /*@PolyNull*/ [] concat(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
   }
 
-  /*@SideEffectFree*/ public static int /*@PolyNull*/ [] concat(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static int /*@PolyNull*/ [] concat(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     // Cannot just use plume.ArraysMDE.concat because the two arrays
@@ -820,13 +856,15 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static byte /*@PolyNull*/ [] union(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static byte /*@PolyNull*/ [] union(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
   }
 
-  /*@Pure*/ public static int /*@PolyNull*/ [] union(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] union(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -838,7 +876,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static byte /*@PolyNull*/ [] intersection(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static byte /*@PolyNull*/ [] intersection(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     byte[] intermediate = new byte[Math.min(seq1.length, seq2.length)];
@@ -851,7 +890,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static int /*@PolyNull*/ [] intersection(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] intersection(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     int[] intermediate = new int[Math.min(seq1.length, seq2.length)];
@@ -870,7 +910,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static byte /*@PolyNull*/ [] setDiff(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static byte /*@PolyNull*/ [] setDiff(byte /*@PolyNull*/ [] seq1, byte /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     byte[] intermediate = new byte[seq1.length];
@@ -883,7 +924,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static int /*@PolyNull*/ [] setDiff(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] setDiff(byte /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     int[] intermediate = new int[seq1.length];
@@ -900,7 +942,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -917,7 +960,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -944,7 +988,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final byte[] seq1, final byte[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(byte[] seq1, byte[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -957,7 +1002,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -974,7 +1020,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -986,7 +1033,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1001,7 +1049,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(byte /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -1010,7 +1059,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(byte elt, final byte /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(byte elt, byte /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -1019,7 +1069,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(byte elt, final int /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(byte elt, int /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -1028,7 +1079,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(long elt, final byte /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(long elt, byte /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -1040,7 +1092,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -1051,13 +1104,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static byte /*@PolyNull*/ [] slice(byte /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -1069,7 +1125,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final byte /*@Nullable*/ [] arr, byte elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(byte /*@Nullable*/ [] arr, byte elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -1078,7 +1135,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final byte /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(byte /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -1094,7 +1152,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final byte /*@Nullable*/ [] arr, byte elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(byte /*@Nullable*/ [] arr, byte elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -1103,7 +1162,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final byte /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(byte /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -1119,7 +1179,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final byte /*@Nullable*/ [] arr, byte elt) {
+  /*@Pure*/
+  public static boolean eltsGT(byte /*@Nullable*/ [] arr, byte elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -1128,7 +1189,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final byte /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsGT(byte /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -1144,7 +1206,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final byte /*@Nullable*/ [] arr, byte elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(byte /*@Nullable*/ [] arr, byte elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -1153,7 +1216,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final byte /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(byte /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -1169,7 +1233,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final byte /*@Nullable*/ [] arr, byte elt) {
+  /*@Pure*/
+  public static boolean eltsLT(byte /*@Nullable*/ [] arr, byte elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -1178,7 +1243,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final byte /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsLT(byte /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -1194,7 +1260,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final byte /*@Nullable*/ [] arr, byte elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(byte /*@Nullable*/ [] arr, byte elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -1203,7 +1270,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final byte /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(byte /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -1221,7 +1289,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1233,7 +1302,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1253,7 +1323,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1265,7 +1336,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1285,7 +1357,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1297,7 +1370,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1316,7 +1390,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1328,7 +1403,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1347,7 +1423,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1359,7 +1436,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1378,7 +1456,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1390,7 +1469,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -1406,14 +1486,16 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -1423,14 +1505,16 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -1440,7 +1524,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1458,7 +1543,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1479,7 +1565,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1497,7 +1584,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1518,7 +1606,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1536,7 +1625,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1557,7 +1647,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final byte /*@Nullable*/ [] seq1, final byte /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(byte /*@Nullable*/ [] seq1, byte /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1575,7 +1666,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final byte /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(byte /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -1600,7 +1692,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -1620,7 +1713,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -1640,7 +1734,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -1660,7 +1755,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -1680,7 +1776,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -1700,7 +1797,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -1720,7 +1818,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -1738,7 +1837,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -1756,7 +1856,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -1774,7 +1875,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -1792,7 +1894,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -1810,7 +1913,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final byte /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(byte /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -1855,13 +1959,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static byte /*@Nullable*/ [] collectbyte (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static byte /*@Nullable*/ [] collectbyte (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -1879,7 +1984,8 @@ public final class Quant {
    * @see collectbyte(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static byte /*@Nullable*/ [] collectbyte (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static byte /*@Nullable*/ [] collectbyte (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -1963,7 +2069,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static byte collectbyte_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static byte collectbyte_field (Object object, String fieldStr) {
 
     if (object == null) { return Byte.MAX_VALUE; } // return default value
     if (fieldStr == null) { return Byte.MAX_VALUE; } // return default value
@@ -2006,10 +2113,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Character.MAX_VALUE).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static char getElement_char (final Object o, long i) {
+  /*@Pure*/
+  public static char getElement_char (Object o, long i) {
     if (o == null) { return Character.MAX_VALUE; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -2023,7 +2131,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static char getElement_char (final char[] arr, long i) {
+  /*@Pure*/
+  public static char getElement_char (char[] arr, long i) {
     if (arr == null) { return Character.MAX_VALUE; } // return default value
     return arr[(int)i];
   }
@@ -2054,7 +2163,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -2067,7 +2177,8 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static char /*@PolyNull*/ [] concat(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static char /*@PolyNull*/ [] concat(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
@@ -2079,7 +2190,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static char /*@PolyNull*/ [] union(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static char /*@PolyNull*/ [] union(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -2091,7 +2203,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static char /*@PolyNull*/ [] intersection(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static char /*@PolyNull*/ [] intersection(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     char[] intermediate = new char[Math.min(seq1.length, seq2.length)];
@@ -2110,7 +2223,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static char /*@PolyNull*/ [] setDiff(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static char /*@PolyNull*/ [] setDiff(char /*@PolyNull*/ [] seq1, char /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     char[] intermediate = new char[seq1.length];
@@ -2127,7 +2241,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -2154,7 +2269,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final char[] seq1, final char[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(char[] seq1, char[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -2171,7 +2287,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2186,7 +2303,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(char /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -2195,7 +2313,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(char elt, final char /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(char elt, char /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -2207,7 +2326,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -2218,13 +2338,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static char /*@PolyNull*/ [] slice(char /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -2236,7 +2359,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final char /*@Nullable*/ [] arr, char elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(char /*@Nullable*/ [] arr, char elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -2252,7 +2376,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final char /*@Nullable*/ [] arr, char elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(char /*@Nullable*/ [] arr, char elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -2268,7 +2393,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final char /*@Nullable*/ [] arr, char elt) {
+  /*@Pure*/
+  public static boolean eltsGT(char /*@Nullable*/ [] arr, char elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -2284,7 +2410,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final char /*@Nullable*/ [] arr, char elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(char /*@Nullable*/ [] arr, char elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -2300,7 +2427,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final char /*@Nullable*/ [] arr, char elt) {
+  /*@Pure*/
+  public static boolean eltsLT(char /*@Nullable*/ [] arr, char elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -2316,7 +2444,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final char /*@Nullable*/ [] arr, char elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(char /*@Nullable*/ [] arr, char elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -2334,7 +2463,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2354,7 +2484,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2374,7 +2505,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2393,7 +2525,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2412,7 +2545,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2431,7 +2565,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -2447,7 +2582,8 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -2457,7 +2593,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -2467,7 +2604,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -2488,7 +2626,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -2509,7 +2648,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -2530,7 +2670,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final char /*@Nullable*/ [] seq1, final char /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(char /*@Nullable*/ [] seq1, char /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -2555,7 +2696,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -2575,7 +2717,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -2595,7 +2738,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -2615,7 +2759,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -2635,7 +2780,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -2655,7 +2801,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -2675,7 +2822,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -2693,7 +2841,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -2711,7 +2860,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -2729,7 +2879,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -2747,7 +2898,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -2765,7 +2917,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final char /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(char /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -2810,13 +2963,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static char /*@Nullable*/ [] collectchar (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static char /*@Nullable*/ [] collectchar (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -2834,7 +2988,8 @@ public final class Quant {
    * @see collectchar(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static char /*@Nullable*/ [] collectchar (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static char /*@Nullable*/ [] collectchar (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -2918,7 +3073,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static char collectchar_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static char collectchar_field (Object object, String fieldStr) {
 
     if (object == null) { return Character.MAX_VALUE; } // return default value
     if (fieldStr == null) { return Character.MAX_VALUE; } // return default value
@@ -2961,10 +3117,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Double.NaN).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static double getElement_double (final Object o, long i) {
+  /*@Pure*/
+  public static double getElement_double (Object o, long i) {
     if (o == null) { return Double.NaN; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -2978,7 +3135,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static double getElement_double (final double[] arr, long i) {
+  /*@Pure*/
+  public static double getElement_double (double[] arr, long i) {
     if (arr == null) { return Double.NaN; } // return default value
     return arr[(int)i];
   }
@@ -3009,7 +3167,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -3017,7 +3176,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -3034,7 +3194,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final double[] seq1, final double[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(double[] seq1, double[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3045,7 +3206,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final double[] seq1, final float[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(double[] seq1, float[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3067,7 +3229,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final double[] seq1, final double[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(double[] seq1, double[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3078,7 +3241,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final double[] seq1, final float[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(double[] seq1, float[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3098,13 +3262,15 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static double /*@PolyNull*/ [] concat(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static double /*@PolyNull*/ [] concat(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
   }
 
-  /*@SideEffectFree*/ public static double /*@PolyNull*/ [] concat(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static double /*@PolyNull*/ [] concat(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     // Cannot just use plume.ArraysMDE.concat because the two arrays
@@ -3126,13 +3292,15 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static double /*@PolyNull*/ [] union(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static double /*@PolyNull*/ [] union(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] union(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] union(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -3144,7 +3312,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static double /*@PolyNull*/ [] intersection(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] intersection(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     double[] intermediate = new double[Math.min(seq1.length, seq2.length)];
@@ -3157,7 +3326,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] intersection(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] intersection(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     double[] intermediate = new double[Math.min(seq1.length, seq2.length)];
@@ -3176,7 +3346,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static double /*@PolyNull*/ [] setDiff(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] setDiff(double /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     double[] intermediate = new double[seq1.length];
@@ -3189,7 +3360,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] setDiff(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] setDiff(double /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     double[] intermediate = new double[seq1.length];
@@ -3206,7 +3378,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -3223,7 +3396,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -3250,7 +3424,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final double[] seq1, final double[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(double[] seq1, double[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -3263,7 +3438,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -3280,7 +3456,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3292,7 +3469,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3307,7 +3485,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(double /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -3316,7 +3495,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(double elt, final double /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(double elt, double /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -3325,7 +3505,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(double elt, final float /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(double elt, float /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -3337,7 +3518,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -3348,13 +3530,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] slice(double /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -3366,7 +3551,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final double /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(double /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -3375,7 +3561,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final double /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(double /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -3391,7 +3578,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final double /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(double /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -3400,7 +3588,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final double /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(double /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -3416,7 +3605,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final double /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsGT(double /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -3425,7 +3615,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final double /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsGT(double /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -3441,7 +3632,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final double /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(double /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -3450,7 +3642,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final double /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(double /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -3466,7 +3659,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final double /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsLT(double /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -3475,7 +3669,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final double /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsLT(double /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -3491,7 +3686,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final double /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(double /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -3500,7 +3696,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final double /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(double /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -3518,7 +3715,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3533,7 +3731,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3553,7 +3752,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3565,7 +3765,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3585,7 +3786,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3597,7 +3799,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3616,7 +3819,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3628,7 +3832,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3647,7 +3852,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3659,7 +3865,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3678,7 +3885,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3690,7 +3898,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -3706,14 +3915,16 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -3723,14 +3934,16 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -3740,7 +3953,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3758,7 +3972,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3779,7 +3994,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3797,7 +4013,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3818,7 +4035,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3836,7 +4054,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3857,7 +4076,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final double /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(double /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3875,7 +4095,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final double /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(double /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -3900,7 +4121,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -3920,7 +4142,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -3940,7 +4163,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -3960,7 +4184,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -3980,7 +4205,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -4000,7 +4226,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -4020,7 +4247,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -4038,7 +4266,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -4056,7 +4285,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -4074,7 +4304,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -4092,7 +4323,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -4110,7 +4342,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final double /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(double /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -4155,13 +4388,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static double /*@Nullable*/ [] collectdouble (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static double /*@Nullable*/ [] collectdouble (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -4179,7 +4413,8 @@ public final class Quant {
    * @see collectdouble(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static double /*@Nullable*/ [] collectdouble (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static double /*@Nullable*/ [] collectdouble (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -4263,7 +4498,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static double collectdouble_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static double collectdouble_field (Object object, String fieldStr) {
 
     if (object == null) { return Double.NaN; } // return default value
     if (fieldStr == null) { return Double.NaN; } // return default value
@@ -4306,10 +4542,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Float.NaN).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static float getElement_float (final Object o, long i) {
+  /*@Pure*/
+  public static float getElement_float (Object o, long i) {
     if (o == null) { return Float.NaN; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -4323,7 +4560,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static float getElement_float (final float[] arr, long i) {
+  /*@Pure*/
+  public static float getElement_float (float[] arr, long i) {
     if (arr == null) { return Float.NaN; } // return default value
     return arr[(int)i];
   }
@@ -4354,7 +4592,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -4362,7 +4601,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -4379,7 +4619,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final float[] seq1, final float[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(float[] seq1, float[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4390,7 +4631,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final float[] seq1, final double[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(float[] seq1, double[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4412,7 +4654,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final float[] seq1, final float[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(float[] seq1, float[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4423,7 +4666,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final float[] seq1, final double[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(float[] seq1, double[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4443,13 +4687,15 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static float /*@PolyNull*/ [] concat(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static float /*@PolyNull*/ [] concat(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
   }
 
-  /*@SideEffectFree*/ public static double /*@PolyNull*/ [] concat(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static double /*@PolyNull*/ [] concat(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     // Cannot just use plume.ArraysMDE.concat because the two arrays
@@ -4471,13 +4717,15 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static float /*@PolyNull*/ [] union(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static float /*@PolyNull*/ [] union(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] union(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] union(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -4489,7 +4737,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static float /*@PolyNull*/ [] intersection(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static float /*@PolyNull*/ [] intersection(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     float[] intermediate = new float[Math.min(seq1.length, seq2.length)];
@@ -4502,7 +4751,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] intersection(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] intersection(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     double[] intermediate = new double[Math.min(seq1.length, seq2.length)];
@@ -4521,7 +4771,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static float /*@PolyNull*/ [] setDiff(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static float /*@PolyNull*/ [] setDiff(float /*@PolyNull*/ [] seq1, float /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     float[] intermediate = new float[seq1.length];
@@ -4534,7 +4785,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static double /*@PolyNull*/ [] setDiff(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static double /*@PolyNull*/ [] setDiff(float /*@PolyNull*/ [] seq1, double /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     double[] intermediate = new double[seq1.length];
@@ -4551,7 +4803,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -4568,7 +4821,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -4595,7 +4849,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final float[] seq1, final float[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(float[] seq1, float[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -4608,7 +4863,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -4625,7 +4881,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4637,7 +4894,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4652,7 +4910,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(float /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -4661,7 +4920,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(float elt, final float /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(float elt, float /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -4670,7 +4930,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(float elt, final double /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(float elt, double /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -4682,7 +4943,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -4693,13 +4955,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static float /*@PolyNull*/ [] slice(float /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -4711,7 +4976,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final float /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(float /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -4720,7 +4986,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final float /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(float /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -4736,7 +5003,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final float /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(float /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -4745,7 +5013,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final float /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(float /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -4761,7 +5030,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final float /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsGT(float /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -4770,7 +5040,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final float /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsGT(float /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -4786,7 +5057,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final float /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(float /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -4795,7 +5067,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final float /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(float /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -4811,7 +5084,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final float /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsLT(float /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -4820,7 +5094,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final float /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsLT(float /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -4836,7 +5111,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final float /*@Nullable*/ [] arr, float elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(float /*@Nullable*/ [] arr, float elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -4845,7 +5121,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final float /*@Nullable*/ [] arr, double elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(float /*@Nullable*/ [] arr, double elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -4863,7 +5140,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4878,7 +5156,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4898,7 +5177,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4910,7 +5190,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4930,7 +5211,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4942,7 +5224,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4961,7 +5244,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4973,7 +5257,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -4992,7 +5277,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5004,7 +5290,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5023,7 +5310,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5035,7 +5323,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5051,14 +5340,16 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -5068,14 +5359,16 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -5085,7 +5378,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5103,7 +5397,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5124,7 +5419,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5142,7 +5438,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5163,7 +5460,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5181,7 +5479,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5202,7 +5501,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final float /*@Nullable*/ [] seq1, final float /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(float /*@Nullable*/ [] seq1, float /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5220,7 +5520,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final float /*@Nullable*/ [] seq1, final double /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(float /*@Nullable*/ [] seq1, double /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -5245,7 +5546,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -5265,7 +5567,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -5285,7 +5588,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -5305,7 +5609,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -5325,7 +5630,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -5345,7 +5651,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -5365,7 +5672,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -5383,7 +5691,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -5401,7 +5710,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -5419,7 +5729,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -5437,7 +5748,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -5455,7 +5767,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final float /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(float /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -5500,13 +5813,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static float /*@Nullable*/ [] collectfloat (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static float /*@Nullable*/ [] collectfloat (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -5524,7 +5838,8 @@ public final class Quant {
    * @see collectfloat(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static float /*@Nullable*/ [] collectfloat (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static float /*@Nullable*/ [] collectfloat (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -5608,7 +5923,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static float collectfloat_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static float collectfloat_field (Object object, String fieldStr) {
 
     if (object == null) { return Float.NaN; } // return default value
     if (fieldStr == null) { return Float.NaN; } // return default value
@@ -5651,10 +5967,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Integer.MAX_VALUE).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static int getElement_int (final Object o, long i) {
+  /*@Pure*/
+  public static int getElement_int (Object o, long i) {
     if (o == null) { return Integer.MAX_VALUE; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -5668,7 +5985,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static int getElement_int (final int[] arr, long i) {
+  /*@Pure*/
+  public static int getElement_int (int[] arr, long i) {
     if (arr == null) { return Integer.MAX_VALUE; } // return default value
     return arr[(int)i];
   }
@@ -5699,7 +6017,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -5707,7 +6026,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -5724,7 +6044,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final int[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(int[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5735,7 +6056,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final int[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(int[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5757,7 +6079,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final int[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(int[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5768,7 +6091,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final int[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(int[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5792,7 +6116,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseComplement(final int[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseComplement(int[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5803,7 +6128,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseComplement(final int[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseComplement(int[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5815,7 +6141,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseComplement(final Object[] seq1, final Object[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseComplement(Object[] seq1, Object[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     if (! eltsNonNull(seq1)) { return false; }
@@ -5842,7 +6169,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseSubset(final int[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseSubset(int[] seq1, int[] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     if (seq1.length != seq2.length) {
@@ -5856,7 +6184,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseSubset(final int[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseSubset(int[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -5868,7 +6197,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseSubset(final Object[] seq1, final Object[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseSubset(Object[] seq1, Object[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     if (! eltsNonNull(seq1)) { return false; }
@@ -5891,13 +6221,15 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static int /*@PolyNull*/ [] concat(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static int /*@PolyNull*/ [] concat(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
   }
 
-  /*@SideEffectFree*/ public static long /*@PolyNull*/ [] concat(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static long /*@PolyNull*/ [] concat(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     // Cannot just use plume.ArraysMDE.concat because the two arrays
@@ -5919,13 +6251,15 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static int /*@PolyNull*/ [] union(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static int /*@PolyNull*/ [] union(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] union(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] union(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -5937,7 +6271,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static int /*@PolyNull*/ [] intersection(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] intersection(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     int[] intermediate = new int[Math.min(seq1.length, seq2.length)];
@@ -5950,7 +6285,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] intersection(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] intersection(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     long[] intermediate = new long[Math.min(seq1.length, seq2.length)];
@@ -5969,7 +6305,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static int /*@PolyNull*/ [] setDiff(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] setDiff(int /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     int[] intermediate = new int[seq1.length];
@@ -5982,7 +6319,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] setDiff(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] setDiff(int /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     long[] intermediate = new long[seq1.length];
@@ -5999,7 +6337,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -6016,7 +6355,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -6043,7 +6383,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final int[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(int[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -6056,7 +6397,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -6077,7 +6419,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final /*@Nullable*/ Object elts, final /*@Nullable*/ Object arr) {
+  /*@Pure*/
+  public static boolean subsetOf(/*@Nullable*/ Object elts, /*@Nullable*/ Object arr) {
     if (elts == null) { return false; }
     if (arr == null) { return false; }
     if (!(elts.getClass().isArray() && arr.getClass().isArray())) {
@@ -6139,7 +6482,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6151,7 +6495,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6166,7 +6511,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(int /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -6175,7 +6521,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(int elt, final int /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(int elt, int /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -6184,7 +6531,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(int elt, final long /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(int elt, long /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -6196,7 +6544,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -6207,13 +6556,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static int /*@PolyNull*/ [] slice(int /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -6225,7 +6577,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final int /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(int /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -6234,7 +6587,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final int /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(int /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -6250,7 +6604,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final int /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(int /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -6259,7 +6614,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final int /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(int /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -6275,7 +6631,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final int /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsGT(int /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -6284,7 +6641,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final int /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsGT(int /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -6300,7 +6658,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final int /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(int /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -6309,7 +6668,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final int /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(int /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -6325,7 +6685,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final int /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsLT(int /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -6334,7 +6695,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final int /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsLT(int /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -6350,7 +6712,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final int /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(int /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -6359,7 +6722,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final int /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(int /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -6377,7 +6741,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6389,7 +6754,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6409,7 +6775,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6421,7 +6788,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6441,7 +6809,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6453,7 +6822,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6472,7 +6842,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6484,7 +6855,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6503,7 +6875,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6515,7 +6888,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6534,7 +6908,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6546,7 +6921,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -6562,14 +6938,16 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -6579,14 +6957,16 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -6596,7 +6976,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6614,7 +6995,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6635,7 +7017,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6653,7 +7036,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6674,7 +7058,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6692,7 +7077,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6713,7 +7099,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final int /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(int /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6731,7 +7118,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final int /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(int /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -6756,7 +7144,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -6776,7 +7165,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -6796,7 +7186,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -6816,7 +7207,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -6836,7 +7228,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -6856,7 +7249,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -6876,7 +7270,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -6894,7 +7289,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -6912,7 +7308,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -6930,7 +7327,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -6948,7 +7346,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -6966,7 +7365,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final int /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(int /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -7011,13 +7411,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static int /*@Nullable*/ [] collectint (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static int /*@Nullable*/ [] collectint (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -7035,7 +7436,8 @@ public final class Quant {
    * @see collectint(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static int /*@Nullable*/ [] collectint (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static int /*@Nullable*/ [] collectint (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -7119,7 +7521,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static int collectint_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static int collectint_field (Object object, String fieldStr) {
 
     if (object == null) { return Integer.MAX_VALUE; } // return default value
     if (fieldStr == null) { return Integer.MAX_VALUE; } // return default value
@@ -7162,10 +7565,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Long.MAX_VALUE).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static long getElement_long (final Object o, long i) {
+  /*@Pure*/
+  public static long getElement_long (Object o, long i) {
     if (o == null) { return Long.MAX_VALUE; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -7179,7 +7583,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static long getElement_long (final long[] arr, long i) {
+  /*@Pure*/
+  public static long getElement_long (long[] arr, long i) {
     if (arr == null) { return Long.MAX_VALUE; } // return default value
     return arr[(int)i];
   }
@@ -7210,7 +7615,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -7218,7 +7624,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -7235,7 +7642,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final long[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(long[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7246,7 +7654,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseDivides(final long[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseDivides(long[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7268,7 +7677,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final long[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(long[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7279,7 +7689,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseSquare(final long[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseSquare(long[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7303,7 +7714,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseComplement(final long[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseComplement(long[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7314,7 +7726,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseComplement(final long[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseComplement(long[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7336,7 +7749,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseSubset(final long[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseSubset(long[] seq1, long[] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     if (seq1.length != seq2.length) {
@@ -7350,7 +7764,8 @@ public final class Quant {
     return true;
   }
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseBitwiseSubset(final long[] seq1, final int[] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseBitwiseSubset(long[] seq1, int[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7368,13 +7783,15 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static long /*@PolyNull*/ [] concat(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static long /*@PolyNull*/ [] concat(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
   }
 
-  /*@SideEffectFree*/ public static long /*@PolyNull*/ [] concat(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static long /*@PolyNull*/ [] concat(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     // Cannot just use plume.ArraysMDE.concat because the two arrays
@@ -7396,13 +7813,15 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static long /*@PolyNull*/ [] union(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static long /*@PolyNull*/ [] union(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] union(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] union(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -7414,7 +7833,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static long /*@PolyNull*/ [] intersection(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] intersection(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     long[] intermediate = new long[Math.min(seq1.length, seq2.length)];
@@ -7427,7 +7847,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] intersection(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] intersection(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     long[] intermediate = new long[Math.min(seq1.length, seq2.length)];
@@ -7446,7 +7867,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static long /*@PolyNull*/ [] setDiff(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] setDiff(long /*@PolyNull*/ [] seq1, long /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     long[] intermediate = new long[seq1.length];
@@ -7459,7 +7881,8 @@ public final class Quant {
     return plume.ArraysMDE.subarray(intermediate, 0, length);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] setDiff(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] setDiff(long /*@PolyNull*/ [] seq1, int /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     long[] intermediate = new long[seq1.length];
@@ -7476,7 +7899,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -7493,7 +7917,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -7520,7 +7945,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final long[] seq1, final long[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(long[] seq1, long[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -7533,7 +7959,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -7550,7 +7977,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7562,7 +7990,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7577,7 +8006,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(long /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -7586,7 +8016,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(long elt, final long /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(long elt, long /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -7595,7 +8026,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(long elt, final int /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(long elt, int /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -7607,7 +8039,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -7618,13 +8051,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static long /*@PolyNull*/ [] slice(long /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -7636,7 +8072,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final long /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(long /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -7645,7 +8082,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final long /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(long /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -7661,7 +8099,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final long /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(long /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -7670,7 +8109,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final long /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(long /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -7686,7 +8126,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final long /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsGT(long /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -7695,7 +8136,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final long /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsGT(long /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -7711,7 +8153,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final long /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(long /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -7720,7 +8163,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final long /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(long /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -7736,7 +8180,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final long /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsLT(long /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -7745,7 +8190,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final long /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsLT(long /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -7761,7 +8207,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final long /*@Nullable*/ [] arr, long elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(long /*@Nullable*/ [] arr, long elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -7770,7 +8217,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final long /*@Nullable*/ [] arr, int elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(long /*@Nullable*/ [] arr, int elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -7788,7 +8236,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7800,7 +8249,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7820,7 +8270,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7832,7 +8283,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7852,7 +8304,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7864,7 +8317,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7883,7 +8337,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7895,7 +8350,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7914,7 +8370,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7926,7 +8383,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7945,7 +8403,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7957,7 +8416,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -7973,14 +8433,16 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -7990,14 +8452,16 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -8007,7 +8471,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8025,7 +8490,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8046,7 +8512,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8064,7 +8531,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8085,7 +8553,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8103,7 +8572,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8124,7 +8594,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final long /*@Nullable*/ [] seq1, final long /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(long /*@Nullable*/ [] seq1, long /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8142,7 +8613,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final long /*@Nullable*/ [] seq1, final int /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(long /*@Nullable*/ [] seq1, int /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -8167,7 +8639,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -8187,7 +8660,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -8207,7 +8681,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -8227,7 +8702,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -8247,7 +8723,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -8267,7 +8744,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -8287,7 +8765,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -8305,7 +8784,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -8323,7 +8803,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -8341,7 +8822,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -8359,7 +8841,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -8377,7 +8860,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final long /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(long /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -8422,13 +8906,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static long /*@Nullable*/ [] collectlong (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static long /*@Nullable*/ [] collectlong (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -8446,7 +8931,8 @@ public final class Quant {
    * @see collectlong(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static long /*@Nullable*/ [] collectlong (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static long /*@Nullable*/ [] collectlong (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -8530,7 +9016,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static long collectlong_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static long collectlong_field (Object object, String fieldStr) {
 
     if (object == null) { return Long.MAX_VALUE; } // return default value
     if (fieldStr == null) { return Long.MAX_VALUE; } // return default value
@@ -8573,10 +9060,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (Short.MAX_VALUE).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static short getElement_short (final Object o, long i) {
+  /*@Pure*/
+  public static short getElement_short (Object o, long i) {
     if (o == null) { return Short.MAX_VALUE; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -8590,7 +9078,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static short getElement_short (final short[] arr, long i) {
+  /*@Pure*/
+  public static short getElement_short (short[] arr, long i) {
     if (arr == null) { return Short.MAX_VALUE; } // return default value
     return arr[(int)i];
   }
@@ -8621,7 +9110,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -8634,7 +9124,8 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static short /*@PolyNull*/ [] concat(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static short /*@PolyNull*/ [] concat(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE. concat(seq1, seq2);
@@ -8646,7 +9137,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static short /*@PolyNull*/ [] union(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static short /*@PolyNull*/ [] union(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -8658,7 +9150,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static short /*@PolyNull*/ [] intersection(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static short /*@PolyNull*/ [] intersection(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     short[] intermediate = new short[Math.min(seq1.length, seq2.length)];
@@ -8677,7 +9170,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static short /*@PolyNull*/ [] setDiff(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static short /*@PolyNull*/ [] setDiff(short /*@PolyNull*/ [] seq1, short /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     short[] intermediate = new short[seq1.length];
@@ -8694,7 +9188,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -8721,7 +9216,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final short[] seq1, final short[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(short[] seq1, short[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -8738,7 +9234,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -8753,7 +9250,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(short /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -8762,7 +9260,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(short elt, final short /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(short elt, short /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -8771,7 +9270,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(long elt, final short /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(long elt, short /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -8783,7 +9283,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -8794,13 +9295,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static short /*@PolyNull*/ [] slice(short /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -8812,7 +9316,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final short /*@Nullable*/ [] arr, short elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(short /*@Nullable*/ [] arr, short elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -8828,7 +9333,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final short /*@Nullable*/ [] arr, short elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(short /*@Nullable*/ [] arr, short elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -8844,7 +9350,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGT(final short /*@Nullable*/ [] arr, short elt) {
+  /*@Pure*/
+  public static boolean eltsGT(short /*@Nullable*/ [] arr, short elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lte(arr[i], elt)) { return false; }
@@ -8860,7 +9367,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGTE(final short /*@Nullable*/ [] arr, short elt) {
+  /*@Pure*/
+  public static boolean eltsGTE(short /*@Nullable*/ [] arr, short elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (lt(arr[i], elt)) { return false; }
@@ -8876,7 +9384,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLT(final short /*@Nullable*/ [] arr, short elt) {
+  /*@Pure*/
+  public static boolean eltsLT(short /*@Nullable*/ [] arr, short elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gte(arr[i], elt)) { return false; }
@@ -8892,7 +9401,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLTE(final short /*@Nullable*/ [] arr, short elt) {
+  /*@Pure*/
+  public static boolean eltsLTE(short /*@Nullable*/ [] arr, short elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (gt(arr[i], elt)) { return false; }
@@ -8910,7 +9420,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -8930,7 +9441,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -8950,7 +9462,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLT(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLT(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -8969,7 +9482,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseLTE(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseLTE(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -8988,7 +9502,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGT(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGT(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -9007,7 +9522,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseGTE(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseGTE(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -9023,7 +9539,8 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -9033,7 +9550,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -9043,7 +9561,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &lt;  seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLT(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLT(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -9064,7 +9583,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &le; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexLTE(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexLTE(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -9085,7 +9605,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &gt; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGT(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGT(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -9106,7 +9627,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically &ge; to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexGTE(final short /*@Nullable*/ [] seq1, final short /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexGTE(short /*@Nullable*/ [] seq1, short /*@Nullable*/ [] seq2) {
   if (seq1 == null) { return false; }
   if (seq2 == null) { return false; }
     int minlength = (seq1.length < seq2.length) ? seq1.length : seq2.length;
@@ -9131,7 +9653,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9151,7 +9674,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9171,7 +9695,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLT(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLT(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9191,7 +9716,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseLTE(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseLTE(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9211,7 +9737,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGT(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGT(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9231,7 +9758,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseGTE(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseGTE(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9251,7 +9779,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqualIndex(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsEqualIndex(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (ne(seq[i], i)) {
@@ -9269,7 +9798,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqualIndex(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsNotEqualIndex(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (eq(seq[i], i)) {
@@ -9287,7 +9817,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLtIndex(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLtIndex(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gte(seq[i], i)) {
@@ -9305,7 +9836,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsLteIndex(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsLteIndex(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (gt(seq[i], i)) {
@@ -9323,7 +9855,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean  eltsGtIndex(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean  eltsGtIndex(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lte(seq[i], i)) {
@@ -9341,7 +9874,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsGteIndex(final short /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltsGteIndex(short /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (lt(seq[i], i)) {
@@ -9386,13 +9920,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static short /*@Nullable*/ [] collectshort (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static short /*@Nullable*/ [] collectshort (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -9410,7 +9945,8 @@ public final class Quant {
    * @see collectshort(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static short /*@Nullable*/ [] collectshort (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static short /*@Nullable*/ [] collectshort (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -9494,7 +10030,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static short collectshort_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static short collectshort_field (Object object, String fieldStr) {
 
     if (object == null) { return Short.MAX_VALUE; } // return default value
     if (fieldStr == null) { return Short.MAX_VALUE; } // return default value
@@ -9537,10 +10074,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (null).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static /*@Nullable*/ /*@Interned*/ Object getElement_Object (final Object o, long i) {
+  /*@Pure*/
+  public static /*@Nullable*/ /*@Interned*/ Object getElement_Object (Object o, long i) {
     if (o == null) { return null; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -9554,7 +10092,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static /*@Nullable*/ /*@Interned*/ Object getElement_Object (final Object[] arr, long i) {
+  /*@Pure*/
+  public static /*@Nullable*/ /*@Interned*/ Object getElement_Object (Object[] arr, long i) {
     if (arr == null) { return null; } // return default value
     return arr[(int)i];
   }
@@ -9573,7 +10112,8 @@ public final class Quant {
    * array is null.
    */
   @SuppressWarnings("nullness") // bug: http://code.google.com/p/checker-framework/issues/detail?id=54
-  /*@SideEffectFree*/ public static /*@PolyNull*//*("elt")*/ String /*@PolyNull*//*("container")*/ [] typeArray(/*@PolyNull*//*("elt")*/ /*@Interned*/ Object /*@PolyNull*//*("container")*/ [] seq) {
+  /*@SideEffectFree*/
+  public static /*@PolyNull*//*("elt")*/ String /*@PolyNull*//*("container")*/ [] typeArray(/*@PolyNull*//*("elt")*/ /*@Interned*/ Object /*@PolyNull*//*("container")*/ [] seq) {
     if (seq == null) { return null; }
     /*@PolyNull*//*("elt")*/ String[] retval = new /*@PolyNull*//*("elt")*/ String[seq.length];
     for (int i = 0 ; i < seq.length ; i++) {
@@ -9588,7 +10128,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final Object /*@Nullable*/ [] seq1, final Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(Object /*@Nullable*/ [] seq1, Object /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -9601,7 +10142,8 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static /*@Interned*/ Object /*@PolyNull*/ [] concat(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] concat(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE.</*@Interned*/ Object> concat(seq1, seq2);
@@ -9613,7 +10155,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static /*@Interned*/ Object /*@PolyNull*/ [] union(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] union(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -9625,7 +10168,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static /*@Interned*/ Object /*@PolyNull*/ [] intersection(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] intersection(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     /*@Interned*/ Object[] intermediate = new /*@Interned*/ Object[Math.min(seq1.length, seq2.length)];
@@ -9644,7 +10188,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static /*@Interned*/ Object /*@PolyNull*/ [] setDiff(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] setDiff(/*@Interned*/ Object /*@PolyNull*/ [] seq1, /*@Interned*/ Object /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     /*@Interned*/ Object[] intermediate = new /*@Interned*/ Object[seq1.length];
@@ -9661,7 +10206,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -9688,7 +10234,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final /*@Interned*/ Object[] seq1, final /*@Interned*/ Object[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(/*@Interned*/ Object[] seq1, /*@Interned*/ Object[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -9701,7 +10248,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final /*@PolyNull*/ Collection<? extends /*@Interned*/ Object> seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(/*@PolyNull*/ Collection<? extends /*@Interned*/ Object> seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     /*@Interned*/ Object[] seq1_array = seq1.toArray(new /*@Interned*/ Object[]{});
@@ -9713,7 +10261,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -9725,7 +10274,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final /*@Nullable*/ Collection<? extends /*@Interned*/ Object> seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(/*@Nullable*/ Collection<? extends /*@Interned*/ Object> seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     /*@Interned*/ Object[] seq1_array = seq1.toArray(new /*@Interned*/ Object[]{});
@@ -9733,7 +10283,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Nullable*/ Collection<? extends /*@Interned*/ Object> seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Nullable*/ Collection<? extends /*@Interned*/ Object> seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     /*@Interned*/ Object[] seq2_array = seq2.toArray(new /*@Interned*/ Object[]{});
@@ -9744,7 +10295,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final /*@Interned*/ Object /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(/*@Interned*/ Object /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -9753,7 +10305,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(/*@Interned*/ Object elt, final /*@Interned*/ Object /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(/*@Interned*/ Object elt, /*@Interned*/ Object /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -9765,7 +10318,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -9776,13 +10330,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static /*@Interned*/ Object /*@PolyNull*/ [] slice(/*@Interned*/ Object /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -9794,7 +10351,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final /*@Interned*/ Object /*@Nullable*/ [] arr, /*@Interned*/ Object elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(/*@Interned*/ Object /*@Nullable*/ [] arr, /*@Interned*/ Object elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -9810,7 +10368,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final /*@Interned*/ Object /*@Nullable*/ [] arr, /*@Interned*/ Object elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(/*@Interned*/ Object /*@Nullable*/ [] arr, /*@Interned*/ Object elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -9828,7 +10387,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -9840,7 +10400,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final /*@Nullable*/ AbstractCollection</*@Interned*/ Object> seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Nullable*/ AbstractCollection</*@Interned*/ Object> seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     @SuppressWarnings("cast") // cast is redundant (except in JSR 308)
@@ -9849,7 +10410,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Nullable*/ AbstractCollection</*@Interned*/ Object> seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Nullable*/ AbstractCollection</*@Interned*/ Object> seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     @SuppressWarnings("cast") // cast is redundant (except in JSR 308)
@@ -9866,7 +10428,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -9882,7 +10445,8 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -9892,7 +10456,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq1, final /*@Interned*/ Object /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(/*@Interned*/ Object /*@Nullable*/ [] seq1, /*@Interned*/ Object /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -9906,7 +10471,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(/*@Interned*/ Object /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9926,7 +10492,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final /*@Interned*/ Object /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(/*@Interned*/ Object /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -9973,13 +10540,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static Object /*@Nullable*/ [] collectObject (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static Object /*@Nullable*/ [] collectObject (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -9997,7 +10565,8 @@ public final class Quant {
    * @see collectObject(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static Object /*@Nullable*/ [] collectObject (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static Object /*@Nullable*/ [] collectObject (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -10088,7 +10657,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static /*@Nullable*/ Object collectObject_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static /*@Nullable*/ Object collectObject_field (Object object, String fieldStr) {
 
     if (object == null) { return null; } // return default value
     if (fieldStr == null) { return null; } // return default value
@@ -10131,10 +10701,11 @@ public final class Quant {
   /** Returns the ith element of the array or collection argument.
    * If the argument is null or not an array or collection, returns a
    * default value (null).
-   **/
+   */
   @SuppressWarnings("interning") // reflection
 
-  /*@Pure*/ public static /*@Nullable*/ /*@Interned*/ String getElement_String (final Object o, long i) {
+  /*@Pure*/
+  public static /*@Nullable*/ /*@Interned*/ String getElement_String (Object o, long i) {
     if (o == null) { return null; } // return default value
     java.lang.Class<?> c = o.getClass();
     if (c.isArray()) {
@@ -10148,7 +10719,8 @@ public final class Quant {
 
   @SuppressWarnings("interning") // called reflectively
 
-  /*@Pure*/ public static /*@Nullable*/ /*@Interned*/ String getElement_String (final String[] arr, long i) {
+  /*@Pure*/
+  public static /*@Nullable*/ /*@Interned*/ String getElement_String (String[] arr, long i) {
     if (arr == null) { return null; } // return default value
     return arr[(int)i];
   }
@@ -10163,7 +10735,8 @@ public final class Quant {
 
   /** True iff both sequences are non-null and have the same length. */
   /*@EnsuresNonNullIf(result=true, expression={"#1", "#2"})*/
-  /*@Pure*/ public static boolean sameLength(final String /*@Nullable*/ [] seq1, final String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean sameLength(String /*@Nullable*/ [] seq1, String /*@Nullable*/ [] seq2) {
     return ((seq1 != null)
             && (seq2 != null)
             && seq1.length == seq2.length);
@@ -10176,7 +10749,8 @@ public final class Quant {
    * If both arrays are empty, returns a new empty array.
    */
   @SuppressWarnings("interning") // generics bug in Checker Framework?
-  /*@SideEffectFree*/ public static /*@Interned*/ String /*@PolyNull*/ [] concat(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] concat(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return plume.ArraysMDE.</*@Interned*/ String> concat(seq1, seq2);
@@ -10188,7 +10762,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@SideEffectFree*/ public static /*@Interned*/ String /*@PolyNull*/ [] union(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
+  /*@SideEffectFree*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] union(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(seq1, seq2);
@@ -10200,7 +10775,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static /*@Interned*/ String /*@PolyNull*/ [] intersection(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] intersection(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     /*@Interned*/ String[] intermediate = new /*@Interned*/ String[Math.min(seq1.length, seq2.length)];
@@ -10219,7 +10795,8 @@ public final class Quant {
    * elements may be repeated, and their order may be different from the
    * order of elements in seq1 and seq2.
    */
-  /*@Pure*/ public static /*@Interned*/ String /*@PolyNull*/ [] setDiff(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
+  /*@Pure*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] setDiff(/*@Interned*/ String /*@PolyNull*/ [] seq1, /*@Interned*/ String /*@PolyNull*/ [] seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     /*@Interned*/ String[] intermediate = new /*@Interned*/ String[seq1.length];
@@ -10236,7 +10813,8 @@ public final class Quant {
    * Returns true iff seq1 and seq2 are equal when considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean setEqual(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0; i < seq1.length ; i++) {
@@ -10263,7 +10841,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean isReverse(final /*@Interned*/ String[] seq1, final /*@Interned*/ String[] seq2) {
+  /*@Pure*/
+  public static boolean isReverse(/*@Interned*/ String[] seq1, /*@Interned*/ String[] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     int length = seq1.length;
@@ -10280,7 +10859,8 @@ public final class Quant {
    * considered as sets.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean subsetOf(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean subsetOf(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -10295,7 +10875,8 @@ public final class Quant {
    * Returns true iff seq contains no duplicate elements.
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final /*@Interned*/ String /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean noDups(/*@Interned*/ String /*@Nullable*/ [] seq) {
     if (seq == null) { return false; }
     return plume.ArraysMDE.noDuplicates(seq);
   }
@@ -10304,7 +10885,8 @@ public final class Quant {
   * Returns true iff elt is in array arr.
   */
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(/*@Interned*/ String elt, final /*@Interned*/ String /*@Nullable*/ [] arr) {
+  /*@Pure*/
+  public static boolean memberOf(/*@Interned*/ String elt, /*@Interned*/ String /*@Nullable*/ [] arr) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return true; }
@@ -10316,7 +10898,8 @@ public final class Quant {
    * Returns a subsequence of seq with first elements seq[start] and
    * last element seq[end].
    */
-  /*@Pure*/ public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, int start, int end) {
+  /*@Pure*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, int start, int end) {
     if (seq == null) { return null; }
     int sliceStart = start;
     int sliceEnd = end;
@@ -10327,13 +10910,16 @@ public final class Quant {
     return plume.ArraysMDE.subarray(seq, sliceStart, length);
   }
 
-  /*@Pure*/ public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, long start, int end) {
+  /*@Pure*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, long start, int end) {
     return slice(seq, (int)start, end);
   }
-  /*@Pure*/ public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, int start, long end) {
+  /*@Pure*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, int start, long end) {
     return slice(seq, start, (int)end);
   }
-  /*@Pure*/ public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, long start, long end) {
+  /*@Pure*/
+  public static /*@Interned*/ String /*@PolyNull*/ [] slice(/*@Interned*/ String /*@PolyNull*/ [] seq, long start, long end) {
     return slice(seq, (int)start, (int)end);
   }
 
@@ -10345,7 +10931,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final /*@Interned*/ String /*@Nullable*/ [] arr, /*@Interned*/ String elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(/*@Interned*/ String /*@Nullable*/ [] arr, /*@Interned*/ String elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (ne(arr[i], elt)) { return false; }
@@ -10361,7 +10948,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final /*@Interned*/ String /*@Nullable*/ [] arr, /*@Interned*/ String elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(/*@Interned*/ String /*@Nullable*/ [] arr, /*@Interned*/ String elt) {
     if (arr == null) { return false; }
     for (int i = 0 ; i < arr.length ; i++) {
       if (eq(arr[i], elt)) { return false; }
@@ -10379,7 +10967,8 @@ public final class Quant {
    */
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -10391,7 +10980,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final /*@Nullable*/ AbstractCollection</*@Interned*/ String> seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Nullable*/ AbstractCollection</*@Interned*/ String> seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     @SuppressWarnings("cast") // cast is redundant (except in JSR 308)
@@ -10400,7 +10990,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Nullable*/ AbstractCollection</*@Interned*/ String> seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Nullable*/ AbstractCollection</*@Interned*/ String> seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     @SuppressWarnings("cast") // cast is redundant (except in JSR 308)
@@ -10417,7 +11008,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (! sameLength(seq1, seq2)) { return false; }
     assert seq1 != null && seq2 != null; // because sameLength() = true
     for (int i = 0 ; i < seq1.length ; i++) {
@@ -10433,7 +11025,8 @@ public final class Quant {
    * For equality, "lexically" and "pairwise" are the same.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(seq1, seq2);
@@ -10443,7 +11036,8 @@ public final class Quant {
    * Returns true iff seq1 is lexically not equal to seq2.
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(final /*@Interned*/ String /*@Nullable*/ [] seq1, final /*@Interned*/ String /*@Nullable*/ [] seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(/*@Interned*/ String /*@Nullable*/ [] seq1, /*@Interned*/ String /*@Nullable*/ [] seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return !lexEqual(seq1, seq2);
@@ -10457,7 +11051,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final /*@Interned*/ String /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(/*@Interned*/ String /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -10477,7 +11072,8 @@ public final class Quant {
    *
    */
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final /*@Interned*/ String /*@Nullable*/ [] seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(/*@Interned*/ String /*@Nullable*/ [] seq) {
   if (seq == null) { return false; }
     for (int i = 0 ; i < seq.length ; i++) {
       if (i < seq.length-1) {
@@ -10524,13 +11120,14 @@ public final class Quant {
    * one field representing an array. For example, the collection
    * a[].b[].c will fail.
    * <p>
-   * 
-   * @return If the resulting collection is of non-primitive type, then
+   *
+   * @return if the resulting collection is of non-primitive type, then
    * returns an array of type Object[].
    * Returns null if any array or field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static String /*@Nullable*/ [] collectString (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
+  /*@SideEffectFree*/
+  public static String /*@Nullable*/ [] collectString (/*@Nullable*/ Object object, /*@Nullable*/ String fieldStr) {
 
     if (object == null) { return null; }
     if (fieldStr == null) { return null; }
@@ -10548,7 +11145,8 @@ public final class Quant {
    * @see collectString(Object, String)
    */
   // @PolyNull does not work for return type, because null is returned on error.
-  /*@SideEffectFree*/ private static String /*@Nullable*/ [] collectString (/*@Nullable*/ Object object,
+  /*@SideEffectFree*/
+  private static String /*@Nullable*/ [] collectString (/*@Nullable*/ Object object,
                                                    String[] fields, int fieldsStartIdx) {
 
     if (object == null) { return null; }
@@ -10639,7 +11237,8 @@ public final class Quant {
    * Returns a default value if any field access causes an exception.
    */
   @SuppressWarnings("interning") // reflection
-  /*@SideEffectFree*/ public static /*@Nullable*/ String collectString_field (Object object, String fieldStr) {
+  /*@SideEffectFree*/
+  public static /*@Nullable*/ String collectString_field (Object object, String fieldStr) {
 
     if (object == null) { return null; } // return default value
     if (fieldStr == null) { return null; } // return default value
@@ -10688,7 +11287,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean noDups(final Object seq) {
+  /*@Pure*/
+  public static boolean noDups(Object seq) {
     if (seq == null) { return false; }
     return noDups(toObjArray(seq));
   }
@@ -10706,7 +11306,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseEqual(final Object seq) {
+  /*@Pure*/
+  public static boolean eltwiseEqual(Object seq) {
     if (seq == null) { return false; }
     return eltwiseEqual(toObjArray(seq));
   }
@@ -10715,7 +11316,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltwiseNotEqual(final Object seq) {
+  /*@Pure*/
+  public static boolean eltwiseNotEqual(Object seq) {
     if (seq == null) { return false; }
     return eltwiseNotEqual(toObjArray(seq));
   }
@@ -10724,7 +11326,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*TODO: @AssertNonNullIfNonNull({"#1","#2"})*/
-  /*@SideEffectFree*/ public static java.lang.Object /*@PolyNull*/ [] concat(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
+  /*@SideEffectFree*/
+  public static java.lang.Object /*@PolyNull*/ [] concat(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return concat(toObjArray(seq1), toObjArray(seq2));
@@ -10734,7 +11337,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*TODO: @AssertNonNullIfNonNull({"#1","#2"})*/
-  /*@SideEffectFree*/ public static java.lang.Object /*@PolyNull*/ [] union(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
+  /*@SideEffectFree*/
+  public static java.lang.Object /*@PolyNull*/ [] union(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return union(toObjArray(seq1), toObjArray(seq2));
@@ -10744,7 +11348,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*TODO: @AssertNonNullIfNonNull({"#1","#2"})*/
-  /*@SideEffectFree*/ public static java.lang.Object /*@PolyNull*/ [] intersection(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
+  /*@SideEffectFree*/
+  public static java.lang.Object /*@PolyNull*/ [] intersection(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return intersection(toObjArray(seq1), toObjArray(seq2));
@@ -10754,7 +11359,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning") // cast from Object
   /*TODO: @AssertNonNullIfNonNull({"#1","#2"})*/
-  /*@SideEffectFree*/ public static java.lang.Object /*@PolyNull*/ [] setDiff(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
+  /*@SideEffectFree*/
+  public static java.lang.Object /*@PolyNull*/ [] setDiff(/*@PolyNull*/ Object seq1, /*@PolyNull*/ Object seq2) {
     if (seq1 == null) { return null; }
     if (seq2 == null) { return null; }
     return setDiff(toObjArray(seq1), toObjArray(seq2));
@@ -10764,7 +11370,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean setEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
+  /*@Pure*/
+  public static boolean setEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return setEqual(toObjArray(seq1), toObjArray(seq2));
@@ -10774,7 +11381,8 @@ public final class Quant {
    */
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
   @SuppressWarnings("interning")  // cast from Object
-  /*@Pure*/ public static boolean isReverse(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
+  /*@Pure*/
+  public static boolean isReverse(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return isReverse(toObjArray(seq1), toObjArray(seq2));
@@ -10784,7 +11392,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
+  /*@Pure*/
+  public static boolean pairwiseEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseEqual(toObjArray(seq1), toObjArray(seq2));
@@ -10794,7 +11403,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean pairwiseNotEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
+  /*@Pure*/
+  public static boolean pairwiseNotEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return pairwiseNotEqual(toObjArray(seq1), toObjArray(seq2));
@@ -10804,7 +11414,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
+  /*@Pure*/
+  public static boolean lexEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return lexEqual(toObjArray(seq1), toObjArray(seq2));
@@ -10814,7 +11425,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression={"#1","#2"})*/
-  /*@Pure*/ public static boolean lexNotEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
+  /*@Pure*/
+  public static boolean lexNotEqual(/*@Nullable*/ Object seq1, /*@Nullable*/ Object seq2) {
     if (seq1 == null) { return false; }
     if (seq2 == null) { return false; }
     return lexNotEqual(toObjArray(seq1), toObjArray(seq2));
@@ -10824,7 +11436,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression="#2")*/
-  /*@Pure*/ public static boolean memberOf(Object elt, /*@Nullable*/ Object arr) {
+  /*@Pure*/
+  public static boolean memberOf(Object elt, /*@Nullable*/ Object arr) {
     if (arr == null) { return false; }
     return memberOf(elt, toObjArray(arr));
   }
@@ -10833,7 +11446,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*TODO: @AssertNonNullIfNonNull("#1")*/
-  /*@SideEffectFree*/ public static Object /*@PolyNull*/ [] slice(final /*@PolyNull*/ Object seq, int start, int end) {
+  /*@SideEffectFree*/
+  public static Object /*@PolyNull*/ [] slice(/*@PolyNull*/ Object seq, int start, int end) {
     if (seq == null) { return null; }
     return slice(toObjArray(seq), start, end);
   }
@@ -10842,7 +11456,8 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsEqual(final /*@Nullable*/ Object arr, Object elt) {
+  /*@Pure*/
+  public static boolean eltsEqual(/*@Nullable*/ Object arr, Object elt) {
     if (arr == null) { return false; }
     return eltsEqual(toObjArray(arr), elt);
   }
@@ -10851,13 +11466,15 @@ public final class Quant {
    */
   @SuppressWarnings("interning")  // cast from Object
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean eltsNotEqual(final /*@Nullable*/ Object arr, Object elt) {
+  /*@Pure*/
+  public static boolean eltsNotEqual(/*@Nullable*/ Object arr, Object elt) {
     if (arr == null) { return false; }
     return eltsNotEqual(toObjArray(arr), elt);
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean isIntegralType(final /*@Nullable*/ Class<?> c) {
+  /*@Pure*/
+  public static boolean isIntegralType(/*@Nullable*/ Class<?> c) {
     if (c == null) { return false; }
     return
       (c.equals(Byte.TYPE) ||
@@ -10867,7 +11484,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean isRealType(final /*@Nullable*/ Class<?> c) {
+  /*@Pure*/
+  public static boolean isRealType(/*@Nullable*/ Class<?> c) {
     if (c == null) { return false; }
     return
       (c.equals(Float.TYPE) ||
@@ -10875,7 +11493,8 @@ public final class Quant {
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public static boolean isNumericType(final Class<?> c) {
+  /*@Pure*/
+  public static boolean isNumericType(Class<?> c) {
     if (c == null) { return false; }
     return isIntegralType(c) || isRealType(c);
   }
@@ -10884,7 +11503,7 @@ public final class Quant {
    * AbstractCollection.
    */
   /*TODO: @AssertNonNullIfNonNull("#1")*/
-  public static Object /*@PolyNull*/ [] toObjArray(final /*@PolyNull*/ Object o) {
+  public static Object /*@PolyNull*/ [] toObjArray(/*@PolyNull*/ Object o) {
     if (o == null) { return null; }
     if (o instanceof java.util.AbstractCollection<?>) {
       @SuppressWarnings({"unchecked", "interning"})

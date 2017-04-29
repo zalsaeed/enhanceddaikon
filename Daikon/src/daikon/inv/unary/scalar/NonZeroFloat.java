@@ -15,6 +15,7 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -36,21 +37,13 @@ public class NonZeroFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff NonZeroFloat invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
-
-  /**
-   * Determines whether non-null is obvious on 'this' variables.  While
-   * 'this' can never be null (making the invariant vacuous), object-client
-   * relations can exist between this and references to the class.  The client
-   * references can be null, which makes this invariant interesting.
    */
-  private static boolean this_non_null_obvious = true;
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug = Logger.getLogger("daikon.inv.unary.scalar.NonZeroFloat");
 
-  /** Maximum value ever used for max-min in confidence calculation. **/
+  /** Maximum value ever used for max-min in confidence calculation. */
   static long range_max = 50;
 
   private NonZeroFloat(PptSlice ppt) {
@@ -63,42 +56,45 @@ public class NonZeroFloat
 
   private static /*@Prototype*/ NonZeroFloat proto = new /*@Prototype*/ NonZeroFloat ();
 
-  /** Returns the prototype invariant for NonZeroFloat **/
+  /** Returns the prototype invariant for NonZeroFloat */
   public static /*@Prototype*/ NonZeroFloat get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Make sure the NonZero make sense on these vars **/
+  /** Make sure the NonZero make sense on these vars */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types(vis))
-      return (false);
+    if (!valid_types(vis)) {
+      return false;
+    }
 
     if (vis[0].aux.isStruct() ||
+        vis[0].aux.isNonNull() ||
         !vis[0].aux.hasNull())
-      return (false);
+      return false;
 
-    return (true);
+    return true;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   public NonZeroFloat instantiate_dyn (/*>>> @Prototype NonZeroFloat this,*/ PptSlice slice) {
     return new NonZeroFloat (slice);
   }
 
-  private String zero(OutputFormat format) {
+  private String zero(/*>>>@GuardSatisfied @Prototype NonZeroFloat this,*/ OutputFormat format) {
 
     {
       return "0";
     }
   }
 
-  /*@SideEffectFree*/ public String format_using(/*>>> @Prototype NonZeroFloat this,*/ OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied @Prototype NonZeroFloat this,*/ OutputFormat format) {
     // // var() fails for prototype invariants
     // if (ppt == null) {
     //   return "Prototype NonZeroFloat invariant (ppt == null)";
@@ -136,8 +132,9 @@ public class NonZeroFloat
   public InvariantStatus add_modified(double v, int count) {
     InvariantStatus status = check_modified(v, count);
     if (status == InvariantStatus.FALSIFIED) {
-      if (logOn())
+      if (logOn()) {
         log (debug, "falsified (value = " + v + ")");
+      }
     } // else if (logDetail())
       // log ("add_modified (" + v + ")");
     return status;
@@ -146,7 +143,8 @@ public class NonZeroFloat
   /**
    * Returns whether or not the variable is a pointer.
    */
-  /*@Pure*/ private boolean is_pointer() {
+  /*@Pure*/
+  private boolean is_pointer(/*>>>@GuardSatisfied NonZeroFloat this*/) {
     return (ppt.var_infos[0].file_rep_type == ProglangType.HASHCODE);
   }
 
@@ -212,18 +210,17 @@ public class NonZeroFloat
   public /*@Nullable*/ DiscardInfo isObviousStatically(VarInfo[] vis) {
     VarInfo var = vis[0];
 
-    // If we consider 'this' to be non-null obvious, then don't look for
-    // these invariants.  While 'this' can clearly not be null, if 'this'
-    // is a parent for all of the references to the class, those references
-    // can be null and the non-null invariant becomes interesting.
-    if (this_non_null_obvious) {
-      if (var.isThis())
-        return new DiscardInfo(this, DiscardCode.obvious,
-                               "'this' can never be null in Java");
+    if (var.aux.isStruct()) {
+      return new DiscardInfo(this, DiscardCode.obvious,
+                             var.name() + " is a struct");
+    }
+
+    if (var.aux.isNonNull()) {
+      return new DiscardInfo(this, DiscardCode.obvious,
+                             "aux information says " + var.name() + " is non-null");
     }
 
     if (!var.aux.hasNull()) {
-      // If it's not a number and null doesn't have special meaning...
       return new DiscardInfo(this, DiscardCode.obvious,
                      "'null' has no special meaning for " + var.name());
     }
@@ -242,8 +239,9 @@ public class NonZeroFloat
 
     Debug dlog = new Debug (getClass(), ppt, vis);
 
-    if (logOn())
+    if (logOn()) {
       dlog.log ("Checking IsObviousDynamically");
+    }
 
     // System.out.println("isObviousImplied: " + format());
 
@@ -259,11 +257,13 @@ public class NonZeroFloat
         // and eliminates desirable invariants such as "return != null".
         if (MemberFloat.isObviousMember(var, v2)) {
           // System.out.println("NonZeroFloat.isObviousImplied: " + MemberFloat + ".isObviousMember(" + var.name + ", " + v2.name + ") = true");
-          if (logOn())
+          if (logOn()) {
             dlog.log ("isObvDyn- true, arg is member of nonzero sequence");
+          }
           String discardString = var.name() + " is a member of the non-zero sequence " + v2.name();
-          if (logOn())
+          if (logOn()) {
             log ("%s obviously implied from %s", format(), inv.format());
+          }
           return new DiscardInfo(this, DiscardCode.obvious, discardString);
         }
       }
@@ -285,8 +285,9 @@ public class NonZeroFloat
               SeqIndexFloatNonEqual sine = SeqIndexFloatNonEqual.find(other_slice);
               if ((sine != null) && sine.enoughSamples()) {
                 // System.out.println("NonZeroFloat.isObviousImplied true due to: " + sine.format());
-                if (logOn())
+                if (logOn()) {
                   dlog.log ("isObvDyn- true due to " + sine.format());
+                }
                 String discardString = var.name() + " is a member of the non-zero sequence " + vi.name();
                 return new DiscardInfo(this, DiscardCode.obvious, discardString);
               }
@@ -299,12 +300,14 @@ public class NonZeroFloat
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof NonZeroFloat;
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof OneOfScalar) {
       OneOfScalar oos = (OneOfScalar) other;
       if ((oos.num_elts() == 1) && (((Long)oos.elt()).doubleValue() == 0)) {

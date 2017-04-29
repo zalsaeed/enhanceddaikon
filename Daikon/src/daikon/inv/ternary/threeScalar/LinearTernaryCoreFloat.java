@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -22,8 +23,8 @@ import typequals.*;
  * The LinearTernaryCore class is acts as the backend for the
  * invariant (ax + by + cz + d = 0) by processing samples and
  * computing coefficients.  The resulting coefficients a, b, c, and d are
- * mutually relatively prime, and the coefficient a is always p
- **/
+ * mutually relatively prime, and the coefficient a is always p.
+ */
 
 // Originally, LinearTernaryCore code was not dealing with degenerate
 // linear ternary invariants correct, namely when the plane
@@ -48,7 +49,7 @@ public final class LinearTernaryCoreFloat
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20030822L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   static final Logger debug = Logger.getLogger("daikon.inv.ternary.threeScalar.LinearTernaryCoreFloat");
 
   // ax + by + cz + d = 0; first argument is x, second is y, third is z
@@ -95,13 +96,16 @@ public final class LinearTernaryCoreFloat
     public Point (double x, double y, double z) {
       this.x = x; this.y = y; this.z = z;
     }
-    /*@Pure*/ public boolean equals (double x, double y, double z) {
+    /*@Pure*/
+    public boolean equals (double x, double y, double z) {
       return ((this.x == x) && (this.y == y) && (this.z == z));
     }
-    /*@SideEffectFree*/ protected Point clone() throws CloneNotSupportedException {
+    /*@SideEffectFree*/
+    protected Point clone(/*>>>@GuardSatisfied Point this*/) throws CloneNotSupportedException {
       return (Point) super.clone();
     }
-    /*@SideEffectFree*/ public String toString() {
+    /*@SideEffectFree*/
+    public String toString(/*>>>@GuardSatisfied Point this*/) {
       return ("(" + x + ", " + y + " ," + z + ")");
     }
   }
@@ -126,7 +130,8 @@ public final class LinearTernaryCoreFloat
     this.wrapper = wrapper;
   }
 
-  /*@SideEffectFree*/ public LinearTernaryCoreFloat clone() {
+  /*@SideEffectFree*/
+  public LinearTernaryCoreFloat clone(/*>>>@GuardSatisfied LinearTernaryCoreFloat this*/) {
     try {
       LinearTernaryCoreFloat result = (LinearTernaryCoreFloat) super.clone();
       result.def_points = new Point[MINTRIPLES];
@@ -145,7 +150,7 @@ public final class LinearTernaryCoreFloat
   /**
    * Reorganize our already-seen state as if the variables had shifted
    * order underneath us (rearrangement given by the permutation).
-   **/
+   */
   public void permute(int[] permutation) {
     assert permutation.length == 3;
     assert ArraysMDE.fn_is_permutation(permutation);
@@ -189,8 +194,9 @@ public final class LinearTernaryCoreFloat
       double[] temp = new double[3];
       for (int i=0; i<MINTRIPLES; i++) {
         Point p = def_points[i];
-        if (p == null)
+        if (p == null) {
           continue;
+        }
         wrapper.log ("orig def_points[%s] = %s", i, p);
         temp[permutation[0]] = p.x;
         temp[permutation[1]] = p.y;
@@ -220,7 +226,8 @@ public final class LinearTernaryCoreFloat
   // the invariant must have seen enough samples and not be a line for all the
   // other calculations and comparisons done to be sensible, meaning that
   // a full linear ternary invariant exists, not a degenerate one
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive(/*>>>@GuardSatisfied LinearTernaryCoreFloat this*/) {
     return (line_flag == Flag.NO_LINE && values_seen >= MINTRIPLES && a != 0 && b != 0 && c != 0);
   }
 
@@ -237,9 +244,10 @@ public final class LinearTernaryCoreFloat
   public InvariantStatus setup (LinearBinaryFloat lb, VarInfo con_var,
                                 double con_val) {
 
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       wrapper.log ("setup from lb %s con var %s con_val %s",
                    lb, con_var, con_val);
+    }
 
     int con_index = con_var.varinfo_index;
     int lb_v1_index = lb.ppt.var_infos[0].varinfo_index;
@@ -278,20 +286,22 @@ public final class LinearTernaryCoreFloat
         sts = add_modified (lb1_vals[i], lb2_vals[i], con_vals[i], 1);
 
       }
-      if (sts != InvariantStatus.NO_CHANGE)
+      if (sts != InvariantStatus.NO_CHANGE) {
         break;
+      }
     }
 
     if (sts != InvariantStatus.NO_CHANGE) {
       System.out.println ("lb.core.values_seen=" + lb.core.values_seen);
-      for (int i = 0; i < mi; i++ )
+      for (int i = 0; i < mi; i++ ) {
         System.out.printf ("LTCore: vals %s %s %s%n", con_vals[i], lb1_vals[i],
                            lb2_vals[i]);
+      }
       System.out.println ("in inv " + wrapper.format() + " " + wrapper.ppt);
       assert sts == InvariantStatus.NO_CHANGE;
     }
 
-    return (sts);
+    return sts;
   }
 
   /**
@@ -316,17 +326,20 @@ public final class LinearTernaryCoreFloat
         sts = add_modified ((((Double)oo.elt(i)).doubleValue()), con1, con2, 1);
       } else if (oo_index < con2_index) {
         sts = add_modified (con1, (((Double)oo.elt(i)).doubleValue()), con2, 1);
-      } else
+      } else {
         sts = add_modified (con1, con2, (((Double)oo.elt(i)).doubleValue()), 1);
-      if (sts != InvariantStatus.NO_CHANGE)
+      }
+      if (sts != InvariantStatus.NO_CHANGE) {
         break;
+      }
     }
 
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       wrapper.log ("setup from OneOf %s v1=%s v2=%s status = %s",
                    oo, con1, con2, sts);
+    }
 
-    return (sts);
+    return sts;
   }
 
   /**
@@ -351,8 +364,9 @@ public final class LinearTernaryCoreFloat
    */
   public InvariantStatus add_modified(double x, double y, double z, int count) {
 
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       wrapper.log ("Adding point, x=%s y=%s z=%s to invariant", x, y, z);
+    }
 
     if (values_seen < MINTRIPLES) {
       // We delay computation of a and b until we have seen several triples
@@ -362,8 +376,9 @@ public final class LinearTernaryCoreFloat
 
       // skip points we've already seen
       for (int i = 0; i < values_seen; i++)
-        if (def_points[i].equals (x, y, z))
+        if (def_points[i].equals (x, y, z)) {
           return InvariantStatus.NO_CHANGE;
+        }
 
       def_points[values_seen] = new Point (x, y, z);
       wrapper.log("Add: (%s, %s, %s)", x, y, z);
@@ -452,7 +467,7 @@ public final class LinearTernaryCoreFloat
    * Attempts to fit the points in def_point to a plane and calculates the
    * coefficients (a, b, c, d) if possible.
    *
-   * @param def_point  Array of points.  Must have at least 3 elements.
+   * @param def_point  array of points.  Must have at least 3 elements.
    *
    * @return the status of the invariant
    *     (whether the plane fitting was successful)
@@ -464,8 +479,9 @@ public final class LinearTernaryCoreFloat
     // coefficients calculated
 
     /*@Nullable*/ Point[] dummy = new /*@Nullable*/ Point[def_point.length];
-    for (int i = 0; i < def_point.length; i++)
+    for (int i = 0; i < def_point.length; i++) {
       dummy[i] = def_point[i];
+    }
 
     // Find the three points with the maximum separation
     maxsep_triples (dummy);
@@ -534,12 +550,14 @@ public final class LinearTernaryCoreFloat
           return InvariantStatus.FALSIFIED;
         }
       }
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         wrapper.log ("equation = %s*x %s*y %s*z = %s", a, b, c, -d);
+      }
 
       // Discard the points not used to define the coefficients.
-      for (int ii = 3; ii < MINTRIPLES; ii++)
+      for (int ii = 3; ii < MINTRIPLES; ii++) {
         def_point[ii] = null;
+      }
     }
 
     // if it passes all the checks, then no change to the Invariant
@@ -552,7 +570,7 @@ public final class LinearTernaryCoreFloat
    * (coefficients[]) if possible.  If not (points in def_point form a plane)
    * resets line_flag to Flag.NO_LINE and coefficients[] elements to -999.
    *
-   * @param def_point  Array of points.  Must have at least 2 elements.
+   * @param def_point  array of points.  Must have at least 2 elements.
    *
    */
   private void linearIntervention(/*@Nullable*/ Point[] def_point) {
@@ -590,7 +608,7 @@ public final class LinearTernaryCoreFloat
    * (indicated by line_flag and coefficients[]).  Method should only be called
    * if the current points define a line (line_flag is not Flag.NO_LINE)
    *
-   * @param x,y,z  x,y,z components of the point.
+   * @param x,y,z  x,y,z components of the point
    *
    */
   private boolean try_points_linear(double x, double y, double z) {
@@ -627,7 +645,7 @@ public final class LinearTernaryCoreFloat
   /**
    * Returns the two points that have the maximum separation in pa.
    *
-   * @param ps  Array of points.  Must have at least 2 elements.  Can be any
+   * @param ps  array of points.  Must have at least 2 elements.  Can be any
    *            length and can contain nulls (which will be ignored).
    *
    * @return a 2-element array containing the most-separated elements.
@@ -658,8 +676,9 @@ public final class LinearTernaryCoreFloat
     //   throw new IllegalArgumentException(Arrays.toString(pa));
     // }
 
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       wrapper.log ("maxsep_doubles = %s %s", p1, p2);
+    }
     if (p1 == null) {
       return null;
     }
@@ -670,7 +689,7 @@ public final class LinearTernaryCoreFloat
    * Calculates the coefficients for the line in 3D
    * and sets the coefficients[] by side effect.
    *
-   * @param points  2 points to use to calculate the coefficents.
+   * @param points  2 points to use to calculate the coefficents
    */
   //
   //  the line can fall under 3 categories
@@ -780,8 +799,8 @@ public final class LinearTernaryCoreFloat
    *  new coefficients if they are relatively close to to the previous
    *  ones.  Kills off the invariant if they are not.
    *
-   *  @return true if the new equation worked, false otherwise.
-   **/
+   *  @return true if the new equation worked, false otherwise
+   */
   public boolean try_new_equation (double x, double y, double z) {
 
     // Calculate max separation using this point and the existing 3 points.
@@ -795,11 +814,12 @@ public final class LinearTernaryCoreFloat
       try {
         // Requires that the first 3 elements of def_points must be non-null.
         coef = calc_tri_linear (def_points);
-        if (Debug.logDetail())
+        if (Debug.logDetail()) {
           wrapper.log ("Calc new plane with points %s %s %s %s",
                        def_points[0], def_points[1], def_points[2], def_points[3]);
+        }
       } catch (Exception e) {
-        return (false);
+        return false;
       }
 
       // if the a, b, or c is a new min/max remember it.
@@ -817,9 +837,10 @@ public final class LinearTernaryCoreFloat
       b = (min_b + max_b) / 2;
       c = (min_c + max_c) / 2;
       d = (min_d + max_d) / 2;
-      if (Invariant.logOn() || debug.isLoggable(Level.FINE))
+      if (Invariant.logOn() || debug.isLoggable(Level.FINE)) {
         wrapper.log (debug, wrapper.ppt.name() + ": Trying new a (" + a +
                      "), b (" + b + "), c (" + c + "), and d (" + d + ")");
+      }
       wrapper.log ("min max: Trying new a (%s), b (%s), c (%s), and d (%s)",
                    a, b, c, d);
       // if the new coefficients are 'equal' to their min and max and
@@ -830,24 +851,25 @@ public final class LinearTernaryCoreFloat
           Global.fuzzy.eq(c, min_c) && Global.fuzzy.eq(c, max_c) &&
           Global.fuzzy.eq(d, min_d) && Global.fuzzy.eq(d, max_d) &&
           (Global.fuzzy.eq (-d, a*x+b*y+c*z))) {
-        if (debug.isLoggable(Level.FINE))
+        if (debug.isLoggable(Level.FINE)) {
           debug.fine (wrapper.ppt.name() + ": New a (" + a + ") and b ("
                       + b + ") and c (" + c + ")");
-        return (true);
+        }
+        return true;
       } else {
-        return (false);
+        return false;
       }
     } else { // this point doesn't increase the separation
 
-      return (false);
+      return false;
     }
   }
 
   /**
    * Calculates the separation between p1 and p2.
    *
-   * @param p1  First point
-   * @param p2  Second point
+   * @param p1  first point
+   * @param p2  second point
    *
    * @return the distance between p1 and p2, or 0 if either point is null,
    * or NaN if either point contains a NaN
@@ -860,7 +882,7 @@ public final class LinearTernaryCoreFloat
 
     // make sure both points are specified
     if ((p1 == null) || (p2 == null)) {
-      return (0);
+      return 0;
     }
 
     double xsep = (p1.x - p2.x);
@@ -873,7 +895,7 @@ public final class LinearTernaryCoreFloat
    * Calculates the three points that have the maximum separation in pa and
    * places them as the first three elements of pa.
    *
-   * @param pa  Array of points.  Must have at least 3 elements.  Can be any
+   * @param pa  array of points.  Must have at least 3 elements.  Can be any
    *            length and can contain nulls (which will be ignored).
    *            Is side-effected so that the first three elements contain the
    *            points with the maximum total separation; this may introduce
@@ -881,7 +903,7 @@ public final class LinearTernaryCoreFloat
    *            The first three elements are null if no triple of elements
    *            is NaN-free.
    *
-   * @return the maximum separation found.
+   * @return the maximum separation found
    */
  double maxsep_triples (/*@Nullable*/ Point[] pa) {
 
@@ -928,9 +950,10 @@ public final class LinearTernaryCoreFloat
    pa[1] = p2;
    pa[2] = p3;
 
-   if (Debug.logDetail())
+   if (Debug.logDetail()) {
      wrapper.log ("maxsep_triples = %s %s %s", pa[0], pa[1], pa[2]);
-   return (max_separation);
+   }
+   return max_separation;
  }
 
   // Given ((x0,y0,z0),(x1,y1,z1), (x2,y2,z2), calculate a, b, c and d
@@ -963,7 +986,7 @@ public final class LinearTernaryCoreFloat
    *
    * @return a four element array where a is the first element, b the
    * second, c the third, and d is the fourth.  All elements are
-   * mutually prime, integers and a is positive
+   * mutually prime, integers and a is positive.
    */
   // TODO: should just pass in the first three elements rather than passing
   // in the point array.
@@ -1036,7 +1059,7 @@ public final class LinearTernaryCoreFloat
     return coef;
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LinearTernaryCoreFloat this*/) {
     return isActive();
   }
 
@@ -1047,11 +1070,13 @@ public final class LinearTernaryCoreFloat
   public double computeConfidence() {
     if (isActive()) {
       return Invariant.conf_is_ge(values_seen, MINTRIPLES);
-    } else
+    } else {
       return 0;
+    }
+
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LinearTernaryCoreFloat this*/) {
     return "LinearTernaryCoreFloat" + wrapper.varNames() + ": "
       + "a=" + a
       + ",b=" + b
@@ -1061,10 +1086,11 @@ public final class LinearTernaryCoreFloat
   }
 
   public String point_repr(Point p) {
-    if (p == null)
+    if (p == null) {
       return "null";
-    else
+    } else {
       return "<" + p.x + "," + p.y + "," + p.z + ">";
+    }
   }
 
   public String cache_repr() {
@@ -1081,7 +1107,8 @@ public final class LinearTernaryCoreFloat
     return LinearBinaryCore.formatTerm (coeff, varname, first);
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format,
+  /*@SideEffectFree*/
+  public String format_using(OutputFormat format,
                              String vix, String viy, String viz,
                              double a, double b, double c, double d) {
 
@@ -1093,8 +1120,7 @@ public final class LinearTernaryCoreFloat
       return format_simplify(vix, viy, viz, a, b, c, d);
     }
 
-    if ((format.isJavaFamily()))
-      {
+    if ((format.isJavaFamily())) {
 
         return
           // Add a 1 to each side of the equation because FuzzyFloat
@@ -1111,8 +1137,7 @@ public final class LinearTernaryCoreFloat
 
     if ((format == OutputFormat.DAIKON)
         || (format == OutputFormat.ESCJAVA)
-        || (format == OutputFormat.CSHARPCONTRACT))
-      {
+        || (format == OutputFormat.CSHARPCONTRACT)) {
         String eq = " == ";
         return formatTerm(a, vix, true)
           + formatTerm(b, viy, (a == 0))
@@ -1167,7 +1192,8 @@ public final class LinearTernaryCoreFloat
     return "(EQ 0 " + str_axPbyPczPd + ")";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format,
+  /*@SideEffectFree*/
+  public String format_using(OutputFormat format,
                              String vix, String viy, String viz
                              ) {
     String result = format_using(format, vix, viy, viz, a, b, c, d);
@@ -1184,20 +1210,25 @@ public final class LinearTernaryCoreFloat
   //   return format(y, x, a, -b/a);
   // }
 
-  /*@Pure*/ public boolean isSameFormula(LinearTernaryCoreFloat other) {
+  /*@Pure*/
+  public boolean isSameFormula(LinearTernaryCoreFloat other) {
 
     // If both have yet to see enough values
     if (!isActive() && !other.isActive()) {
 
       // Same formula if all of the points match
-      if (values_seen != other.values_seen)
-        return (false);
+      if (values_seen != other.values_seen) {
+        return false;
+      }
+      // This and elsewhere seem to assume that values_seen < MINTRIPLES;
+      // is that necessarily true?
       for (int ii = 0; ii < values_seen; ii++) {
         // used to use !=, but that test seems wrong
-        if (! def_points[ii].equals(other.def_points[ii]))
-          return (false);
+        if (! def_points[ii].equals(other.def_points[ii])) {
+          return false;
+        }
       }
-      return (true);
+      return true;
     } else {
       return ((values_seen >= MINTRIPLES)
               && (other.values_seen >= MINTRIPLES)
@@ -1208,7 +1239,8 @@ public final class LinearTernaryCoreFloat
     }
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(LinearTernaryCoreFloat other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(LinearTernaryCoreFloat other) {
     if (!isActive() ||
         !other.isActive()) {
       return false;
@@ -1226,7 +1258,7 @@ public final class LinearTernaryCoreFloat
    * samples.  And those will appear to have different formulas.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
   /**
@@ -1237,7 +1269,7 @@ public final class LinearTernaryCoreFloat
    * that invariant.  The merged core is returned.  Null is
    * returned if the cores don't describe the same plane
    *
-   * @param cores   List of LinearTernary cores to merge.  They should
+   * @param cores   list of LinearTernary cores to merge.  They should
    *                all be permuted to match the variable order in
    *                ppt.
    */
@@ -1246,47 +1278,53 @@ public final class LinearTernaryCoreFloat
     // Look for any active planes.  All must define the same plane
     LinearTernaryCoreFloat first = null;
     for (LinearTernaryCoreFloat c : cores) {
-      if (!c.isActive())
+      if (!c.isActive()) {
         continue;
-      if (first == null)
+      }
+      if (first == null) {
         first = c.clone();
-      else {
+      } else {
         if (!Global.fuzzy.eq (first.a, c.a)
             || !Global.fuzzy.eq (first.b, c.b)
             || !Global.fuzzy.eq (first.c, c.c)
             || !Global.fuzzy.eq (first.d, c.d))
-          return (null);
+          return null;
       }
     }
 
     // If no active planes were found, created an empty core
-    if (first == null)
+    if (first == null) {
       first = new LinearTernaryCoreFloat (wrapper);
-    else
+    } else {
       first.wrapper = wrapper;
+    }
 
     // Merge in any points from non-active cores
     // Note that while null points can't show up in a core that is not active
     // because it hasn't seen enough values, they can show up if the core
     // is not active because it is a line.
     for (LinearTernaryCoreFloat c : cores) {
-      if (c.isActive())
+      if (c.isActive()) {
         continue;
+      }
       for (int j = 0; j < c.values_seen; j++) {
         Point cp = c.def_points[j];
-        if (cp == null)
+        if (cp == null) {
           continue;
-        if (Debug.logDetail())
+        }
+        if (Debug.logDetail()) {
           wrapper.log ("Adding point %s from %s", cp, c.wrapper.ppt);
+        }
         InvariantStatus stat = first.add_modified (cp.x, cp.y, cp.z, 1);
-        if (stat == InvariantStatus.FALSIFIED)
-          return (null);
+        if (stat == InvariantStatus.FALSIFIED) {
+          return null;
+        }
         //if (wrapper.is_false())
-        //  return (null);
+        //  return null;
       }
     }
 
-    return (first);
+    return first;
   }
 
 }

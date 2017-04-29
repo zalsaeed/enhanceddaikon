@@ -1,25 +1,25 @@
 package daikon.diff;
 
-import java.util.*;
 import daikon.inv.*;
+import java.util.*;
 
 /*>>>
 import org.checkerframework.dataflow.qual.*;
 */
 
-
 /**
- * Comparator for sorting invariants.  If an invariant is an
- * implication, its consequent is used instead of the whole invariant.
- * If the consequents of two invariants are equal, the predicates are
- * compared.  The predicates and consequents themselves are compared
- * using the Comparator c passed to the constructor.  Some examples:
+ * Comparator for sorting invariants. If an invariant is an implication, its consequent is used
+ * instead of the whole invariant. If the consequents of two invariants are equal, the predicates
+ * are compared. The predicates and consequents themselves are compared using the Comparator c
+ * passed to the constructor. Some examples:
  *
+ * <pre>
  * this.compare(A&rArr;B, A&rArr;C) == c.compare(B, C)
  * this.compare(B, A&rArr;C) == c.compare(B, C)
  * this.compare(B, C) == c.compare(B, C)
  * this.compare(A&rArr;C, B&rArr;C) == c.compare(A, B)
- **/
+ * </pre>
+ */
 public class ConsequentSortComparator implements Comparator<Invariant> {
 
   private Comparator<Invariant> c;
@@ -28,9 +28,11 @@ public class ConsequentSortComparator implements Comparator<Invariant> {
     this.c = c;
   }
 
-  /*@Pure*/ public int compare(Invariant inv1, Invariant inv2) {
+  /*@Pure*/
+  public int compare(Invariant inv1, Invariant inv2) {
     Implication imp1 = null;
-    Implication imp2 = null;;
+    Implication imp2 = null;
+    ;
     if (inv1 instanceof Implication) {
       imp1 = (Implication) inv1;
       inv1 = imp1.consequent();
@@ -48,5 +50,4 @@ public class ConsequentSortComparator implements Comparator<Invariant> {
       return result;
     }
   }
-
 }

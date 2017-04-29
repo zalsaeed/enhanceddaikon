@@ -14,6 +14,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -29,7 +30,7 @@ import typequals.*;
  * If the auxiliary information (e.g., order matters)
  * doesn't match between two variables, then this invariant cannot
  * apply to those variables.
- **/
+ */
 public class SeqSeqIntLessThan
   extends TwoSequence
   implements Comparison
@@ -43,12 +44,12 @@ public class SeqSeqIntLessThan
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SeqSeqIntLessThan invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   /**
    * Debugging logger.
-   **/
+   */
   static final Logger debug = Logger.getLogger ("daikon.inv.binary.twoSequence.SeqSeqIntLessThan");
 
   @SuppressWarnings("interning")  // bug with generics
@@ -73,21 +74,22 @@ public class SeqSeqIntLessThan
 
   private static /*@Prototype*/ SeqSeqIntLessThan proto = new /*@Prototype*/ SeqSeqIntLessThan (true);
 
-  /** Returns the prototype invariant for SeqSeqIntLessThan **/
+  /** Returns the prototype invariant for SeqSeqIntLessThan */
   public static /*@Prototype*/ SeqSeqIntLessThan get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Non-Equal SeqComparison is only valid on integral types **/
+  /** Non-Equal SeqComparison is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     VarInfo var1 = vis[0];
     VarInfo var2 = vis[1];
@@ -99,18 +101,19 @@ public class SeqSeqIntLessThan
                             && type1.baseIsIntegral()
                             && (type2.dimensions() == 1)
                             && type2.baseIsIntegral()));
-      if (only_eq)
-        return (false);
+      if (only_eq) {
+        return false;
+      }
 
       // non equality comparisons don't make sense if the arrays aren't ordered
       if (!var1.aux.hasOrder()
         || !var2.aux.hasOrder())
-        return (false);
+        return false;
 
-    return (true);
+    return true;
   }
 
-  /** Instantiates the invariant on the specified slice **/
+  /** Instantiates the invariant on the specified slice */
   protected SeqSeqIntLessThan instantiate_dyn (/*>>> @Prototype SeqSeqIntLessThan this,*/ PptSlice slice) {
     boolean has_order = slice.var_infos[0].aux.hasOrder()
                       && slice.var_infos[1].aux.hasOrder();
@@ -122,22 +125,22 @@ public class SeqSeqIntLessThan
     return new SeqSeqIntGreaterThan(this);
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied SeqSeqIntLessThan this*/) {
     return "SeqSeqIntLessThan" + varNames() + ": "
       + ",orderMatters=" + orderMatters
       + ",enoughSamples=" + enoughSamples()
       ;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SeqSeqIntLessThan this,*/ OutputFormat format) {
     // System.out.println("Calling SeqSeqIntLessThan.format for: " + repr());
 
     if (format == OutputFormat.SIMPLIFY) {
       return format_simplify();
     }
 
-    if (format == OutputFormat.DAIKON)
-    {
+    if (format == OutputFormat.DAIKON) {
       String name1 = var1().name_using(format);
       String name2 = var2().name_using(format);
 
@@ -147,13 +150,11 @@ public class SeqSeqIntLessThan
       return name1 + " < " + name2 + lexically;
     }
 
-    if (format == OutputFormat.CSHARPCONTRACT)
-    {
+    if (format == OutputFormat.CSHARPCONTRACT) {
       String name1 = var1().csharp_collection_string();
       String name2 = var2().csharp_collection_string();
 
-      if (var1().aux.hasOrder())
-      {
+      if (var1().aux.hasOrder()) {
         String dbc = "L" + ("lexLT").substring(1);
         return name1 + "." + dbc + "(" + name2 + ")";
       } else {
@@ -176,26 +177,28 @@ public class SeqSeqIntLessThan
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
-    if (Invariant.dkconfig_simplify_define_predicates)
+  public String format_simplify(/*>>>@GuardSatisfied SeqSeqIntLessThan this*/) {
+    if (Invariant.dkconfig_simplify_define_predicates) {
       return format_simplify_defined();
-    else
+    } else {
       return format_simplify_explicit();
+    }
   }
 
-  private String format_simplify_defined() {
+  private String format_simplify_defined(/*>>>@GuardSatisfied SeqSeqIntLessThan this*/) {
     String[] var1_name = var1().simplifyNameAndBounds();
     String[] var2_name = var2().simplifyNameAndBounds();
     if (var1_name == null || var2_name == null) {
-      return "format_simplify can't handle one of these sequences: "
-        + format();
+      return String.format("%s.format_simplify_defined(%s): var1_name=%s, var2_name=%s, for %s",
+                           getClass().getSimpleName(), this,
+                           Arrays.toString(var1_name), Arrays.toString(var2_name), format());
     }
     return "(|lexical-<| " +
       var1_name[0] + " " + var1_name[1] + " " + var1_name[2] + " " +
       var2_name[0] + " " + var2_name[1] + " " + var2_name[2] + ")";
   }
 
-  private String format_simplify_explicit() {
+  private String format_simplify_explicit(/*>>>@GuardSatisfied SeqSeqIntLessThan this*/) {
 
       String classname = this.getClass().toString().substring(6);
       return "warning: method " + classname
@@ -227,8 +230,9 @@ public class SeqSeqIntLessThan
   }
 
   public InvariantStatus add_modified(long /*@Interned*/ [] v1, long /*@Interned*/ [] v2, int count) {
-    if (logDetail())
+    if (logDetail()) {
       log ("add_modified (%s, %s)", ArraysMDE.toString(v1), ArraysMDE.toString(v2));
+    }
         return check_modified(v1, v2, count);
   }
 
@@ -243,11 +247,13 @@ public class SeqSeqIntLessThan
       return Invariant.CONFIDENCE_NEVER;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant o) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant o) {
     return false;
   }
 
@@ -255,7 +261,7 @@ public class SeqSeqIntLessThan
    *  Since this invariant can be a postProcessed equality, we have to
    *  handle isObvious especially to avoid circular isObvious
    *  relations.
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousStatically_SomeInEquality() {
     if (var1().equalitySet == var2().equalitySet) {
@@ -269,11 +275,12 @@ public class SeqSeqIntLessThan
    *  Since this invariant can be a postProcessed equality, we have to
    *  handle isObvious especially to avoid circular isObvious
    *  relations.
-   **/
+   */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically_SomeInEquality() {
-    if (logOn())
+    if (logOn()) {
       log ("Considering dynamically_someInEquality");
+    }
     if (var1().equalitySet == var2().equalitySet) {
       return isObviousDynamically (this.ppt.var_infos);
     } else {
@@ -308,15 +315,16 @@ public class SeqSeqIntLessThan
 
       Debug debug = new Debug (getClass(), ppt, vis);
 
-      if (logOn())
+      if (logOn()) {
         debug.log ("Checking IsObviousDynamically");
+      }
 
       // Check to see if the same Pairwise invariant exists
       DiscardInfo di = new DiscardInfo (this, DiscardCode.obvious, "");
       if (ppt.parent.check_implied (di, vis[0], vis[1],
                                               PairwiseIntLessThan.get_proto())) {
         di.add_implied_vis (vis);
-        return (di);
+        return di;
       }
 
       // If either variable is a subsequence and the original arrays
@@ -325,29 +333,36 @@ public class SeqSeqIntLessThan
       VarInfo v2 = vis[1];
       VarInfo arr1 = v1;
       VarInfo arr2 = v2;
-      if (v1.derived instanceof SequenceScalarSubsequence)
+      if (v1.derived instanceof SequenceScalarSubsequence) {
         arr1 = ((SequenceScalarSubsequence) v1.derived).seqvar();
-      if (v2.derived instanceof SequenceScalarSubsequence)
+      }
+      if (v2.derived instanceof SequenceScalarSubsequence) {
         arr2 = ((SequenceScalarSubsequence) v2.derived).seqvar();
+      }
       if (!isEqual() && ((arr1 != v1) || (arr2 != v2))) {
         VarInfo[] avis = new VarInfo [] {arr1, arr2};
         PptSlice slice = this.ppt.parent.findSlice_unordered (avis);
         if (slice != null) {
           PairwiseIntEqual picEQ = PairwiseIntEqual.find(slice);
-          if (picEQ != null)
+          if (picEQ != null) {
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + picEQ.format());
+          }
           PairwiseIntLessThan picLT = PairwiseIntLessThan.find(slice);
-          if (picLT != null)
+          if (picLT != null) {
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + picLT.format());
+          }
           PairwiseIntGreaterThan picGT = PairwiseIntGreaterThan.find(slice);
-          if (picGT != null)
+          if (picGT != null) {
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + picGT.format());
+          }
           PairwiseIntLessEqual picLE = PairwiseIntLessEqual.find(slice);
-          if (picLE != null)
+          if (picLE != null) {
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + picLE.format());
+          }
           PairwiseIntGreaterEqual picGE = PairwiseIntGreaterEqual.find(slice);
-          if (picGE != null)
+          if (picGE != null) {
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + picGE.format());
+          }
         }
       }
 
@@ -364,37 +379,43 @@ public class SeqSeqIntLessThan
         PptSlice slice = this.ppt.parent.findSlice_unordered (avis);
         debug.log ("Found ppt " + slice);
         if (slice != null) {
-          for (Invariant inv : slice.invs)
+          for (Invariant inv : slice.invs) {
             debug.log ("-- invariant " + inv.format());
+          }
           Invariant inv;
           inv = SeqSeqIntEqual.find(slice);
           if (inv != null) {
-            if (logOn())
+            if (logOn()) {
               debug.log ("Obvious Dynamic from " + inv.format() + "(" + inv.getClass() + ")");
+            }
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + inv.format());
           }
           inv = SeqSeqIntLessThan.find(slice);
           if (inv != null) {
-            if (logOn())
+            if (logOn()) {
               debug.log ("Obvious Dynamic from " + inv.format() + "(" + inv.getClass() + ")");
+            }
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + inv.format());
           }
           inv = SeqSeqIntGreaterThan.find(slice);
           if (inv != null) {
-            if (logOn())
+            if (logOn()) {
               debug.log ("Obvious Dynamic from " + inv.format() + "(" + inv.getClass() + ")");
+            }
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + inv.format());
           }
           inv = SeqSeqIntLessEqual.find(slice);
           if (inv != null) {
-            if (logOn())
+            if (logOn()) {
               debug.log ("Obvious Dynamic from " + inv.format() + "(" + inv.getClass() + ")");
+            }
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + inv.format());
           }
           inv = SeqSeqIntGreaterEqual.find(slice);
           if (inv != null) {
-            if (logOn())
+            if (logOn()) {
               debug.log ("Obvious Dynamic from " + inv.format() + "(" + inv.getClass() + ")");
+            }
             return new DiscardInfo(this, DiscardCode.obvious, "Implied by " + inv.format());
           }
         }
@@ -404,8 +425,9 @@ public class SeqSeqIntLessThan
       if (v1.isDerived() || v2.isDerived()) {
         if (SubSequence.isObviousSubSequenceDynamically (this, v1, v2)
           || SubSequence.isObviousSubSequenceDynamically (this, v2, v1)) {
-          if (logOn())
+          if (logOn()) {
             debug.log ("Obvious SubSequence Dynamically");
+          }
           assert ppt != null;
           return new DiscardInfo(this, DiscardCode.obvious, "Both vars are derived and one is a subsequence "
                                  + "of the other");
@@ -428,7 +450,8 @@ public class SeqSeqIntLessThan
     */
   }
 
-  /*@Pure*/ public boolean isEqual() {
+  /*@Pure*/
+  public boolean isEqual() {
 
     return false;
   }
@@ -437,8 +460,9 @@ public class SeqSeqIntLessThan
   public static /*@Nullable*/ SeqSeqIntLessThan find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SeqSeqIntLessThan)
+      if (inv instanceof SeqSeqIntLessThan) {
         return (SeqSeqIntLessThan) inv;
+      }
     }
     return null;
   }
@@ -448,10 +472,10 @@ public class SeqSeqIntLessThan
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** Definition of this invariant (the suppressee) **/
+  /** Definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (SeqSeqIntLessThan.class, 2);
 

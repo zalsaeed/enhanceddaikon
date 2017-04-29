@@ -23,8 +23,9 @@ public final class SequenceInitialFactory extends UnaryDerivationFactory {
       return null;
     }
 
-    if (vi.rep_type != ProglangType.INT_ARRAY)
+    if (vi.rep_type != ProglangType.INT_ARRAY) {
       return null;
+    }
 
     // System.out.println("SequenceInitial.applicable(" + vi.name + ") = "
     //                    + SequenceInitial.applicable(vi));
@@ -42,8 +43,9 @@ public final class SequenceInitialFactory extends UnaryDerivationFactory {
     // We know that var.~ll~[0] == var and var.~ll~.field[0] == var.field.
     if (vi.isClosure()) {
       suppress_zero = true;
-      if ((lowerbound == 0) && (upperbound == 0))
+      if ((lowerbound == 0) && (upperbound == 0)) {
         Global.tautological_suppressed_derived_variables += 4;
+      }
         return null;
     }
 

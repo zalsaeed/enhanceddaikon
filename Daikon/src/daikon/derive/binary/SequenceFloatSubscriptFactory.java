@@ -32,10 +32,12 @@ public final class SequenceFloatSubscriptFactory extends BinaryDerivationFactory
       debug_class_match = Debug.class_match (getClass());
       debug_set = true;
     }
-    if (debug_class_match && Debug.logOn())
+    if (debug_class_match && Debug.logOn()) {
       debug = Debug.newDebug (getClass(), vi1.ppt, Debug.vis (vi1, vi2));
-    if (debug != null)
+    }
+    if (debug != null) {
       debug.log ("Considering Sequence Subscript Derivation");
+    }
 
     // check if the derivations are globally disabled
     boolean enable_subscript = SequenceFloatSubscript.dkconfig_enabled;
@@ -248,21 +250,23 @@ public final class SequenceFloatSubscriptFactory extends BinaryDerivationFactory
           // other variables as well.
 //          if (lb.core.b == -1) {
           if (-lb.core.c/lb.core.b == -1) {
-            if (lb.var1() == sclvar)
+            if (lb.var1() == sclvar) {
               // j = index - 1
               suppress_minus_1 = true;
-            else
+            } else {
               // index = j - 1, so j = index + 1
               suppress_plus_1 = true;
+            }
           }
 //          if (lb.core.b == 1) {
           if (-lb.core.c/lb.core.b == -1) {
-            if (lb.var1() == sclvar)
+            if (lb.var1() == sclvar) {
               // j = index + 1
               suppress_plus_1 = true;
-            else
+            } else {
               // index = j + 1, so j = index - 1
               suppress_minus_1 = true;
+            }
           }
           // System.out.println("For " + sclvar.name + " suppression: "
           //                    + "minus=" + suppress_minus_1
@@ -286,20 +290,23 @@ public final class SequenceFloatSubscriptFactory extends BinaryDerivationFactory
       // a[i]
       result.add(new SequenceFloatSubscript(seqvar, sclvar, false));
       // a[i-1]
-      if (! suppress_minus_1)
+      if (! suppress_minus_1) {
         result.add(new SequenceFloatSubscript(seqvar, sclvar, true));
+      }
     }
     if (enable_subsequence) {
       // a[i..]
       result.add(new SequenceFloatSubsequence(seqvar, sclvar, false, false));
       // a[i+1..]
-      if (! suppress_plus_1)
+      if (! suppress_plus_1) {
         result.add(new SequenceFloatSubsequence(seqvar, sclvar, false, true));
+      }
       // a[..i]
       result.add(new SequenceFloatSubsequence(seqvar, sclvar, true, false));
       // a[..i-1]
-      if (! suppress_minus_1)
+      if (! suppress_minus_1) {
         result.add(new SequenceFloatSubsequence(seqvar, sclvar, true, true));
+      }
     }
     if (debug != null) debug.log ("Found derivations " + result);
     return result.toArray(new BinaryDerivation[0]);

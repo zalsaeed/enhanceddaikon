@@ -1,12 +1,10 @@
 package daikon.simplify;
 
-
-/**
- * Utility functions for the simplify package.
- **/
-public class SimpUtil
-{
-  private SimpUtil() { throw new Error("do not instantiate"); }
+/** Utility functions for the simplify package. */
+public class SimpUtil {
+  private SimpUtil() {
+    throw new Error("do not instantiate");
+  }
 
   public static void assert_well_formed(String s) {
     boolean assert_enabled = false;
@@ -23,42 +21,38 @@ public class SimpUtil
 
     assert s != null;
     // XXX not with strings
-//     if (s.indexOf("((") != -1)
-//       throw new Error("'((' may not appear, '" + s + "'");
+    //     if (s.indexOf("((") != -1)
+    //       throw new Error("'((' may not appear, '" + s + "'");
     assert s.length() >= 4 : "too short, '" + s + "'";
-    if (s.charAt(0) != '(')
-      throw new Error("starts with lparen, '" + s + "'");
-    if (s.charAt(s.length()-1) != ')')
-      throw new Error("ends with rparen, '" + s + "'");
+    if (s.charAt(0) != '(') throw new Error("starts with lparen, '" + s + "'");
+    if (s.charAt(s.length() - 1) != ')') throw new Error("ends with rparen, '" + s + "'");
 
     int paren = 0;
     char[] cs = s.toCharArray();
-    for (int i=0; i < cs.length; i++) {
+    for (int i = 0; i < cs.length; i++) {
       char c = cs[i];
       if (c == '(') {
         paren++;
       } else if (c == ')') {
         // XXX not with strings
-//         if (paren <= 0)
-//           assert paren > 0 : //                             "too deep at char " + i + " in '" + s + "'";
+        //         if (paren <= 0)
+        //           assert paren > 0 : //                             "too deep at char " + i + " in '" + s + "'";
         paren--;
         // This check is only sensible for some callers; it needs a flag.
-//         if (paren == 0 && i < cs.length -1)
-//           throw new Error("multiple SEXPs in " + s);
+        //         if (paren == 0 && i < cs.length -1)
+        //           throw new Error("multiple SEXPs in " + s);
       }
     }
     // XXX not with strings
-//     if (paren != 0)
-//       assert paren == 0 : "unbalanced parens in '" + s + "'";
+    //     if (paren != 0)
+    //       assert paren == 0 : "unbalanced parens in '" + s + "'";
   }
 
   /**
-   * Represent a Java long integer as an uninterpreted function
-   * applied to 6 moderately sized integers, to work around Simplify's
-   * numeric limitations. The first integer is a sign, and the rest
-   * are 13-bit (base 8192) limbs in order from most to least
-   * significant.
-   **/
+   * Represent a Java long integer as an uninterpreted function applied to 6 moderately sized
+   * integers, to work around Simplify's numeric limitations. The first integer is a sign, and the
+   * rest are 13-bit (base 8192) limbs in order from most to least significant.
+   */
   public static String formatInteger(long i) {
     int sign;
     int[] limbs = new int[5]; // limbs[0] is most significant
@@ -75,11 +69,22 @@ public class SimpUtil
         i = -i;
       }
       for (int j = 4; j >= 0; j--) {
-        limbs[j] = (int)(i % 8192);
+        limbs[j] = (int) (i % 8192);
         i /= 8192;
       }
     }
-    return "(|long-int| " + sign + " " + limbs[0] + " " + limbs[1] + " "
-      + limbs[2] + " " + limbs[3] + " " + limbs[4] + ")";
+    return "(|long-int| "
+        + sign
+        + " "
+        + limbs[0]
+        + " "
+        + limbs[1]
+        + " "
+        + limbs[2]
+        + " "
+        + limbs[3]
+        + " "
+        + limbs[4]
+        + ")";
   }
 }

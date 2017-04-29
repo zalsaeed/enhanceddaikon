@@ -13,10 +13,10 @@ import org.checkerframework.checker.nullness.qual.*;
 
 /**
  * Factory for SequencesPredicate derived variables.
- **/
+ */
 public final class SequencesPredicateFactoryFloat extends BinaryDerivationFactory {
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug =
     Logger.getLogger("daikon.derive.binary.SequencesPredicateFactoryFloat");
 
@@ -53,11 +53,14 @@ public final class SequencesPredicateFactoryFloat extends BinaryDerivationFactor
 
     if (SequencesPredicateFloat.dkconfig_fieldOnly) {
 
-      if (!var1.is_field() || !var2.is_field())
+      if (!var1.is_field() || !var2.is_field()) {
         return null;
+      }
 
-      if (!var1.has_same_parent (var2))
+      if (!var1.has_same_parent (var2)) {
         return null;
+      }
+
     } else {
       // There may be predications that aren't of the x.a and x.b type
     }

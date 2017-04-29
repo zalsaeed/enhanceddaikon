@@ -5,16 +5,16 @@ import java.util.Collections;
 import java.util.Set;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
 /**
- * Represents a set of instructions that may or may not be executed,
- * and whose only effect is that they may kill one or more variables.
+ * Represents a set of instructions that may or may not be executed, and whose only effect is that
+ * they may kill one or more variables.
  *
- * A killer instruction is the abstraction we use to think of all
- * the possible paths between a basic block and one of its dominators,
- * and the effect of these paths on the state of the program.
+ * <p>A killer instruction is the abstraction we use to think of all the possible paths between a
+ * basic block and one of its dominators, and the effect of these paths on the state of the program.
  */
 public class KillerInstruction implements IInstruction {
 
@@ -38,13 +38,16 @@ public class KillerInstruction implements IInstruction {
   }
 
   public boolean kills(String var) {
-    for (X86Instruction i : instructions)
-      if (i.kills(var))
+    for (X86Instruction i : instructions) {
+      if (i.kills(var)) {
         return true;
+      }
+    }
     return false;
   }
 
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied KillerInstruction this*/) {
     StringBuilder b = new StringBuilder();
     for (X86Instruction i : instructions) {
       b.append("(potential)" + i + "\n");

@@ -9,6 +9,7 @@ import java.text.DecimalFormat;
 import java.io.Serializable;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
@@ -55,7 +56,8 @@ public class LowerBoundCoreFloat
     return min1;
   }
 
-  /*@SideEffectFree*/ public LowerBoundCoreFloat clone() {
+  /*@SideEffectFree*/
+  public LowerBoundCoreFloat clone(/*>>>@GuardSatisfied LowerBoundCoreFloat this*/) {
     try {
       return (LowerBoundCoreFloat) super.clone();
     } catch (CloneNotSupportedException e) {
@@ -65,7 +67,7 @@ public class LowerBoundCoreFloat
 
   private static DecimalFormat two_decimals = new java.text.DecimalFormat("#.##");
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LowerBoundCoreFloat this*/) {
     double modulus = calc_modulus();
     double range = calc_range();
     double avg_samples_per_val = calc_avg_samples_per_val(modulus, range);
@@ -79,7 +81,7 @@ public class LowerBoundCoreFloat
       "avg_samp=" + two_decimals.format(avg_samples_per_val);
   }
 
-  private double calc_avg_samples_per_val(double modulus, double range) {
+  private double calc_avg_samples_per_val(/*>>>@GuardSatisfied LowerBoundCoreFloat this,*/ double modulus, double range) {
     // int num_samples = wrapper.ppt.num_mod_samples();
     int num_samples = wrapper.ppt.num_samples();
     double avg_samples_per_val =
@@ -89,12 +91,12 @@ public class LowerBoundCoreFloat
     return avg_samples_per_val;
   }
 
-  private double calc_range() {
+  private double calc_range(/*>>>@GuardSatisfied LowerBoundCoreFloat this*/) {
     // If I used Math.abs, the order of arguments to minus would not matter.
     return (max - min1) + 1;
   }
 
-  private double calc_modulus() {
+  private double calc_modulus(/*>>>@GuardSatisfied LowerBoundCoreFloat this*/) {
     // Need to reinstate this at some point.
     // {
     //   for (Invariant inv : wrapper.ppt.invs) {
@@ -111,7 +113,7 @@ public class LowerBoundCoreFloat
    * Whether this would change if the given value was seen.  Used to
    * test for need of cloning and flowing before this would be
    * changed.
-   **/
+   */
   public boolean wouldChange (double value) {
     double v = value;
     return (value < min1);
@@ -163,7 +165,7 @@ public class LowerBoundCoreFloat
     }
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LowerBoundCoreFloat this*/) {
     return samples > required_samples;
   }
 
@@ -179,8 +181,9 @@ public class LowerBoundCoreFloat
   }
 
   public double computeConfidence() {
-    if (PrintInvariants.dkconfig_static_const_infer && matchConstant())
+    if (PrintInvariants.dkconfig_static_const_infer && matchConstant()) {
       return Invariant.CONFIDENCE_JUSTIFIED;
+    }
 
     return 1 - computeProbability();
   }
@@ -193,8 +196,9 @@ public class LowerBoundCoreFloat
         if (vi.rep_type == ProglangType.DOUBLE) {
           // If variable is a double, then use fuzzy comparison
           Double constantVal = (Double)vi.constantValue();
-          if (Global.fuzzy.eq(constantVal, min1) || (Double.isNaN(constantVal) && Double.isNaN(min1)))
+          if (Global.fuzzy.eq(constantVal, min1) || (Double.isNaN(constantVal) && Double.isNaN(min1))) {
             return true;
+          }
         } else {
           // Otherwise just use the equals method
           Object constantVal = vi.constantValue();
@@ -270,11 +274,13 @@ public class LowerBoundCoreFloat
 
   }
 
-  /*@Pure*/ public boolean isSameFormula(LowerBoundCoreFloat other) {
+  /*@Pure*/
+  public boolean isSameFormula(LowerBoundCoreFloat other) {
     return min1 == other.min1;
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return false;
   }
 
@@ -283,22 +289,27 @@ public class LowerBoundCoreFloat
 
     // Pass each value and its count to this invariant's add_modified.  Since
     // bound is never destroyed, we don't need to check the results.
-    if (lbc.num_min1 > 0)
+    if (lbc.num_min1 > 0) {
       add_modified (lbc.min1, lbc.num_min1);
-    if (lbc.num_min2 > 0)
+    }
+    if (lbc.num_min2 > 0) {
       add_modified (lbc.min2, lbc.num_min2);
-    if (lbc.num_min3 > 0)
+    }
+    if (lbc.num_min3 > 0) {
       add_modified (lbc.min3, lbc.num_min3);
+    }
     // num_min1 will be positive if and only if we've ever seen any
     // real samples. Only then does max represent a real sample.
-    if (lbc.num_min1 > 0)
+    if (lbc.num_min1 > 0) {
       add_modified (lbc.max, 1);
-    if (Debug.logDetail())
+    }
+    if (Debug.logDetail()) {
       wrapper.log ("Added vals %s of %s, %s of %s, %s of %s, %s from ppt %s",
                    lbc.num_min1, lbc.min1, lbc.num_min2, lbc.min2,
                    lbc.num_min3, lbc.min3,
                    ((lbc.num_min1 > 0) ?  "1 of " + lbc.max : ""),
                    lbc.wrapper.ppt.parent.ppt_name);
+    }
   }
 
 }

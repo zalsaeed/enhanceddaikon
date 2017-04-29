@@ -1,23 +1,21 @@
 package daikon;
 
-import java.util.*;
 import java.io.*;
-
+import java.util.*;
 import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.checker.signature.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
 /**
- * Represents the type of a variable, for its declared, dtrace file
- * representation, and internal representations.  ProgLangTypes are
- * interned, so they can be == compared.
- **/
-
+ * Represents the type of a variable, for its declared, dtrace file representation, and internal
+ * representations. ProgLangTypes are interned, so they can be == compared.
+ */
 
 // I could also consider using Class; however:
 //  * that ties this to a Java front end, as Class can't represent types of
@@ -33,23 +31,21 @@ import org.checkerframework.dataflow.qual.*;
 //    elementType() can use the name, I suppose.  Or maybe try to
 //    instantiate something, though that seems dicier.
 
-
 // Problem:  this doesn't currently represent inheritance, coercability, or
 // other relationships over the base types.
 
 // integral_types = ("int", "char", "float", "double", "integral", "boolean")
 // known_types = integral_types + ("pointer", "address")
 
-public final /*@Interned*/ class ProglangType
-  implements Serializable
-{
+public final /*@Interned*/ class ProglangType implements Serializable {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20020122L;
 
   // With Vector search, this func was a hotspot (38%), so use a Map.
-  private static HashMap</*@Interned*/ String,Vector<ProglangType>> all_known_types = new HashMap</*@Interned*/ String,Vector<ProglangType>>();
+  private static HashMap</*@Interned*/ String, Vector<ProglangType>> all_known_types =
+      new HashMap</*@Interned*/ String, Vector<ProglangType>>();
 
   // The set of (interned) names of classes that implement java.util.List.
   // For a Java class, this is a @BinaryNameForNonArray, but when Daikon is
@@ -57,8 +53,8 @@ public final /*@Interned*/ class ProglangType
   public static HashSet<String> list_implementors = new LinkedHashSet<String>();
 
   /**
-   * If true, treat 32 bit values whose high bit is on, as a negative
-   * number (rather than as a 32 bit unsigned).
+   * If true, treat 32 bit values whose high bit is on, as a negative number (rather than as a 32
+   * bit unsigned).
    */
   public static boolean dkconfig_convert_to_signed = false;
 
@@ -76,31 +72,38 @@ public final /*@Interned*/ class ProglangType
 
   // For a Java class, this is a binary name.  When Daikon is processing
   // other languages, the format is arbitrary.
-  private /*@Interned*/ String base;          // interned name of base type
-  public /*@Interned*/ String base() { return base; }
-  private int dimensions;       // number of dimensions
-  public int dimensions() { return dimensions; }
-  /*@Pure*/ public boolean isArray() { return dimensions > 0; }
+  private /*@Interned*/ String base; // interned name of base type
+
+  public /*@Interned*/ String base() {
+    return base;
+  }
+
+  private int dimensions; // number of dimensions
+
+  public int dimensions() {
+    return dimensions;
+  }
+  /*@Pure*/
+  public boolean isArray() {
+    return dimensions > 0;
+  }
 
   /**
-   * No public constructor:  use parse() instead to get a canonical
-   * representation.
-   * basetype should be interned.
-   **/
+   * No public constructor: use parse() instead to get a canonical representation. basetype should
+   * be interned.
+   */
   private ProglangType(/*@Interned*/ String basetype, int dimensions) {
     assert basetype == basetype.intern();
     this.base = basetype;
     this.dimensions = dimensions;
-
   }
 
   /**
-   * This can't be a constructor because it returns a canonical
-   * representation (that can be compared with ==), not necessarily a new
-   * object.
-   *  @param rep the name of the type, optionally suffixed by
-   *  (possibly multiple) "[]"
-   **/
+   * This can't be a constructor because it returns a canonical representation (that can be compared
+   * with ==), not necessarily a new object.
+   *
+   * @param rep the name of the type, optionally suffixed by (possibly multiple) "[]"
+   */
   public static ProglangType parse(String rep) {
     String new_base = rep;
     int dims = 0;
@@ -112,11 +115,10 @@ public final /*@Interned*/ class ProglangType
   }
 
   /**
-   * Like parse, but normalizes representation types (such as converting
-   * "float" to "double"), in order to return real file representation types
-   * even if the file contains something slightly different than the
-   * prescribed format.
-   **/
+   * Like parse, but normalizes representation types (such as converting "float" to "double"), in
+   * order to return real file representation types even if the file contains something slightly
+   * different than the prescribed format.
+   */
   public static ProglangType rep_parse(String rep) {
     ProglangType candidate = parse(rep);
     if ((candidate.base == "address") || (candidate.base == "pointer")) { // interned
@@ -124,28 +126,29 @@ public final /*@Interned*/ class ProglangType
     } else if (candidate.base == "float") { // interned
       return intern("double", candidate.dimensions);
     } else if (candidate.base == "string") { // interned
-      return intern ("java.lang.String", candidate.dimensions);
+      return intern("java.lang.String", candidate.dimensions);
     } else {
       return candidate;
     }
   }
 
-  /** Convert a file representation type to an internal representation type. **/
+  /** Convert a file representation type to an internal representation type. */
   public ProglangType fileTypeToRepType() {
     if ((base == BASE_HASHCODE)
         || (base == BASE_BOOLEAN)
         || (base == BASE_LONG)
         || (base == BASE_LONG_LONG)
-        || (base == BASE_SHORT))
+        || (base == BASE_SHORT)) {
       return intern(BASE_INT, dimensions);
+    }
     return this;
   }
 
   /**
-   * For serialization; indicates which object to return instead of the
-   * one that was just read from the file.  This obviates the need to write
-   * a readObject method that interns the interned fields (just "base").
-   **/
+   * For serialization; indicates which object to return instead of the one that was just read from
+   * the file. This obviates the need to write a readObject method that interns the interned fields
+   * (just "base").
+   */
   public Object readResolve() throws ObjectStreamException {
     return intern(base.intern(), dimensions);
   }
@@ -157,26 +160,24 @@ public final /*@Interned*/ class ProglangType
   // }
 
   private boolean internal_equals(ProglangType other) {
-    return ((base == other.base)
-            && (dimensions == other.dimensions));
+    return ((base == other.base) && (dimensions == other.dimensions));
   }
 
-
   // THIS CODE IS A HOT SPOT (~33% of runtime) [as of January 2002].
-  /** @param t_base must be interned **/
+  /** @param t_base must be interned */
   private static /*@Nullable*/ ProglangType find(/*@Interned*/ String t_base, int t_dims) {
-// Disabled for performance reasons! this assertion is sound though:
-//    assert t_base == t_base.intern();
+    // Disabled for performance reasons! this assertion is sound though:
+    //    assert t_base == t_base.intern();
 
     // the string maps us to a vec of all plts with that base
     Vector<ProglangType> v = all_known_types.get(t_base);
-    if (v == null)
-      return null;
+    if (v == null) return null;
 
     // now search for the right dimension
     for (ProglangType candidate : v) {
-      if (candidate.dimensions() == t_dims)
+      if (candidate.dimensions() == t_dims) {
         return candidate;
+      }
     }
 
     return null;
@@ -216,27 +217,26 @@ public final /*@Interned*/ class ProglangType
     return result;
   }
 
-//     def comparable(self, other):
-//         base1 = self.base
-//         base2 = other.base
-//         return ((self.dimensionality == other.dimensionality)
-//                 and ((base1 == base2)
-//                      or ((base1 == "integral") and (base2 in integral_types)) // interned strings
-//                      or ((base2 == "integral") and (base1 in integral_types)))) // interned strings
+  //     def comparable(self, other):
+  //         base1 = self.base
+  //         base2 = other.base
+  //         return ((self.dimensionality == other.dimensionality)
+  //                 and ((base1 == base2)
+  //                      or ((base1 == "integral") and (base2 in integral_types)) // interned strings
+  //                      or ((base2 == "integral") and (base1 in integral_types)))) // interned strings
 
   /**
-   * Returns the type of elements of this.
-   * They may themselves be arrays if this is multidimensional.
-   **/
-  public ProglangType elementType() {
+   * Returns the type of elements of this. They may themselves be arrays if this is
+   * multidimensional.
+   */
+  public ProglangType elementType(/*>>>@GuardSatisfied ProglangType this*/) {
     // Presume that if there are no dimensions, this must be a list of
     // objects.  Callers should really find this out from other information
     // in the variable, but this will old code that relied on the pseudo
     // dimensions of lists to work
-    if (dimensions == 0)
-      return OBJECT;
+    if (dimensions == 0) return OBJECT;
     assert base == base.intern() : "Uninterned base " + base;
-    return ProglangType.intern(base, dimensions-1);
+    return ProglangType.intern(base, dimensions - 1);
   }
 
   // All these variables are public because the way to check the base of an
@@ -271,8 +271,10 @@ public final /*@Interned*/ class ProglangType
   static final /*@Interned*/ Long LongOne = Intern.internedLong(1);
   static final /*@Interned*/ Double DoubleZero = Intern.internedDouble(0);
   static final /*@Interned*/ Double DoubleNaN = Intern.internedDouble(Double.NaN);
-  static final /*@Interned*/ Double DoublePositiveInfinity = Intern.internedDouble(Double.POSITIVE_INFINITY);
-  static final /*@Interned*/ Double DoubleNegativeInfinity = Intern.internedDouble(Double.NEGATIVE_INFINITY);
+  static final /*@Interned*/ Double DoublePositiveInfinity =
+      Intern.internedDouble(Double.POSITIVE_INFINITY);
+  static final /*@Interned*/ Double DoubleNegativeInfinity =
+      Intern.internedDouble(Double.NEGATIVE_INFINITY);
 
   /*
    *  Now that all other static initialisers are done, it is safe to
@@ -307,9 +309,10 @@ public final /*@Interned*/ class ProglangType
   // from C's unsigned long long) into the corresponding negative Java
   // longs.  Also handles hex values that begin with 0x
   private static long myParseLong(String value) {
-    if (value.length() == 20 && value.charAt(0) == '1' ||
-        value.length() == 19 && value.charAt(0) == '9' &&
-        value.compareTo("9223372036854775808") >= 0) {
+    if (value.length() == 20 && value.charAt(0) == '1'
+        || value.length() == 19
+            && value.charAt(0) == '9'
+            && value.compareTo("9223372036854775808") >= 0) {
       // Oops, we got a large unsigned long, which Java, having
       // only signed longs, will refuse to parse. We'll have to
       // turn it into the corresponding negative long value.
@@ -317,23 +320,22 @@ public final /*@Interned*/ class ProglangType
       long subtracted; // The amount we effectively subtracted to make it
       if (value.length() == 20) {
         rest = value.substring(1);
-        subtracted = 100000L*100000*100000*10000; // 10^19
+        subtracted = 100000L * 100000 * 100000 * 10000; // 10^19
       } else {
         rest = value.substring(1);
-        subtracted = 9L*100000*100000*100000*1000; // 9*10^18
+        subtracted = 9L * 100000 * 100000 * 100000 * 1000; // 9*10^18
       }
       return Long.parseLong(rest) + subtracted;
     } else {
       long val;
-      if ((value.length() > 2) && (value.charAt(0) == '0')
-               && (value.charAt(1) == 'x')) {
-        val = Long.parseLong (value.substring(2), 16);
+      if ((value.length() > 2) && (value.charAt(0) == '0') && (value.charAt(1) == 'x')) {
+        val = Long.parseLong(value.substring(2), 16);
       } else {
         val = Long.parseLong(value);
       }
       // presume that 32 bit values are signed
-      if (dkconfig_convert_to_signed && (((val & 0x80000000L) == 0x80000000L)
-                                       && ((val & 0xFFFFFFFF00000000L) == 0))) {
+      if (dkconfig_convert_to_signed
+          && (((val & 0x80000000L) == 0x80000000L) && ((val & 0xFFFFFFFF00000000L) == 0))) {
         long orig = val;
         val |= 0xFFFFFFFF00000000L;
         // System.out.printf ("Warning: converted %d to %d\n", orig, val);
@@ -343,36 +345,34 @@ public final /*@Interned*/ class ProglangType
   }
 
   /**
-   * Given a string representation of a value (of the type represented by
-   * this ProglangType), return the (canonicalized) interpretation of that value.
-   * <p>
+   * Given a string representation of a value (of the type represented by this ProglangType), return
+   * the (canonicalized) interpretation of that value.
    *
-   * This ProglangType (the method receiver) is assumed to be a representation
-   * type, not an arbitrary type in the underlying programming language.
-   * <p>
+   * <p>This ProglangType (the method receiver) is assumed to be a representation type, not an
+   * arbitrary type in the underlying programming language.
    *
-   * If the type is an array and there
-   * are any nonsensical elements in the array, the entire array is
-   * considered to be nonsensical (indicated by returning null).  This
-   * is not really correct, but it is a reasonable path to take for now.
-   * (jhp, Feb 12, 2005)
+   * <p>If the type is an array and there are any nonsensical elements in the array, the entire
+   * array is considered to be nonsensical (indicated by returning null). This is not really
+   * correct, but it is a reasonable path to take for now. (jhp, Feb 12, 2005)
    */
-  public final /*@Nullable*/ /*@Interned*/ Object parse_value(String value, LineNumberReader reader, String filename) {
+  public final /*@Nullable*/ /*@Interned*/ Object parse_value(
+      String value, LineNumberReader reader, String filename) {
     // System.out.println(format() + ".parse(\"" + value + "\")");
 
     switch (dimensions) {
-    case 0:
-      return parse_value_scalar(value, reader, filename);
-    case 1:
-      return parse_value_array_1d(value, reader, filename);
-    case 2:
-      return parse_value_array_2d(value, reader, filename);
-    default:
-      throw new Error("Can't parse a value of type " + format());
+      case 0:
+        return parse_value_scalar(value, reader, filename);
+      case 1:
+        return parse_value_array_1d(value, reader, filename);
+      case 2:
+        return parse_value_array_2d(value, reader, filename);
+      default:
+        throw new Error("Can't parse a value of type " + format());
     }
   }
 
-  public final /*@Nullable*/ /*@Interned*/ Object parse_value_scalar(String value, LineNumberReader reader, String filename) {
+  public final /*@Nullable*/ /*@Interned*/ Object parse_value_scalar(
+      String value, LineNumberReader reader, String filename) {
     // System.out.println(format() + ".parse(\"" + value + "\")");
 
     assert dimensions == 0;
@@ -383,20 +383,23 @@ public final /*@Interned*/ class ProglangType
       }
       // assert value.startsWith("\"") && value.endsWith("\"");
       if (value.startsWith("\"") && value.endsWith("\"")) {
-        value = value.substring(1, value.length()-1);
+        value = value.substring(1, value.length() - 1);
       } else {
         // Unfortunately, there is not a convenient way to communicate what
         // the variable name is, which would make the error message even
         // more specific.
-        if (! value.startsWith("\"")) {
-          System.out.printf("Warning: unquoted string value at %s line %d: %s%n",
-                            filename, reader.getLineNumber(), value);
+        if (!value.startsWith("\"")) {
+          System.out.printf(
+              "Warning: unquoted string value at %s line %d: %s%n",
+              filename, reader.getLineNumber(), value);
         } else {
-          assert ! value.endsWith("\"");
-          System.out.printf("Warning: unterminated string value at %s line %d: %s%n",
-                            filename, reader.getLineNumber(), value);
+          assert !value.endsWith("\"");
+          System.out.printf(
+              "Warning: unterminated string value at %s line %d: %s%n",
+              filename, reader.getLineNumber(), value);
         }
-        System.out.printf("Proceeding anyway.  Please report a bug in the tool that made the data trace file.");
+        System.out.printf(
+            "Proceeding anyway.  Please report a bug in the tool that made the data trace file.");
       }
       value = UtilMDE.unescapeNonJava(value);
       return value.intern();
@@ -404,59 +407,57 @@ public final /*@Interned*/ class ProglangType
       // This will fail if the character is output as an integer
       // (as I believe the C front end does).
       char c;
-      if (value.length() == 1)
+      if (value.length() == 1) {
         c = value.charAt(0);
-      else if ((value.length() == 2) && (value.charAt(0) == '\\'))
+      } else if ((value.length() == 2) && (value.charAt(0) == '\\')) {
         c = UtilMDE.unescapeNonJava(value).charAt(0);
-      else if ((value.length() == 4) && (value.charAt(0) == '\\')) {
+      } else if ((value.length() == 4) && (value.charAt(0) == '\\')) {
         Byte b = Byte.decode("0" + value.substring(1));
         return Intern.internedLong(b.longValue());
-      }
-      else
+      } else {
         throw new IllegalArgumentException("Bad character: " + value);
+      }
       return Intern.internedLong(Character.getNumericValue(c));
-    } 
+    }
     // When parse_value is called from FileIO.read_ppt_decl, we have
     // not set file_rep_type. Hence, rep_type is still file_rep_type
     // and BASE_BOOLEAN is legal.  (Daikon issue #33 - markro)
-      else if ((base == BASE_INT) || (base == BASE_BOOLEAN)) {
+    else if ((base == BASE_INT) || (base == BASE_BOOLEAN)) {
       // File rep type might be int, boolean, or hashcode.
       // If we had the declared type, we could do error-checking here.
       // (Example:  no hashcode should be negative, nor any boolean > 1.)
-      if (value.equals("nonsensical"))
-        return null;
-      if (value.equals("false") || value.equals("0"))
-        return LongZero;
-      if (value.equals("true") || value.equals("1"))
-        return LongOne;
-      if (value.equals("null"))
-        return LongZero;
+      if (value.equals("nonsensical")) return null;
+      if (value.equals("false") || value.equals("0")) return LongZero;
+      if (value.equals("true") || value.equals("1")) return LongOne;
+      if (value.equals("null")) return LongZero;
       return Intern.internedLong(myParseLong(value));
     } else if (base == BASE_DOUBLE) {
       // Must ignore case, because dfej outputs "NaN", while dfec
       // outputs "nan".  dfec outputs "nan", because this string
       // comes from the C++ library.
-      if (value.equalsIgnoreCase("NaN"))
-        return DoubleNaN;
-      if (value.equalsIgnoreCase("Infinity") || value.equals("inf"))
+      if (value.equalsIgnoreCase("NaN")) return DoubleNaN;
+      if (value.equalsIgnoreCase("Infinity") || value.equals("inf")) {
         return DoublePositiveInfinity;
-      if (value.equalsIgnoreCase("-Infinity") || value.equals("-inf"))
+      }
+      if (value.equalsIgnoreCase("-Infinity") || value.equals("-inf")) {
         return DoubleNegativeInfinity;
+      }
       return Intern.internedDouble(value);
     } else if ((base == BASE_HASHCODE)
-               || (base == BASE_LONG)
-               || (base == BASE_LONG_LONG)
-               || (base == BASE_SHORT)) {
+        || (base == BASE_LONG)
+        || (base == BASE_LONG_LONG)
+        || (base == BASE_SHORT)) {
       throw new Error("not a rep type: illegal base type " + base);
     } else {
       throw new Error("unrecognized base type " + base);
     }
   }
 
-  public final /*@Nullable*/ /*@Interned*/ Object parse_value_array_1d(String value, LineNumberReader reader, String filename) {
+  public final /*@Nullable*/ /*@Interned*/ Object parse_value_array_1d(
+      String value, LineNumberReader reader, String filename) {
     // System.out.println(format() + ".parse(\"" + value + "\")");
 
-    String value_orig = value;  // we will side-effect the parameter
+    String value_orig = value; // we will side-effect the parameter
 
     // variable is an array
     assert dimensions == 1;
@@ -468,8 +469,7 @@ public final /*@Interned*/ class ProglangType
     if (value.startsWith("[") && value.endsWith("]")) {
       value = value.substring(1, value.length() - 1).trim();
     } else {
-      throw new IllegalArgumentException(
-        "Array values must be enlosed in square brackets");
+      throw new IllegalArgumentException("Array values must be enlosed in square brackets");
     }
 
     // Elements of value_strings can be null only if base == BASE_STRING.
@@ -483,21 +483,23 @@ public final /*@Interned*/ class ProglangType
       StreamTokenizer parser = new StreamTokenizer(new StringReader(value));
       parser.quoteChar('\"');
       try {
-        while ( parser.nextToken() != StreamTokenizer.TT_EOF ) {
+        while (parser.nextToken() != StreamTokenizer.TT_EOF) {
           if (parser.ttype == '\"') {
             v.add(parser.sval);
           } else if (parser.ttype == StreamTokenizer.TT_WORD) {
-            assert parser.sval != null : "@AssumeAssertion(nullness): dependent: representation invariant of StreamTokenizer";
-            if (parser.sval.equals ("nonsensical"))
+            assert parser.sval != null
+                : "@AssumeAssertion(nullness): dependent: representation invariant of StreamTokenizer";
+            if (parser.sval.equals("nonsensical")) {
               return null;
+            }
             assert parser.sval.equals("null");
             v.add(null);
           } else if (parser.ttype == StreamTokenizer.TT_NUMBER) {
-            v.add(Integer.toString((int)parser.nval));
+            v.add(Integer.toString((int) parser.nval));
           } else {
-            System.out.printf("Warning: at %s line %d%n  bad ttype %c [int=%d] while parsing %s%n  Proceeding with value 'null'%n",
-                              filename, reader.getLineNumber(),
-                              (char)parser.ttype, parser.ttype, value_orig);
+            System.out.printf(
+                "Warning: at %s line %d%n  bad ttype %c [int=%d] while parsing %s%n  Proceeding with value 'null'%n",
+                filename, reader.getLineNumber(), (char) parser.ttype, parser.ttype, value_orig);
             v.add(null);
           }
         }
@@ -519,36 +521,28 @@ public final /*@Interned*/ class ProglangType
     // declared as long or short have the "int" rep_type.)
     if (base == BASE_INT) {
       long[] result = new long[len];
-      for (int i=0; i<len; i++) {
-        if (value_strings[i].equals ("nonsensical"))
-          return null;
-        else if (value_strings[i].equals("null"))
-          result[i] = 0;
-        else if (value_strings[i].equals("false"))
-          result[i] = 0;
-        else if (value_strings[i].equals("true"))
-          result[i] = 1;
-        else
-          result[i] = myParseLong(value_strings[i]);
+      for (int i = 0; i < len; i++) {
+        if (value_strings[i].equals("nonsensical")) return null;
+        else if (value_strings[i].equals("null")) result[i] = 0;
+        else if (value_strings[i].equals("false")) result[i] = 0;
+        else if (value_strings[i].equals("true")) result[i] = 1;
+        else result[i] = myParseLong(value_strings[i]);
       }
       return Intern.intern(result);
     } else if (base == BASE_DOUBLE) {
       double[] result = new double[len];
-      for (int i=0; i<len; i++) {
-        if (value_strings[i].equals ("nonsensical"))
-          return null;
-        else if (value_strings[i].equals("null"))
-          result[i] = 0;
-        else if (value_strings[i].equalsIgnoreCase("NaN"))
-          result[i] = Double.NaN;
-        else if (value_strings[i].equalsIgnoreCase("Infinity") ||
-                 value_strings[i].equals("inf"))
+      for (int i = 0; i < len; i++) {
+        if (value_strings[i].equals("nonsensical")) return null;
+        else if (value_strings[i].equals("null")) result[i] = 0;
+        else if (value_strings[i].equalsIgnoreCase("NaN")) result[i] = Double.NaN;
+        else if (value_strings[i].equalsIgnoreCase("Infinity") || value_strings[i].equals("inf")) {
           result[i] = Double.POSITIVE_INFINITY;
-        else if (value_strings[i].equalsIgnoreCase("-Infinity") ||
-                 value_strings[i].equals("-inf"))
+        } else if (value_strings[i].equalsIgnoreCase("-Infinity")
+            || value_strings[i].equals("-inf")) {
           result[i] = Double.NEGATIVE_INFINITY;
-        else
+        } else {
           result[i] = Double.parseDouble(value_strings[i]);
+        }
       }
       return Intern.intern(result);
     } else if (base == BASE_STRING) {
@@ -571,7 +565,8 @@ public final /*@Interned*/ class ProglangType
 
   }
 
-  public final /*@Nullable*/ /*@Interned*/ Object parse_value_array_2d(String value, LineNumberReader reader, String filename) {
+  public final /*@Nullable*/ /*@Interned*/ Object parse_value_array_2d(
+      String value, LineNumberReader reader, String filename) {
     // System.out.println(format() + ".parse(\"" + value + "\")");
 
     assert dimensions == 2;
@@ -586,17 +581,18 @@ public final /*@Interned*/ class ProglangType
 
   public boolean baseIsPrimitive() {
     return ((base == BASE_BOOLEAN)
-            || (base == BASE_BYTE)
-            || (base == BASE_CHAR)
-            || (base == BASE_DOUBLE)
-            || (base == BASE_FLOAT)
-            || (base == BASE_INT)
-            || (base == BASE_LONG)
-            || (base == BASE_LONG_LONG)
-            || (base == BASE_SHORT));
+        || (base == BASE_BYTE)
+        || (base == BASE_CHAR)
+        || (base == BASE_DOUBLE)
+        || (base == BASE_FLOAT)
+        || (base == BASE_INT)
+        || (base == BASE_LONG)
+        || (base == BASE_LONG_LONG)
+        || (base == BASE_SHORT));
   }
 
-  /*@Pure*/ public boolean isPrimitive() {
+  /*@Pure*/
+  public boolean isPrimitive() {
     return ((dimensions == 0) && baseIsPrimitive());
   }
 
@@ -604,15 +600,16 @@ public final /*@Interned*/ class ProglangType
   // we would need to change isIndex().)
   public boolean baseIsIntegral() {
     return ((base == BASE_BYTE)
-            || (base == BASE_CHAR)
-            || (base == BASE_INT)
-            || (base == BASE_LONG)
-            || (base == BASE_LONG_LONG)
-            || (base == BASE_SHORT)
-            || (base == BASE_INTEGER));
+        || (base == BASE_CHAR)
+        || (base == BASE_INT)
+        || (base == BASE_LONG)
+        || (base == BASE_LONG_LONG)
+        || (base == BASE_SHORT)
+        || (base == BASE_INTEGER));
   }
 
-  /*@Pure*/ public boolean isIntegral() {
+  /*@Pure*/
+  public boolean isIntegral() {
     return ((dimensions == 0) && baseIsIntegral());
   }
 
@@ -630,22 +627,20 @@ public final /*@Interned*/ class ProglangType
   }
 
   // Return true if this variable is sensible as an array index.
-  /*@Pure*/ public boolean isIndex() {
+  /*@Pure*/
+  public boolean isIndex() {
     return isIntegral();
   }
 
-  /*@Pure*/ public boolean isScalar() {
+  /*@Pure*/
+  public boolean isScalar() {
     // For reptypes, checking against INT is sufficient, rather than
     // calling isIntegral().
-    return (isIntegral()
-            || (this == HASHCODE)
-            || (this == BOOLEAN));
+    return (isIntegral() || (this == HASHCODE) || (this == BOOLEAN));
   }
 
   public boolean baseIsScalar() {
-    return (baseIsIntegral()
-            || (base == BASE_BOOLEAN)
-            || (base == BASE_HASHCODE));
+    return (baseIsIntegral() || (base == BASE_BOOLEAN) || (base == BASE_HASHCODE));
   }
 
   public boolean baseIsBoolean() {
@@ -656,26 +651,26 @@ public final /*@Interned*/ class ProglangType
     return ((base == BASE_DOUBLE) || (base == BASE_FLOAT));
   }
 
-  /*@Pure*/ public boolean isFloat() {
+  /*@Pure*/
+  public boolean isFloat() {
     return ((dimensions == 0) && baseIsFloat());
   }
 
-  /*@Pure*/ public boolean isObject() {
-    return ((dimensions == 0)
-            && (baseIsObject()));
+  /*@Pure*/
+  public boolean isObject() {
+    return ((dimensions == 0) && (baseIsObject()));
   }
 
   public boolean baseIsObject() {
-    return ((! baseIsIntegral())
-            && (! baseIsFloat())
-            && (! (base == BASE_BOOLEAN)));
+    return ((!baseIsIntegral()) && (!baseIsFloat()) && (!(base == BASE_BOOLEAN)));
   }
 
   public boolean baseIsString() {
     return (base == BASE_STRING);
   }
 
-  /*@Pure*/ public boolean isString() {
+  /*@Pure*/
+  public boolean isString() {
     return ((dimensions == 0) && baseIsString());
   }
 
@@ -683,80 +678,72 @@ public final /*@Interned*/ class ProglangType
     return (base == BASE_HASHCODE);
   }
 
-  /*@Pure*/ public boolean isHashcode() {
+  /*@Pure*/
+  public boolean isHashcode() {
     return ((dimensions == 0) && baseIsHashcode());
   }
 
-  /**
-   * Does this type represent a pointer? Should only be applied to
-   * file_rep types.
-   **/
-  /*@Pure*/ public boolean isPointerFileRep() {
+  /** Does this type represent a pointer? Should only be applied to file_rep types. */
+  /*@Pure*/
+  public boolean isPointerFileRep() {
     return (base == BASE_HASHCODE);
   }
 
   /**
-   * Return true if these two types can be sensibly compared to one
-   * another, or if one can be cast to the other.  For instance, int
-   * is castable to long, but boolean is not castable to float, and
-   * int is not castable to int[].  This is a reflexive relationship,
-   * but not a transitive one because it might not be true for two
-   * children of a superclass, even though it's true for the
+   * Return true if these two types can be sensibly compared to one another, or if one can be cast
+   * to the other. For instance, int is castable to long, but boolean is not castable to float, and
+   * int is not castable to int[]. This is a reflexive relationship, but not a transitive one
+   * because it might not be true for two children of a superclass, even though it's true for the
    * superclass.
-   **/
+   */
   public boolean comparableOrSuperclassEitherWay(ProglangType other) {
-    if (this == other)          // ProglangType objects are interned
-      return true;
-    if (this.dimensions != other.dimensions)
-      return false;
+    if (this == other) // ProglangType objects are interned
+    return true;
+    if (this.dimensions != other.dimensions) return false;
     boolean thisIntegral = this.baseIsIntegral();
     boolean otherIntegral = other.baseIsIntegral();
-    if (thisIntegral && otherIntegral)
-      return true;
+    if (thisIntegral && otherIntegral) return true;
     // Make Object castable to everything, except booleans
     if (((this.base == BASE_OBJECT) && other.baseIsObject()) // interned strings
         || ((other.base == BASE_OBJECT) && baseIsObject())) // interned strings
-      return true;
+    return true;
 
     return false;
   }
 
   /**
-   * Return true if these two types can be sensibly compared to one
-   * another, and if non-integral, whether this could be a superclass
-   * of other.  A List is comparableOrSuperclassOf to a Vector, but
-   * not the other way around.  This is a transitive method, but not
-   * reflexive.
-   **/
-  public boolean comparableOrSuperclassOf (ProglangType other) {
-    if (this == other)          // ProglangType objects are interned
-      return true;
-    if (this.dimensions != other.dimensions)
-      return false;
+   * Return true if these two types can be sensibly compared to one another, and if non-integral,
+   * whether this could be a superclass of other. A List is comparableOrSuperclassOf to a Vector,
+   * but not the other way around. This is a transitive method, but not reflexive.
+   */
+  public boolean comparableOrSuperclassOf(ProglangType other) {
+    if (this == other) // ProglangType objects are interned
+    return true;
+    if (this.dimensions != other.dimensions) return false;
     boolean thisIntegral = this.baseIsIntegral();
     boolean otherIntegral = other.baseIsIntegral();
-    if (thisIntegral && otherIntegral)
-      return true;
+    if (thisIntegral && otherIntegral) return true;
     // Make Object castable to everything, except booleans
     if ((this.base == BASE_OBJECT) && other.baseIsObject()) // interned strings
-      return true;
+    return true;
 
     return false;
   }
 
   // For Java programs, a @BinaryName.
-  /*@SideEffectFree*/ public String format() {
-    if (dimensions == 0)
-      return base;
+  /*@SideEffectFree*/
+  public String format(/*>>>@GuardSatisfied ProglangType this*/) {
+    if (dimensions == 0) return base;
 
     StringBuffer sb = new StringBuffer();
     sb.append(base);
-    for (int i=0; i<dimensions; i++)
+    for (int i = 0; i < dimensions; i++) {
       sb.append("[]");
+    }
     return sb.toString();
   }
 
-  public static String toString (ProglangType[] types) {
+  public static String toString(ProglangType[] types) {
     StringBuilderDelimited out = new StringBuilderDelimited(", ");
     for (int i = 0; i < types.length; i++) {
       out.append(types[i]);
@@ -765,18 +752,18 @@ public final /*@Interned*/ class ProglangType
   }
 
   // For Java programs, a @BinaryName.
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied ProglangType this*/) {
     return format();
   }
 
   /**
-   * Returns whether or not this declared type is a function pointer
-   * Only valid if the front end marks the function pointer with the
-   * name '*func'
-   **/
-  /*@Pure*/ public boolean is_function_pointer() {
+   * Returns whether or not this declared type is a function pointer Only valid if the front end
+   * marks the function pointer with the name '*func'.
+   */
+  /*@Pure*/
+  public boolean is_function_pointer() {
     assert base == base.intern();
-    return base == "*func";     // interned
+    return base == "*func"; // interned
   }
-
 }

@@ -9,6 +9,7 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -17,7 +18,7 @@ import typequals.*;
 /**
  * Represents sequences of long values that contain a common subset.
  * Prints as <code>{e1, e2, e3, ...} subset of x[]</code>.
- **/
+ */
 
 public class CommonSequence
   extends SingleScalarSequence
@@ -31,7 +32,7 @@ public class CommonSequence
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff CommonSequence invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   /**
@@ -59,12 +60,12 @@ public class CommonSequence
 
   private static /*@Prototype*/ CommonSequence proto = new /*@Prototype*/ CommonSequence ();
 
-  /** Returns the prototype invariant for CommonSequence **/
+  /** Returns the prototype invariant for CommonSequence */
   public static /*@Prototype*/ CommonSequence get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
@@ -75,13 +76,14 @@ public class CommonSequence
    */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     return (dkconfig_hashcode_seqs || vis[0].file_rep_type.baseIsIntegral());
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected CommonSequence instantiate_dyn (/*>>> @Prototype CommonSequence this,*/ PptSlice slice) {
     return new CommonSequence(slice);
   }
@@ -89,26 +91,29 @@ public class CommonSequence
   // this.intersect is read-only, so don't clone it
   // public Object clone();
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied CommonSequence this*/) {
     return "CommonSequence " + varNames() + ": "
       + "elts=\"" + elts;
   }
 
-  private String printIntersect() {
-    if (intersect==null)
+  private String printIntersect(/*>>>@GuardSatisfied CommonSequence this*/) {
+    if (intersect==null) {
       return "{}";
+    }
 
     String result = "{";
     for (int i=0; i<intersect.length; i++) {
       result += intersect[i];
-      if (i!=intersect.length-1)
+      if (i!=intersect.length-1) {
         result += ", ";
+      }
     }
     result += "}";
     return result;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied CommonSequence this,*/ OutputFormat format) {
     if (format == OutputFormat.DAIKON) return format_daikon();
     if (format == OutputFormat.CSHARPCONTRACT) return format_csharp_contract();
     if (format == OutputFormat.SIMPLIFY) return format_simplify();
@@ -116,13 +121,14 @@ public class CommonSequence
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied CommonSequence this*/) {
     return (printIntersect() + " subset of " + var().name());
   }
 
-  public String format_csharp_contract() {
-    if (intersect==null)
+  public String format_csharp_contract(/*>>>@GuardSatisfied CommonSequence this*/) {
+    if (intersect==null) {
       return "()";
+    }
 
     if (intersect.length == 1) {
       String collection = var().csharp_collection_string();
@@ -142,7 +148,7 @@ public class CommonSequence
     return "Contract.ForAll(" + split[0] + ", x => x" + split[1] + ".OneOf" + exp + ")";
   }
 
-  private String format_simplify() {
+  private String format_simplify(/*>>>@GuardSatisfied CommonSequence this*/) {
     if (intersect == null || intersect.length == 0) {
       return "(AND)";
     }
@@ -176,8 +182,9 @@ public class CommonSequence
 //         pre_buf.append("(< "+idx+i + " (select arrayLength " + name[0] + ")) ");
       pre_buf.append("(EQ (select (select elems " + name[0] + ") "+idx+i + ") "
                      + simplify_format_long(intersect[i]) + ")");
-      if (i == intersect.length - 1)
+      if (i == intersect.length - 1) {
         pre_buf.append(" ");
+      }
       end_buf.append("))");
     }
     pre_buf.append(end_buf);
@@ -238,7 +245,8 @@ public class CommonSequence
     return 1 - Math.pow(.9, elts);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof CommonSequence;
     return true;
   }

@@ -29,8 +29,8 @@ class ConditionExtractor extends DepthFirstVisitor {
   private String className = "classname field is uninitialized"; // The class name.
   private /*@Nullable*/ String curMethodName; // Name of current method being parsed
   private /*@Nullable*/ String curMethodDeclaration;
-  boolean enterMethod = false;   // true if the current Node is a Method
-                         // declaration ie. we just entered a method.
+  boolean enterMethod = false; // true if the current Node is a Method
+  // declaration ie. we just entered a method.
 
   // Contains the resultType of the current method.  If the current method is a
   // constructor then the string "constructor" is stored. These is later used
@@ -40,10 +40,9 @@ class ConditionExtractor extends DepthFirstVisitor {
   private Stack<Object> resultTypes = new Stack<Object>(); // elements are ResultType or String
 
   // key = methodname (as String); value = conditional expressions (as Strings)
-  HashMap<String,List<String>> conditions = new HashMap<String,List<String>>();
+  HashMap<String, List<String>> conditions = new HashMap<String, List<String>>();
   // key = method declaration (String); value = method bodies (String)
-  HashMap<String,String> replaceStatements = new HashMap<String,String>();
-
+  HashMap<String, String> replaceStatements = new HashMap<String, String>();
 
   //// DepthFirstVisitor Methods overridden by ConditionExtractor //////////////
   /////
@@ -71,9 +70,7 @@ class ConditionExtractor extends DepthFirstVisitor {
     super.visit(n);
   }
 
-  /**
-   * Stores the field name, if it is a boolean.
-   */
+  /** Stores the field name, if it is a boolean. */
   public void visit(FieldDeclaration n) {
     // Grammar production:
     // f0 -> Type()
@@ -83,7 +80,7 @@ class ConditionExtractor extends DepthFirstVisitor {
 
     String resultType = Ast.format(n.f0);
     if (resultType.equals("boolean")) {
-      addCondition(Ast.format(n.f1.f0) + " ==  true");  // <--
+      addCondition(Ast.format(n.f1.f0) + " ==  true"); // <--
     }
     super.visit(n);
   }
@@ -95,9 +92,8 @@ class ConditionExtractor extends DepthFirstVisitor {
   // f4 -> ( Block() | ";" )
 
   /**
-   * It is sometimes helpful to store the method bodies of one-liner
-   * methods.  They are useful as 'replace' statements when the
-   * condition makes a call to that function. Here we keep track of
+   * It is sometimes helpful to store the method bodies of one-liner methods. They are useful as
+   * 'replace' statements when the condition makes a call to that function. Here we keep track of
    * the fact that we have reached a method declaration.
    */
   public void visit(MethodDeclaration n) {
@@ -117,7 +113,7 @@ class ConditionExtractor extends DepthFirstVisitor {
     // eg. QueueAr.isEmpty
     String methName = className + "." + Ast.format(n.f0);
     curMethodName = methName;
-    addMethod (Ast.format(n), methName);
+    addMethod(Ast.format(n), methName);
     super.visit(n);
     // should reset curMethodName to null here??
   }
@@ -149,20 +145,16 @@ class ConditionExtractor extends DepthFirstVisitor {
   // f5 -> ( SwitchLabel() ( BlockStatement() )* )*
   // f6 -> "}"
 
-  /**
-   * extracts the values for the different cases and creates splitting
-   * conditions out of them
-   */
+  /** Extracts the values for the different cases and creates splitting conditions out of them. */
   public void visit(SwitchStatement n) {
     String switchExpression = Ast.format(n.f2);
     Collection<String> caseValues = getCaseValues(n.f5);
-     // a condition for the default case. A 'not' of all the different cases.
+    // a condition for the default case. A 'not' of all the different cases.
     StringBuffer defaultString = new StringBuffer();
     for (String switchValue : caseValues) {
       switchValue = switchValue.trim();
       if (!switchValue.equals(":")) {
-        if (!(defaultString.length() == 0))
-          defaultString.append(" && ");
+        if (!(defaultString.length() == 0)) defaultString.append(" && ");
         defaultString.append(switchExpression + " != " + switchValue);
         addCondition(switchExpression + " == " + switchValue);
       }
@@ -172,10 +164,10 @@ class ConditionExtractor extends DepthFirstVisitor {
   }
 
   /**
-   * @return a String[] which contains the different Integer values
-   * which the case expression is tested against
+   * @return a String[] that contains the different Integer values which the case expression is
+   *     tested against
    */
-  public Collection<String> getCaseValues (NodeListOptional n) {
+  public Collection<String> getCaseValues(NodeListOptional n) {
     ArrayList<String> values = new ArrayList<String>();
     Enumeration<Node> e = n.elements();
     while (e.hasMoreElements()) {
@@ -200,7 +192,7 @@ class ConditionExtractor extends DepthFirstVisitor {
   public void visit(IfStatement n) {
     addCondition(Ast.format(n.f2));
     super.visit(n);
-}
+  }
 
   // f0 -> "while"
   // f1 -> "("
@@ -226,20 +218,18 @@ class ConditionExtractor extends DepthFirstVisitor {
     addCondition(Ast.format(n.f4));
   }
 
-   // f0 -> "for"
-   // f1 -> "("
-   // f2 -> ( Modifiers() Type() <IDENTIFIER> ":" Expression() | [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ] )
-   // f3 -> ")"
-   // f4 -> Statement()
+  // f0 -> "for"
+  // f1 -> "("
+  // f2 -> ( Modifiers() Type() <IDENTIFIER> ":" Expression() | [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ] )
+  // f3 -> ")"
+  // f4 -> Statement()
   /* Extract the condition in an 'for' statement */
   public void visit(ForStatement n) {
     super.visit(n);
     if (n.f2.which == 1) {
-      addCondition(Ast.format(((NodeSequence)n.f2.choice).elementAt(2)));
+      addCondition(Ast.format(((NodeSequence) n.f2.choice).elementAt(2)));
     }
-
   }
-
 
   // f0 -> LabeledStatement()
   //       | AssertStatement()
@@ -273,7 +263,7 @@ class ConditionExtractor extends DepthFirstVisitor {
       ReturnStatement rs = ((ReturnStatement) n.f0.choice);
       String returnExpression = Ast.format(rs.f1);
       if (enterMethod) {
-        addReplaceStatement( returnExpression );
+        addReplaceStatement(returnExpression);
         enterMethod = false;
       }
       if (resultTypes.peek() instanceof ResultType) {
@@ -296,9 +286,8 @@ class ConditionExtractor extends DepthFirstVisitor {
 
   //////// Private methods specific to ConditionExtractor ////
   /**
-   * Keep track of the method we are currently in, and create an entry
-   * for it, so that the conditions can be associated with the right
-   * methods.
+   * Keep track of the method we are currently in, and create an entry for it, so that the
+   * conditions can be associated with the right methods.
    */
   private void addMethod(String methodDeclaration, String methodname) {
     curMethodName = methodname;
@@ -311,7 +300,7 @@ class ConditionExtractor extends DepthFirstVisitor {
     if (meth == null) {
       meth = className + ":::OBJECT";
     }
-    if (! conditions.containsKey(meth)) {
+    if (!conditions.containsKey(meth)) {
       conditions.put(meth, new Vector<String>());
     }
     List<String> conds = conditions.get(meth);
@@ -325,16 +314,15 @@ class ConditionExtractor extends DepthFirstVisitor {
     }
   }
 
-   public Map<String,List<String>> getConditionMap() {
-     return conditions;
-   }
+  public Map<String, List<String>> getConditionMap() {
+    return conditions;
+  }
 
-  public Map<String,String> getReplaceStatements() {
+  public Map<String, String> getReplaceStatements() {
     return replaceStatements;
   }
 
   public /*@Nullable*/ String getPackageName() {
     return packageName;
   }
-
 }

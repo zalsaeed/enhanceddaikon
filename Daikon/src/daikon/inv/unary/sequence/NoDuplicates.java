@@ -18,6 +18,7 @@ import java.util.logging.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -26,7 +27,7 @@ import typequals.*;
 /**
  * Represents sequences of long that contain no duplicate elements.
  * Prints as <code>x[] contains no duplicates</code>.
- **/
+ */
 
 public class NoDuplicates
   extends SingleScalarSequence
@@ -40,10 +41,10 @@ public class NoDuplicates
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff NoDuplicates invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug = Logger.getLogger("daikon.inv.unary.sequence.NoDuplicates");
 
   protected NoDuplicates(PptSlice ppt) {
@@ -56,26 +57,27 @@ public class NoDuplicates
 
   private static /*@Prototype*/ NoDuplicates proto = new /*@Prototype*/ NoDuplicates ();
 
-  /** Returns the prototype invariant for NoDuplicates **/
+  /** Returns the prototype invariant for NoDuplicates */
   public static /*@Prototype*/ NoDuplicates get_proto() {
     return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   public NoDuplicates instantiate_dyn (/*>>> @Prototype NoDuplicates this,*/ PptSlice slice) {
     return new NoDuplicates (slice);
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied NoDuplicates this*/) {
     return "NoDuplicates" + varNames() + ": ";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied NoDuplicates this,*/ OutputFormat format) {
     if (debug.isLoggable(Level.FINE)) {
       debug.fine (repr());
     }
@@ -99,18 +101,18 @@ public class NoDuplicates
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied NoDuplicates this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.distinct(), var(),
                                                var());
     return form[0] + "(NEQ " + form[1] + " " + form[2] + ")"
       + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied NoDuplicates this,*/ OutputFormat format) {
     return "daikon.Quant.noDups(" + var().name_using(format) + ")";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied NoDuplicates this*/) {
     String collection = var().csharp_collection_string();
     return collection + ".Distinct().Count() == " + collection + ".Count()";
   }
@@ -160,7 +162,7 @@ public class NoDuplicates
    * </pre>
    * JHP: The first check is not valid because we can't rely on transitive
    *      checks because of missing (if B[] is missing, A[] could have dups
-   *      on those samples)
+   *      on those samples),
    */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically(VarInfo[] vis) {
@@ -172,9 +174,10 @@ public class NoDuplicates
     // If the maximum size of the array is <= 1, then this is
     // obvious
     ValueSet.ValueSetScalarArray vs = (ValueSet.ValueSetScalarArray) vis[0].get_value_set();
-    if (vs.max_length() <= 1)
+    if (vs.max_length() <= 1) {
       return new DiscardInfo (this, DiscardCode.obvious, "Size of " + vis[0]
                                + " is <= " + vs.max_length());
+    }
 
     // For every other NoDuplicates at this program point, see if there is a
     // subsequence relationship between that array and this one.
@@ -211,7 +214,8 @@ public class NoDuplicates
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof NoDuplicates;
     return true;
   }

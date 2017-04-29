@@ -16,6 +16,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -25,7 +26,7 @@ import typequals.*;
   /**
    * Represents the invariant <tt>x &gt;= c</tt>, where <code>c</code>
    * is a constant and <code>x</code> is a double scalar.
-   **/
+   */
 
 // One reason not to combine LowerBound and UpperBound into a single range
 // invariant is that they have separate justifications:  one may be
@@ -42,8 +43,8 @@ public class LowerBoundFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff LowerBoundFloat invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
   /**
    * Long integer.  Together with the corresponding
    * <code>maximal_interesting</code> parameter, specifies the
@@ -53,7 +54,7 @@ public class LowerBoundFloat
    * to -1 and <code>maximal_interesting</code>
    * to 2 would only permit output of
    * LowerBoundFloat invariants whose cutoff was one of (-1,0,1,2).
-   **/
+   */
   public static long dkconfig_minimal_interesting = -1;
   /**
    * Long integer.  Together with the corresponding
@@ -64,7 +65,7 @@ public class LowerBoundFloat
    * to -1 and <code>maximal_interesting</code>
    * to 2 would only permit output of
    * LowerBoundFloat invariants whose cutoff was one of (-1,0,1,2).
-   **/
+   */
   public static long dkconfig_maximal_interesting = 2;
 
   /*@Unused(when=Prototype.class)*/
@@ -84,31 +85,33 @@ public class LowerBoundFloat
 
   private static /*@Prototype*/ LowerBoundFloat proto = new /*@Prototype*/ LowerBoundFloat ();
 
-  /** Returns the prototype invariant for LowerBoundFloat **/
+  /** Returns the prototype invariant for LowerBoundFloat */
   public static /*@Prototype*/ LowerBoundFloat get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** LowerBoundFloat is only valid on integral types **/
+  /** LowerBoundFloat is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
-
-    return (vis[0].file_rep_type.baseIsFloat());
+    if (!valid_types (vis)) {
+      return false;
     }
 
-  /** instantiate an invariant on the specified slice **/
+    return vis[0].file_rep_type.baseIsFloat();
+    }
+
+  /** instantiate an invariant on the specified slice */
   public LowerBoundFloat instantiate_dyn (/*>>> @Prototype LowerBoundFloat this,*/ PptSlice slice) {
     return new LowerBoundFloat (slice);
   }
 
-  /*@SideEffectFree*/ public LowerBoundFloat clone() {
+  /*@SideEffectFree*/
+  public LowerBoundFloat clone(/*>>>@GuardSatisfied LowerBoundFloat this*/) {
     LowerBoundFloat result = (LowerBoundFloat) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -119,12 +122,13 @@ public class LowerBoundFloat
     return core.min();          // i.e., core.min1
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LowerBoundFloat this*/) {
     return "LowerBoundFloat" + varNames() + ": "
       + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied LowerBoundFloat this,*/ OutputFormat format) {
     String name = var().name_using(format);
     PptTopLevel pptt = ppt.parent;
 
@@ -141,8 +145,9 @@ public class LowerBoundFloat
             // If variable is a double, then use fuzzy comparison
             if (vi.rep_type == ProglangType.DOUBLE) {
               Double constantVal = (Double)vi.constantValue();
-              if (Global.fuzzy.eq(constantVal, core.min1) || (Double.isNaN(constantVal) && Double.isNaN(core.min1)))
+              if (Global.fuzzy.eq(constantVal, core.min1) || (Double.isNaN(constantVal) && Double.isNaN(core.min1))) {
                 return name + " >= " + vi.name();
+              }
             }
             // Otherwise just use the equals method
             else {
@@ -180,7 +185,7 @@ public class LowerBoundFloat
 
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LowerBoundFloat this*/) {
     return core.enoughSamples();
   }
 
@@ -188,17 +193,20 @@ public class LowerBoundFloat
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return core.isExact();
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((LowerBoundFloat) other).core);
   }
 
   // XXX FIXME This looks like a hack that should be removed.  -MDE 6/13/2002
   // Use hasUninterestingConstant() instead. -SMcC 2/26/2003
-  /*@Pure*/ public boolean isInteresting() {
+  /*@Pure*/
+  public boolean isInteresting() {
     return (-1 < core.min1 && core.min1 < 2);
   }
 
@@ -333,11 +341,13 @@ public class LowerBoundFloat
     return null;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     if (other instanceof UpperBoundFloat) {
-      if (min() > ((UpperBoundFloat) other).max())
+      if (min() > ((UpperBoundFloat) other).max()) {
         return true;
+      }
     }
 
     if (other instanceof OneOfFloat) {
@@ -350,8 +360,9 @@ public class LowerBoundFloat
   public static /*@Nullable*/ LowerBoundFloat find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof LowerBoundFloat)
+      if (inv instanceof LowerBoundFloat) {
         return (LowerBoundFloat) inv;
+      }
     }
     return null;
   }
@@ -361,7 +372,7 @@ public class LowerBoundFloat
    * formula at an upper point.  See merge() below.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
   /**
@@ -370,12 +381,12 @@ public class LowerBoundFloat
    * in each invariant, applies them to a new parent invariant and
    * returns the merged invariant (if any).
    *
-   * @param invs        List of invariants to merge.  The invariants must all
+   * @param invs        list of invariants to merge.  The invariants must all
    *                    be of the same type and should come from the
    *                    children of parent_ppt.  They should also all
    *                    be permuted to match the variable order in
    *                    parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -391,6 +402,6 @@ public class LowerBoundFloat
     }
 
     result.log ("Merged '%s' from %s child invariants", result.format(),invs.size());
-    return (result);
+    return result;
   }
 }

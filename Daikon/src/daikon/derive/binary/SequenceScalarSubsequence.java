@@ -9,6 +9,7 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
@@ -25,58 +26,70 @@ public final class SequenceScalarSubsequence
   /**
    * Boolean.  True iff SequenceScalarSubsequence derived variables
    * should be generated.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   /**
    * Represents a subsequence of a sequence.  The subsequence a[i..j]
    * includes the endpoints i and j.  The subsequence is meaningful if:
+   * <pre>
    *  i &ge; 0
    *  i &le; a.length
    *  j &ge; -1
    *  j &le; a.length-1
    *  i &le; j+1
+   * </pre>
    * These are the empty array:
+   * <pre>
    *   a[0..-1]
    *   a[a.length..a.length-1]
+   * </pre>
    * These are illegal:
+   * <pre>
    *   a[1..-1]
    *   a[a.length..a.length-2]
    *   a[a.length+1..a.length]
+   * </pre>
    *
    * @param from_start true means the range goes 0..n; false means the
    * range goes n..end.  (n might be fudged through off_by_one)
    * @param off_by_one true means we should exclude the scalar from
    * the range; false means we should include it
-   **/
+   */
   public SequenceScalarSubsequence(VarInfo vi1, VarInfo vi2, boolean from_start, boolean off_by_one) {
     super (vi1, vi2, from_start, off_by_one);
   }
 
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied SequenceScalarSubsequence this*/) {
     String shift = "";
-    if (index_shift < 0)
+    if (index_shift < 0) {
       shift = "" + index_shift;
-    else if (index_shift > 0)
+    } else if (index_shift > 0) {
       shift = "+" + index_shift;
+    }
     String seqname = UtilMDE.replaceString (seqvar().name(), "[]", "");
-    if (from_start)
+    if (from_start) {
       return (seqname + "[.." + sclvar().name() + shift + "]");
-    else
+    } else {
       return (seqname + "[" + sclvar().name() + shift + "..]");
+    }
   }
 
   public ValueAndModified computeValueAndModifiedImpl(ValueTuple full_vt) {
     int mod1 = base1.getModified(full_vt);
-    if (mod1 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod1 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     int mod2 = base2.getModified(full_vt);
-    if (mod2 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod2 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
 
     Object val1 = base1.getValue(full_vt);
-    if (val1 == null)
+    if (val1 == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     long[] val1_array = (long[]) val1;
     int val2 = base2.getIndexValue(full_vt);
 
@@ -117,14 +130,16 @@ public final class SequenceScalarSubsequence
                ? ValueTuple.UNMODIFIED
                : ValueTuple.MODIFIED);
 
-    if ((begin_inclusive == 0) && (end_exclusive == val1_array.length))
+    if ((begin_inclusive == 0) && (end_exclusive == val1_array.length)) {
       return new ValueAndModified(val1, mod);
+    }
 
     long[] subarr = Intern.internSubsequence (val1_array, begin_inclusive, end_exclusive);
     return new ValueAndModified(subarr, mod);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     return (other instanceof SequenceScalarSubsequence)
       && (((SequenceScalarSubsequence) other).index_shift == this.index_shift)
       && (((SequenceScalarSubsequence) other).from_start == this.from_start);

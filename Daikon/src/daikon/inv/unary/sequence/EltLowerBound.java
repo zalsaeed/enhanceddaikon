@@ -16,6 +16,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -43,8 +44,8 @@ public class EltLowerBound
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff EltLowerBound invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
   /**
    * Long integer.  Together with the corresponding
    * <code>maximal_interesting</code> parameter, specifies the
@@ -54,7 +55,7 @@ public class EltLowerBound
    * to -1 and <code>maximal_interesting</code>
    * to 2 would only permit output of
    * EltLowerBound invariants whose cutoff was one of (-1,0,1,2).
-   **/
+   */
   public static long dkconfig_minimal_interesting = -1;
   /**
    * Long integer.  Together with the corresponding
@@ -65,7 +66,7 @@ public class EltLowerBound
    * to -1 and <code>maximal_interesting</code>
    * to 2 would only permit output of
    * EltLowerBound invariants whose cutoff was one of (-1,0,1,2).
-   **/
+   */
   public static long dkconfig_maximal_interesting = 2;
 
   /*@Unused(when=Prototype.class)*/
@@ -85,31 +86,33 @@ public class EltLowerBound
 
   private static /*@Prototype*/ EltLowerBound proto = new /*@Prototype*/ EltLowerBound ();
 
-  /** Returns the prototype invariant for EltLowerBound **/
+  /** Returns the prototype invariant for EltLowerBound */
   public static /*@Prototype*/ EltLowerBound get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** EltLowerBound is only valid on integral types **/
+  /** EltLowerBound is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
-
-    return (vis[0].file_rep_type.baseIsIntegral());
+    if (!valid_types (vis)) {
+      return false;
     }
 
-  /** instantiate an invariant on the specified slice **/
+    return vis[0].file_rep_type.baseIsIntegral();
+    }
+
+  /** instantiate an invariant on the specified slice */
   public EltLowerBound instantiate_dyn (/*>>> @Prototype EltLowerBound this,*/ PptSlice slice) {
     return new EltLowerBound (slice);
   }
 
-  /*@SideEffectFree*/ public EltLowerBound clone() {
+  /*@SideEffectFree*/
+  public EltLowerBound clone(/*>>>@GuardSatisfied EltLowerBound this*/) {
     EltLowerBound result = (EltLowerBound) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -120,14 +123,17 @@ public class EltLowerBound
     return core.min();          // i.e., core.min1
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied EltLowerBound this*/) {
     return "EltLowerBound" + varNames() + ": "
       + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied EltLowerBound this,*/ OutputFormat format) {
 
-    if (format.isJavaFamily()) return format_java_family(format);
+    if (format.isJavaFamily()) {
+      return format_java_family(format);
+    }
 
     if (format == OutputFormat.DAIKON) {
       return format_daikon();
@@ -142,7 +148,7 @@ public class EltLowerBound
     return format_unimplemented(format);
   }
   // ELTLOWEr || ELTUPPEr
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied EltLowerBound this*/) {
     PptTopLevel pptt = ppt.parent;
     String name = var().name();
 
@@ -152,8 +158,9 @@ public class EltLowerBound
           // If variable is a double, then use fuzzy comparison
           if (vi.rep_type == ProglangType.DOUBLE) {
             Double constantVal = (Double)vi.constantValue();
-            if (Global.fuzzy.eq(constantVal, core.min1) || (Double.isNaN(constantVal) && Double.isNaN(core.min1)))
+            if (Global.fuzzy.eq(constantVal, core.min1) || (Double.isNaN(constantVal) && Double.isNaN(core.min1))) {
               return name + " >= " + vi.name();
+            }
           }
           // Otherwise just use the equals method
           else {
@@ -169,7 +176,7 @@ public class EltLowerBound
     return var().name() + " elements >= " + core.min1;
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied EltLowerBound this*/) {
     PptTopLevel pptt = ppt.parent;
 
     if (PrintInvariants.dkconfig_static_const_infer) {
@@ -201,7 +208,7 @@ public class EltLowerBound
     return form[0] + "(" + form[1] + " >= " + core.min1 + ")" + form[2];
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied EltLowerBound this*/) {
     PptTopLevel pptt = ppt.parent;
     String name = var().csharp_name();
 
@@ -234,7 +241,7 @@ public class EltLowerBound
     return "Contract.ForAll(" + split[0] + ", x => x" + split[1] + " >= " + core.min1+ ")";
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied EltLowerBound this,*/ OutputFormat format) {
     PptTopLevel pptt = ppt.parent;
 
     if (PrintInvariants.dkconfig_static_const_infer) {
@@ -265,7 +272,7 @@ public class EltLowerBound
 
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied EltLowerBound this*/) {
 
     String value = simplify_format_long(core.min1);
 
@@ -304,7 +311,7 @@ public class EltLowerBound
     return InvariantStatus.NO_CHANGE;
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied EltLowerBound this*/) {
     return core.enoughSamples();
   }
 
@@ -312,11 +319,13 @@ public class EltLowerBound
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return core.isExact();
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((EltLowerBound) other).core);
   }
 
@@ -442,7 +451,8 @@ public class EltLowerBound
     return null;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     /* N.B. "x[] elements >= 200" is not mutually exclusive with "x[]
      * elements <= 100"; they could both be true if x[] were always
@@ -458,8 +468,9 @@ public class EltLowerBound
   public static /*@Nullable*/ EltLowerBound find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof EltLowerBound)
+      if (inv instanceof EltLowerBound) {
         return (EltLowerBound) inv;
+      }
     }
     return null;
   }
@@ -469,7 +480,7 @@ public class EltLowerBound
    * formula at an upper point.  See merge() below.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
   /**
@@ -478,12 +489,12 @@ public class EltLowerBound
    * in each invariant, applies them to a new parent invariant and
    * returns the merged invariant (if any).
    *
-   * @param invs        List of invariants to merge.  The invariants must all
+   * @param invs        list of invariants to merge.  The invariants must all
    *                    be of the same type and should come from the
    *                    children of parent_ppt.  They should also all
    *                    be permuted to match the variable order in
    *                    parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -499,6 +510,6 @@ public class EltLowerBound
     }
 
     result.log ("Merged '%s' from %s child invariants", result.format(),invs.size());
-    return (result);
+    return result;
   }
 }

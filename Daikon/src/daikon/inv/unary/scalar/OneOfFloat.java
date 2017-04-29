@@ -21,6 +21,7 @@ import java.util.*;
 /*>>>
 import org.checkerframework.checker.initialization.qual.*;
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -49,7 +50,7 @@ public final class OneOfFloat
 
   /**
    * Debugging logger.
-   **/
+   */
   public static final Logger debug
     = Logger.getLogger (OneOfFloat.class.getName());
 
@@ -57,13 +58,13 @@ public final class OneOfFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff OneOf invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   /**
    * Positive integer.  Specifies the maximum set size for this type
    * of invariant (x is one of <code>size</code> items).
-   **/
+   */
 
   public static int dkconfig_size = 3;
 
@@ -91,30 +92,33 @@ public final class OneOfFloat
 
   private static /*@Prototype*/ OneOfFloat proto = new /*@Prototype*/ OneOfFloat ();
 
-  /** Returns the prototype invariant for OneOfFloat **/
+  /** Returns the prototype invariant for OneOfFloat */
   public static /*@Prototype*/ OneOfFloat get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   public OneOfFloat instantiate_dyn (/*>>> @Prototype OneOfFloat this,*/ PptSlice slice) {
     return new OneOfFloat(slice);
   }
 
-  /*@Pure*/ public boolean is_boolean() {
+  /*@Pure*/
+  public boolean is_boolean(/*>>>@GuardSatisfied OneOfFloat this*/) {
     return (var().file_rep_type.elementType() == ProglangType.BOOLEAN);
   }
-  /*@Pure*/ public boolean is_hashcode() {
+  /*@Pure*/
+  public boolean is_hashcode(/*>>>@GuardSatisfied OneOfFloat this*/) {
     return (var().file_rep_type.elementType() == ProglangType.HASHCODE);
   }
 
   @SuppressWarnings("interning") // clone method re-does interning
-  /*@SideEffectFree*/ public OneOfFloat clone() {
+  /*@SideEffectFree*/
+  public OneOfFloat clone(/*>>>@GuardSatisfied OneOfFloat this*/) {
     OneOfFloat result = (OneOfFloat) super.clone();
     result.elts = elts.clone();
 
@@ -131,36 +135,40 @@ public final class OneOfFloat
   }
 
   public Object elt(int index) {
-    if (num_elts <= index)
+    if (num_elts <= index) {
       throw new Error("Represents " + num_elts + " elements, index " + index + " not valid");
+    }
 
     return Intern.internedDouble(elts[index]);
   }
 
   @SuppressWarnings("interning") // generics bug in (at least interning) checker
 
-  private void sort_rep() {
+  private void sort_rep(/*>>>@GuardSatisfied OneOfFloat this*/) {
     Arrays.sort(elts, 0, num_elts );
   }
 
   public double min_elt() {
-    if (num_elts == 0)
+    if (num_elts == 0) {
       throw new Error("Represents no elements");
+    }
     sort_rep();
     return elts[0];
   }
 
   public double max_elt() {
-    if (num_elts == 0)
+    if (num_elts == 0) {
       throw new Error("Represents no elements");
+    }
     sort_rep();
     return elts[num_elts-1];
   }
 
   // Assumes the other array is already sorted
   public boolean compare_rep(int num_other_elts, double[] other_elts) {
-    if (num_elts != num_other_elts)
+    if (num_elts != num_other_elts) {
       return false;
+    }
     sort_rep();
     for (int i=0; i < num_elts; i++)
       if (! (Global.fuzzy.eq(elts[i], other_elts[i]) || (Double.isNaN(elts[i]) && Double.isNaN(other_elts[i])))) // elements are interned
@@ -168,15 +176,16 @@ public final class OneOfFloat
     return true;
   }
 
-  private String subarray_rep() {
+  private String subarray_rep(/*>>>@GuardSatisfied OneOfFloat this*/) {
     // Not so efficient an implementation, but simple;
     // and how often will we need to print this anyway?
     sort_rep();
     StringBuffer sb = new StringBuffer();
     sb.append("{ ");
     for (int i=0; i<num_elts; i++) {
-      if (i != 0)
+      if (i != 0) {
         sb.append(", ");
+      }
 
       if (PrintInvariants.dkconfig_static_const_infer) {
         boolean curVarMatch = false;
@@ -205,8 +214,7 @@ public final class OneOfFloat
         if (curVarMatch == false) {
           sb.append((Double.isNaN(elts[i]) ? "Double.NaN" : String.valueOf(elts[i])));
         }
-      }
-      else {
+      } else {
         sb.append((Double.isNaN(elts[i]) ? "Double.NaN" : String.valueOf(elts[i])));
       }
 
@@ -215,7 +223,7 @@ public final class OneOfFloat
     return sb.toString();
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied OneOfFloat this*/) {
     return "OneOfFloat" + varNames() + ": "
       + "falsified=" + falsified
       + ", num_elts=" + num_elts
@@ -230,10 +238,13 @@ public final class OneOfFloat
     return temp;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied OneOfFloat this,*/ OutputFormat format) {
     sort_rep();
 
-    if (format.isJavaFamily()) return format_java_family(format);
+    if (format.isJavaFamily()) {
+      return format_java_family(format);
+    }
 
     if (format == OutputFormat.DAIKON) {
       return format_daikon();
@@ -249,7 +260,7 @@ public final class OneOfFloat
     }
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied OneOfFloat this*/) {
     String varname = var().name();
     if (num_elts == 1) {
 
@@ -262,8 +273,7 @@ public final class OneOfFloat
                 if (Global.fuzzy.eq(constantVal, elts[0]) || (Double.isNaN(constantVal) && Double.isNaN(elts[0]))) {
                   return varname + " == " + vi.name();
                 }
-              }
-              else {
+              } else {
                 Object constantVal = vi.constantValue();
                 if (constantVal.equals(elts[0])) {
                   return varname + " == " + vi.name();
@@ -278,7 +288,7 @@ public final class OneOfFloat
     }
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied OneOfFloat this*/) {
     sort_rep();
 
     String varname = var().esc_name();
@@ -296,7 +306,7 @@ public final class OneOfFloat
     return result;
   }
 
-public String format_csharp_contract() {
+public String format_csharp_contract(/*>>>@GuardSatisfied OneOfFloat this*/) {
 
     /*@NonNull @NonRaw @Initialized*/ // UNDONE: don't understand why needed (markro)
     String result;
@@ -323,7 +333,7 @@ public String format_csharp_contract() {
     return result;
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied OneOfFloat this,*/ OutputFormat format) {
 
     String result;
 
@@ -343,7 +353,7 @@ public String format_csharp_contract() {
     return result;
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied OneOfFloat this*/) {
 
     sort_rep();
 
@@ -368,8 +378,9 @@ public String format_csharp_contract() {
       }
     }
 
-    if (result.indexOf("format_simplify") == -1)
+    if (result.indexOf("format_simplify") == -1) {
       daikon.simplify.SimpUtil.assert_well_formed(result);
+    }
     return result;
   }
 
@@ -429,15 +440,15 @@ public String format_csharp_contract() {
       //if (logDetail())
       //  log ("add_modified (" + v + ")");
       if ((Global.fuzzy.eq(elts[i], v) || (Double.isNaN(elts[i]) && Double.isNaN( v)))) {
-        return (InvariantStatus.NO_CHANGE);
+        return InvariantStatus.NO_CHANGE;
       }
     }
 
     if (num_elts == dkconfig_size) {
-      return (InvariantStatus.FALSIFIED);
+      return InvariantStatus.FALSIFIED;
     }
 
-    return (InvariantStatus.WEAKENED);
+    return InvariantStatus.WEAKENED;
   }
 
   protected double computeConfidence() {
@@ -472,8 +483,9 @@ public String format_csharp_contract() {
 
     Debug dlog = new Debug (getClass(), ppt, vis);
 
-    if (logOn())
+    if (logOn()) {
       dlog.log ("enter isObviousDynamically");
+    }
 
       // We can use the minvalue and maxvalue custom attributes here: if
       // minimum value and maximum value are the same as the reported
@@ -522,9 +534,10 @@ public String format_csharp_contract() {
       @SuppressWarnings("nullness") // checker bug: flow
       /*@NonNull*/ VarInfo b = v.derived.getBase(0);
       if (!b.isDerived()) {
-        if (logOn())
+        if (logOn()) {
           dlog.log ("isObviousDynamically '" + v.name()
                     + " == 0' ==> '" + b.name() + " == []'");
+        }
         return new DiscardInfo(this, DiscardCode.obvious, "size(array) == 0 is implied by array == []");
       }
     }
@@ -571,33 +584,39 @@ public String format_csharp_contract() {
    * formula at an upper point.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant o) {
     OneOfFloat other = (OneOfFloat) o;
-    if (num_elts != other.num_elts)
+    if (num_elts != other.num_elts) {
       return false;
-    if (num_elts == 0 && other.num_elts == 0)
+    }
+    if (num_elts == 0 && other.num_elts == 0) {
       return true;
+    }
 
     sort_rep();
     other.sort_rep();
 
     for (int i=0; i < num_elts; i++) {
-      if (! (Global.fuzzy.eq(elts[i], other.elts[i]) || (Double.isNaN(elts[i]) && Double.isNaN(other.elts[i]))))
+      if (! (Global.fuzzy.eq(elts[i], other.elts[i]) || (Double.isNaN(elts[i]) && Double.isNaN(other.elts[i])))) {
         return false;
+      }
     }
 
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant o) {
     if (o instanceof OneOfFloat) {
       OneOfFloat other = (OneOfFloat) o;
 
-      if (num_elts == 0 || other.num_elts == 0)
+      if (num_elts == 0 || other.num_elts == 0) {
         return false;
+      }
       for (int i=0; i < num_elts; i++) {
         for (int j=0; j < other.num_elts; j++) {
           if ((Global.fuzzy.eq(elts[i], other.elts[j]) || (Double.isNaN(elts[i]) && Double.isNaN(other.elts[j])))) // elements are interned
@@ -618,10 +637,12 @@ public String format_csharp_contract() {
       elts_min = Math.min(elts_min, elts[i]);
       elts_max = Math.max(elts_max, elts[i]);
     }
-    if ((o instanceof LowerBoundFloat) && (elts_max < ((LowerBoundFloat)o).min()))
+    if ((o instanceof LowerBoundFloat) && (elts_max < ((LowerBoundFloat)o).min())) {
       return true;
-    if ((o instanceof UpperBoundFloat) && (elts_min > ((UpperBoundFloat)o).max()))
+    }
+    if ((o instanceof UpperBoundFloat) && (elts_min > ((UpperBoundFloat)o).max())) {
       return true;
+    }
 
     return false;
   }
@@ -629,7 +650,8 @@ public String format_csharp_contract() {
   // OneOf invariants that indicate a small set of possible values are
   // uninteresting.  OneOf invariants that indicate exactly one value
   // are interesting.
-  /*@Pure*/ public boolean isInteresting() {
+  /*@Pure*/
+  public boolean isInteresting() {
     if (num_elts() > 1) {
       return false;
     } else {
@@ -640,14 +662,16 @@ public String format_csharp_contract() {
   public boolean hasUninterestingConstant() {
 
     for (int i = 0; i < num_elts; i++) {
-      if (elts[i] < -1.0 || elts[i] > 2.0 || elts[i] != (long)elts[i])
+      if (elts[i] < -1.0 || elts[i] > 2.0 || elts[i] != (long)elts[i]) {
         return true;
+      }
     }
 
     return false;
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return (num_elts == 1);
   }
 
@@ -655,8 +679,9 @@ public String format_csharp_contract() {
   public static /*@Nullable*/ OneOfFloat find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof OneOfFloat)
+      if (inv instanceof OneOfFloat) {
         return (OneOfFloat) inv;
+      }
     }
     return null;
   }
@@ -668,8 +693,9 @@ public String format_csharp_contract() {
     ClassNotFoundException {
     in.defaultReadObject();
 
-    for (int i=0; i < num_elts; i++)
+    for (int i=0; i < num_elts; i++) {
       elts[i] = Intern.intern(elts[i]);
+    }
   }
 
   /**
@@ -677,11 +703,11 @@ public String format_csharp_contract() {
    * a OneOfFloat invariant.  This code finds all of the oneof values
    * from each of the invariants and returns the merged invariant (if any).
    *
-   * @param invs       List of invariants to merge.  The invariants must all be
+   * @param invs       list of invariants to merge.  The invariants must all be
    *                   of the same type and should come from the children of
    *                   parent_ppt.  They should also all be permuted to match
    *                   the variable order in parent_ppt.
-   * @param parent_ppt Slice that will contain the new invariant
+   * @param parent_ppt slice that will contain the new invariant
    */
   @SuppressWarnings("interning") // cloning requires re-interning
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
@@ -706,13 +732,13 @@ public String format_csharp_contract() {
         InvariantStatus status = result.add_mod_elem(val, 1);
         if (status == InvariantStatus.FALSIFIED) {
           result.log ("%s", "child value '" + val + "' destroyed oneof");
-          return (null);
+          return null;
         }
       }
     }
 
     result.log ("Merged '%s' from %s child invariants", result.format(), invs.size());
-    return (result);
+    return result;
   }
 
   /**
@@ -723,8 +749,9 @@ public String format_csharp_contract() {
   public void set_one_of_val (double[] vals) {
 
     num_elts = vals.length;
-    for (int i = 0; i < num_elts; i++)
+    for (int i = 0; i < num_elts; i++) {
       elts[i] = Intern.intern (vals[i]);
+    }
   }
 
   /**
@@ -734,12 +761,14 @@ public String format_csharp_contract() {
    */
   public boolean state_match (Object state) {
 
-    if (num_elts == 0)
-      return (false);
+    if (num_elts == 0) {
+      return false;
+    }
 
-    if (!(state instanceof double[]))
+    if (!(state instanceof double[])) {
       System.out.println ("state is of class '" + state.getClass().getName()
                           + "'");
+    }
     double[] e = (double[]) state;
     for (int i = 0; i < num_elts; i++) {
       boolean match = false;
@@ -749,10 +778,11 @@ public String format_csharp_contract() {
           break;
         }
       }
-      if (!match)
-        return (false);
+      if (!match) {
+        return false;
+      }
     }
-    return (true);
+    return true;
   }
 
 }

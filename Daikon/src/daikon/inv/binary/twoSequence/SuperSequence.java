@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.*;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -25,7 +26,7 @@ import typequals.*;
  * Represents two sequences of long values where one sequence is a
  * subsequence of the other.  Prints as
  * <code>x[] is a subsequence of y[]</code>.
- **/
+ */
 
 public class SuperSequence
   extends TwoSequence
@@ -42,7 +43,7 @@ public class SuperSequence
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SubSequence invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   protected SuperSequence(PptSlice ppt) {
@@ -55,17 +56,17 @@ public class SuperSequence
 
   private static /*@Prototype*/ SuperSequence proto = new /*@Prototype*/ SuperSequence ();
 
-  /** Returns the prototype invariant for SuperSequence **/
+  /** Returns the prototype invariant for SuperSequence */
   public static /*@Prototype*/ SuperSequence get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   protected SuperSequence instantiate_dyn (/*>>> @Prototype SuperSequence this,*/ PptSlice slice) {
     return new SuperSequence (slice);
   }
@@ -74,7 +75,8 @@ public class SuperSequence
     return new SubSequence (ppt);
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SuperSequence this,*/ OutputFormat format) {
     if (format == OutputFormat.DAIKON) return format_daikon();
     if (format == OutputFormat.SIMPLIFY) return format_simplify();
     if (format == OutputFormat.CSHARPCONTRACT) return format_csharp_contract();
@@ -83,32 +85,34 @@ public class SuperSequence
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied SuperSequence this*/) {
     String v1 = var2().name();
     String v2 = var1().name();
     return v1 + " is a subsequence of " + v2;
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied SuperSequence this*/) {
     String v1 = var2().csharp_collection_string();
     String v2 = var1().csharp_collection_string();
     return v1 + ".IsSubsequence(" + v2 + ")";
   }
 
-  public String format_simplify() {
-    if (Invariant.dkconfig_simplify_define_predicates)
+  public String format_simplify(/*>>>@GuardSatisfied SuperSequence this*/) {
+    if (Invariant.dkconfig_simplify_define_predicates) {
       return format_simplify_defined();
-    else
+    } else {
       return format_simplify_explicit();
+    }
   }
 
-  private String format_simplify_defined() {
+  private String format_simplify_defined(/*>>>@GuardSatisfied SuperSequence this*/) {
     String[] sub_name = var2().simplifyNameAndBounds();
     String[] super_name = var1().simplifyNameAndBounds();
 
     if (sub_name == null || super_name == null) {
-      return "format_simplify can't handle one of these sequences: "
-        + format();
+        return String.format("%s.format_simplify_defined(%s): sub_name=%s, super_name=%s, for %s",
+                             getClass().getSimpleName(), this,
+                             Arrays.toString(sub_name), Arrays.toString(super_name), format());
     }
 
     return "(subsequence " +
@@ -118,7 +122,7 @@ public class SuperSequence
 
   // This is apparently broken somehow, though from the logs it's not
   // clear how. -- smcc
-  private String format_simplify_explicit() {
+  private String format_simplify_explicit(/*>>>@GuardSatisfied SuperSequence this*/) {
     return "format_simplify disabled";
 
     /* Since this doesn't work (since at least april 2003)
@@ -194,25 +198,28 @@ public class SuperSequence
 
   public InvariantStatus check_modified (long[] a1, long[] a2,
                                         int count) {
-    if ((a1 == null) || (a2 == null))
+    if ((a1 == null) || (a2 == null)) {
       return InvariantStatus.FALSIFIED;
+    }
 
       int result = ArraysMDE.indexOf(a1, a2);
 
-    if (result == -1)
+    if (result == -1) {
       return InvariantStatus.FALSIFIED;
-    else
+    } else {
       return InvariantStatus.NO_CHANGE;
+    }
   }
 
   public InvariantStatus add_modified(long[] a1, long[] a2,
                                       int count) {
     InvariantStatus is = check_modified (a1, a2, count);
-    if ((is == InvariantStatus.FALSIFIED) && Debug.logOn())
+    if ((is == InvariantStatus.FALSIFIED) && Debug.logOn()) {
       log ("%s destroyed by %s %s",
            format(), Debug.toString(a1),
            Debug.toString(a2));
-    return (is);
+    }
+    return is;
   }
 
   protected double computeConfidence() {
@@ -220,9 +227,8 @@ public class SuperSequence
   }
 
   /**
-   * @return a DiscardInfo,
-   * or null if the Invariant is not an obvious subsequence
-   **/
+   * @return a DiscardInfo, or null if the Invariant is not an obvious subsequence
+   */
   /*@Pure*/
   public static /*@Nullable*/ DiscardInfo isObviousSubSequence(Invariant inv, VarInfo subvar, VarInfo supervar) {
     Pair<DiscardCode,String> pcds = isObviousSubSequence(subvar, supervar);
@@ -236,7 +242,7 @@ public class SuperSequence
   /**
    * @return a Pair of a DiscardCode and a discardReason string,
    * or null if the Invariant is not an obvious subsequence
-   **/
+   */
   /*@Pure*/
   public static /*@Nullable*/ Pair<DiscardCode,String> isObviousSubSequence(VarInfo subvar, VarInfo supervar) {
     // Must typecheck since this could be called with non-sequence variables in
@@ -363,13 +369,15 @@ public class SuperSequence
           throw new Error();
         }
         boolean left_included = false, right_included = false;
-        if (super_left_var == null)
+        if (super_left_var == null) {
           left_included = true;
+        }
         if (super_left_var == sub_left_var) {
           if (super_left_shift < sub_left_shift) left_included = true;
         }
-        if (super_right_var == null)
+        if (super_right_var == null) {
           right_included = true;
+        }
         if (super_right_var == sub_right_var) {
           if (super_right_shift > sub_right_shift) right_included = true;
         }
@@ -394,11 +402,13 @@ public class SuperSequence
         boolean start2 = sss2.from_start;
         if (index1 == index2) {
           if (start1 == true && start2 == true) {
-            if (shift1 <= shift2)
+            if (shift1 <= shift2) {
               return Pair.of(discardCode, discardString + " [shift1]");
+            }
           } else if (start1 == false && start2 == false) {
-            if (shift1 >= shift2)
+            if (shift1 >= shift2) {
               return Pair.of(discardCode, discardString + " [shift2]");
+            }
           }
         }
       } else {
@@ -420,8 +430,9 @@ public class SuperSequence
   public static /*@Nullable*/ SuperSequence find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SuperSequence)
+      if (inv instanceof SuperSequence) {
         return (SuperSequence) inv;
+      }
     }
     return null;
   }
@@ -504,7 +515,7 @@ public class SuperSequence
   /**
    * Returns true if the two original variables are related in a way
    * that makes subsequence or subset detection not informative.
-   **/
+   */
   public static boolean isObviousSubSequenceDynamically (Invariant inv,
                             VarInfo subvar, VarInfo supervar) {
 
@@ -518,7 +529,9 @@ public class SuperSequence
            && (rep2 == ProglangType.DOUBLE_ARRAY)) ||
           ((rep1 == ProglangType.STRING_ARRAY)
            && (rep2 == ProglangType.STRING_ARRAY))
-          )) return false;
+          )) {
+            return false;
+          }
 
     if (debug.isLoggable(Level.FINE)) {
       debug.fine ("Checking isObviousSubSequenceDynamically " +
@@ -635,24 +648,26 @@ public class SuperSequence
           throw new Error();
         }
         boolean left_included, right_included;
-        if (super_left_var == null)
+        if (super_left_var == null) {
           left_included = true;
-        else if (sub_left_var == null) // we know super_left_var != null here
+        } else if (sub_left_var == null) // we know super_left_var != null here
           left_included = false;
-        else
+        else {
           left_included
             = VarInfo.compare_vars(super_left_var, super_left_shift,
                                    sub_left_var, sub_left_shift,
                                    true /* <= */);
-        if (super_right_var == null)
+        }
+        if (super_right_var == null) {
           right_included = true;
-        else if (sub_right_var == null) // we know super_right_var != null here
+        } else if (sub_right_var == null) // we know super_right_var != null here
           right_included = false;
-        else
+        else {
           right_included
             = VarInfo.compare_vars(super_right_var, super_right_shift,
                                    sub_right_var, sub_right_shift,
                                    false /* >= */);
+        }
 //         System.out.println("Is " + subvar.name() + " contained in "
 //                            + supervar.name()
 //                            + "? left: " + left_included + ", right: "
@@ -722,10 +737,11 @@ public class SuperSequence
 
           // Check to see if there is a subsequence over the supervar
           if (ppt_parent.is_subsequence (subvar, supervar_part)) {
-            if (Debug.logOn())
+            if (Debug.logOn()) {
               inv.log ("ObvSubSeq- true from A subseq B[0..n] %s/%s",
                        subvar.name(), supervar_part.name());
-            return (true);
+            }
+            return true;
           }
         }
       }
@@ -733,18 +749,19 @@ public class SuperSequence
     return false;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant inv) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant inv) {
     assert inv instanceof SuperSequence;
-    return (true);
+    return true;
   }
 
-  /** returns the ni-suppressions for SubSequence **/
+  /** returns the ni-suppressions for SubSequence */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (SuperSequence.class, 2);
 

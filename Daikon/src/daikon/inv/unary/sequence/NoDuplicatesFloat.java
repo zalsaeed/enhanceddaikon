@@ -18,6 +18,7 @@ import java.util.logging.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -26,7 +27,7 @@ import typequals.*;
 /**
  * Represents sequences of double that contain no duplicate elements.
  * Prints as <code>x[] contains no duplicates</code>.
- **/
+ */
 
 public class NoDuplicatesFloat
   extends SingleFloatSequence
@@ -40,10 +41,10 @@ public class NoDuplicatesFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff NoDuplicates invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug = Logger.getLogger("daikon.inv.unary.sequence.NoDuplicatesFloat");
 
   protected NoDuplicatesFloat(PptSlice ppt) {
@@ -56,26 +57,27 @@ public class NoDuplicatesFloat
 
   private static /*@Prototype*/ NoDuplicatesFloat proto = new /*@Prototype*/ NoDuplicatesFloat ();
 
-  /** Returns the prototype invariant for NoDuplicatesFloat **/
+  /** Returns the prototype invariant for NoDuplicatesFloat */
   public static /*@Prototype*/ NoDuplicatesFloat get_proto() {
     return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   public NoDuplicatesFloat instantiate_dyn (/*>>> @Prototype NoDuplicatesFloat this,*/ PptSlice slice) {
     return new NoDuplicatesFloat (slice);
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied NoDuplicatesFloat this*/) {
     return "NoDuplicatesFloat" + varNames() + ": ";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied NoDuplicatesFloat this,*/ OutputFormat format) {
     if (debug.isLoggable(Level.FINE)) {
       debug.fine (repr());
     }
@@ -99,18 +101,18 @@ public class NoDuplicatesFloat
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied NoDuplicatesFloat this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.distinct(), var(),
                                                var());
     return form[0] + "(NEQ " + form[1] + " " + form[2] + ")"
       + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied NoDuplicatesFloat this,*/ OutputFormat format) {
     return "daikon.Quant.noDups(" + var().name_using(format) + ")";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied NoDuplicatesFloat this*/) {
     String collection = var().csharp_collection_string();
     return collection + ".Distinct().Count() == " + collection + ".Count()";
   }
@@ -160,7 +162,7 @@ public class NoDuplicatesFloat
    * </pre>
    * JHP: The first check is not valid because we can't rely on transitive
    *      checks because of missing (if B[] is missing, A[] could have dups
-   *      on those samples)
+   *      on those samples),
    */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousDynamically(VarInfo[] vis) {
@@ -172,9 +174,10 @@ public class NoDuplicatesFloat
     // If the maximum size of the array is <= 1, then this is
     // obvious
     ValueSet.ValueSetFloatArray vs = (ValueSet.ValueSetFloatArray) vis[0].get_value_set();
-    if (vs.max_length() <= 1)
+    if (vs.max_length() <= 1) {
       return new DiscardInfo (this, DiscardCode.obvious, "Size of " + vis[0]
                                + " is <= " + vs.max_length());
+    }
 
     // For every other NoDuplicates at this program point, see if there is a
     // subsequence relationship between that array and this one.
@@ -211,7 +214,8 @@ public class NoDuplicatesFloat
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof NoDuplicatesFloat;
     return true;
   }

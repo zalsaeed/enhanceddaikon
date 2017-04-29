@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -26,7 +27,7 @@ import typequals.*;
  * a sequence of double values.
  * Prints as <code>x[] elements y</code> where <code>x</code> is a
  * double sequence and <code>y</code> is a double scalar.
- **/
+ */
 public final class SeqFloatEqual
   extends SequenceFloat
 {
@@ -39,8 +40,8 @@ public final class SeqFloatEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SeqFloatEqual invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.sequenceScalar.SeqFloatEqual");
@@ -57,21 +58,22 @@ public final class SeqFloatEqual
 
   private static /*@Prototype*/ SeqFloatEqual proto = new /*@Prototype*/ SeqFloatEqual ();
 
-  /** Returns the prototype invariant for SeqFloatEqual **/
+  /** Returns the prototype invariant for SeqFloatEqual */
   public static /*@Prototype*/ SeqFloatEqual get_proto () {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Non-equal SeqIntComparison is only valid on integral types **/
+  /** Non-equal SeqIntComparison is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     VarInfo seqvar;
     VarInfo sclvar;
@@ -86,10 +88,10 @@ public final class SeqFloatEqual
     assert sclvar.rep_type == ProglangType.DOUBLE;
     assert seqvar.rep_type == ProglangType.DOUBLE_ARRAY;
 
-    return (true);
+    return true;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   protected SeqFloatEqual instantiate_dyn (/*>>> @Prototype SeqFloatEqual this,*/ PptSlice slice) {
     return new SeqFloatEqual (slice);
   }
@@ -104,7 +106,7 @@ public final class SeqFloatEqual
    *
    * JHP: Note that these are not strict implications, these are merely
    * uninteresting comparisons (except when op is GreaterEqual for max
-   * and LessEqual for min)
+   * and LessEqual for min).
    */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousStatically(VarInfo[] vis) {
@@ -124,20 +126,22 @@ public final class SeqFloatEqual
       return new DiscardInfo (this, DiscardCode.obvious,
                               sclvar(vis).name() + " is min/max ");
     }
-    return (null);
+    return null;
   }
 
-  /*@SideEffectFree*/ public SeqFloatEqual clone() {
+  /*@SideEffectFree*/
+  public SeqFloatEqual clone(/*>>>@GuardSatisfied SeqFloatEqual this*/) {
     SeqFloatEqual result = (SeqFloatEqual) super.clone();
     return result;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied SeqFloatEqual this*/) {
     return "SeqFloatEqual" + varNames() + ": "
       + ",falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SeqFloatEqual this,*/ OutputFormat format) {
 
     if (format.isJavaFamily()) return format_java_family(format);
 
@@ -149,28 +153,28 @@ public final class SeqFloatEqual
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied SeqFloatEqual this*/) {
     return seqvar().name() + " elements == " + sclvar().name();
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied SeqFloatEqual this*/) {
     String[] form = VarInfo.esc_quantify (seqvar(), sclvar());
     return form[0] + "(" + form[1] + " == " + form[2] + ")"
       + form[3];
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied SeqFloatEqual this*/) {
     String[] form = VarInfo.simplify_quantify (seqvar(), sclvar());
     return form[0] + "(EQ " + form[1] + " "
       + form[2] + ")" + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied SeqFloatEqual this,*/ OutputFormat format) {
     return "daikon.Quant.eltsEqual("
       + seqvar().name_using(format) + ", " + sclvar().name_using(format) + ")";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied SeqFloatEqual this*/) {
     String[] split = seqvar().csharp_array_split();
     return "Contract.ForAll(" + split[0] + ", x => x" + split[1] + " == " + sclvar().csharp_name() + ")";
   }
@@ -181,8 +185,9 @@ public final class SeqFloatEqual
       + " " + x);*/
     for (int i=0; i<a.length; i++) {
 
-      if (!(Global.fuzzy.eq (a[i], x)))
+      if (!(Global.fuzzy.eq (a[i], x))) {
         return InvariantStatus.FALSIFIED;
+      }
     }
     return InvariantStatus.NO_CHANGE;
   }
@@ -194,8 +199,9 @@ public final class SeqFloatEqual
   protected double computeConfidence() {
 
     // If there are no samples over our variables, its unjustified
-    if (ppt.num_samples() == 0)
+    if (ppt.num_samples() == 0) {
       return CONFIDENCE_UNJUSTIFIED;
+    }
 
     // If the array never has any elements, its unjustified
     ValueSet.ValueSetFloatArray vs = (ValueSet.ValueSetFloatArray) seqvar().get_value_set();
@@ -210,16 +216,19 @@ public final class SeqFloatEqual
       return Invariant.CONFIDENCE_JUSTIFIED;
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return true;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -227,8 +236,9 @@ public final class SeqFloatEqual
   public static /*@Nullable*/ SeqFloatEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SeqFloatEqual)
+      if (inv instanceof SeqFloatEqual) {
         return (SeqFloatEqual) inv;
+      }
     }
     return null;
   }
@@ -281,9 +291,10 @@ public final class SeqFloatEqual
     // JHP: handled in confidence test now
     // (A[] == []) ==> A[] op x
     if (false) {
-      if (pptt.is_empty (seqvar))
+      if (pptt.is_empty (seqvar)) {
         return new DiscardInfo (this, DiscardCode.obvious, "The sequence "
                                 + seqvar.name() + " is always empty");
+      }
     }
 
     if (isExact()) {
@@ -318,10 +329,10 @@ public final class SeqFloatEqual
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (SeqFloatEqual.class, 2);
 

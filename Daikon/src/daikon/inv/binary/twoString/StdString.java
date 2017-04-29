@@ -17,6 +17,7 @@ import plume.*;
 import java.util.*;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.checker.signature.qual.*;
 import org.checkerframework.dataflow.qual.*;
@@ -30,7 +31,7 @@ import typequals.*;
  * this file).  The subclass must provide the methods instantiate(),
  * check(), and format(). Symmetric functions should define
  * is_symmetric() to return true.
- **/
+ */
 public abstract class StdString extends TwoString {
 
   // We are Serializable, so we specify a version to allow changes to
@@ -57,18 +58,19 @@ public abstract class StdString extends TwoString {
     ProglangType type1 = vis[0].file_rep_type;
     ProglangType type2 = vis[1].file_rep_type;
     if (!type1.isString() || !type2.isString()) {
-      return (false);
+      return false;
     }
 
-    return (true);
-  }
-
-  /*@Pure*/ public boolean isExact() {
     return true;
   }
 
-  public String repr() {
-    return UtilMDE.unqualified_name (getClass()) + ": " + format() +
+  /*@Pure*/
+  public boolean isExact() {
+    return true;
+  }
+
+  public String repr(/*>>>@GuardSatisfied StdString this*/) {
+    return getClass().getSimpleName() + ": " + format() +
       (swap ? " [swapped]" : " [unswapped]");
   }
 
@@ -79,11 +81,13 @@ public abstract class StdString extends TwoString {
    * get_format_str().  Instances of %varN% are replaced by the variable
    * name in the specified format.
    */
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied StdString this,*/ OutputFormat format) {
 
-    if (ppt == null)
+    if (ppt == null) {
       return (String.format ("proto ppt [class %s] format %s", getClass(),
                              get_format_str (format)));
+    }
     String fmt_str = get_format_str (format);
     String v1 = null;
     String v2 = null;
@@ -102,7 +106,7 @@ public abstract class StdString extends TwoString {
       fmt_str = "[" + getClass() + "]" + fmt_str + " ("
              + var1().get_value_info() + ", " + var2().get_value_info() +  ")";
     }
-    return (fmt_str);
+    return fmt_str;
   }
 
   /**
@@ -113,12 +117,13 @@ public abstract class StdString extends TwoString {
   public InvariantStatus check_modified(String x, String y, int count) {
 
     try {
-      if (eq_check (x, y))
-        return (InvariantStatus.NO_CHANGE);
-      else
-        return (InvariantStatus.FALSIFIED);
+      if (eq_check (x, y)) {
+        return InvariantStatus.NO_CHANGE;
+      } else {
+        return InvariantStatus.FALSIFIED;
+      }
     } catch (Exception e) {
-      return (InvariantStatus.FALSIFIED);
+      return InvariantStatus.FALSIFIED;
     }
   }
 
@@ -132,10 +137,12 @@ public abstract class StdString extends TwoString {
     VarInfo v2 = var2(vis);
 
     // Make sure each var is a sequence subscript
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceStringSubscript))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceStringSubscript))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceStringSubscript)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceStringSubscript)) {
+      return null;
+    }
 
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceStringSubscript der1 = (SequenceStringSubscript) v1.derived;
@@ -143,8 +150,9 @@ public abstract class StdString extends TwoString {
     /*@NonNull*/ SequenceStringSubscript der2 = (SequenceStringSubscript) v2.derived;
 
     // Make sure the shifts match
-    if (der1.index_shift != der2.index_shift)
-      return (null);
+    if (der1.index_shift != der2.index_shift) {
+      return null;
+    }
 
     // Look for this invariant over a sequence
     String cstr = getClass().getName();
@@ -160,13 +168,15 @@ public abstract class StdString extends TwoString {
       throw new Error ("can't create class for " + cstr, e);
     }
     Invariant inv = find (pairwise_class, der1.seqvar(), der2.seqvar());
-    if (inv == null)
-      return (null);
+    if (inv == null) {
+      return null;
+    }
 
     // Look to see if the subscripts are equal
     Invariant subinv = find (StringEqual.class, der1.sclvar(), der2.sclvar());
-    if (subinv == null)
-      return (null);
+    if (subinv == null) {
+      return null;
+    }
 
     return new DiscardInfo(this, DiscardCode.obvious, "Implied by " +
                            inv.format() + " and " + subinv.format());
@@ -176,8 +186,9 @@ public abstract class StdString extends TwoString {
   public /*@Nullable*/ DiscardInfo isObviousDynamically (VarInfo[] vis) {
 
     DiscardInfo super_result = super.isObviousDynamically(vis);
-    if (super_result != null)
+    if (super_result != null) {
       return super_result;
+    }
 
       // any relation across subscripts is made obvious by the same
       // relation across the original sequence if the subscripts are equal
@@ -194,11 +205,12 @@ public abstract class StdString extends TwoString {
       StringBuffer why = null;
       for (int j = 0; j < antecedents.length; j++) {
         Invariant inv = antecedents[j].find ();
-        if (inv == null)
+        if (inv == null) {
           continue obvious_loop;
-        if (why == null)
+        }
+        if (why == null) {
           why = new StringBuffer(inv.format());
-        else {
+        } else {
           why.append(" and ");
           why.append(inv.format());
         }
@@ -206,14 +218,14 @@ public abstract class StdString extends TwoString {
       return new DiscardInfo (this, DiscardCode.obvious, "Implied by " + why);
     }
 
-    return (null);
+    return null;
   }
 
   /**
    * Return a format string for the specified output format.  Each instance
    * of %varN% will be replaced by the correct name for varN.
    */
-  public abstract String get_format_str (OutputFormat format);
+  public abstract String get_format_str (/*>>>@GuardSatisfied StdString this,*/ OutputFormat format);
 
   /**
    * Returns true if x and y don't invalidate the invariant.
@@ -236,7 +248,7 @@ public abstract class StdString extends TwoString {
         result.add (SubString.get_proto(true));
 
     // System.out.printf ("%s get proto: %s\n", StdString.class, result);
-    return (result);
+    return result;
   }
 
   // suppressor definitions, used by many of the classes below
@@ -274,28 +286,28 @@ public abstract class StdString extends TwoString {
     private static /*@Prototype*/ SubString proto = new /*@Prototype*/ SubString (false);
     private static /*@Prototype*/ SubString proto_swap = new /*@Prototype*/ SubString (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ SubString get_proto (boolean swap) {
       if (swap) {
-        return (proto_swap);
+        return proto_swap;
       } else {
-        return (proto);
+        return proto;
       }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff SubString invariants should be considered. **/
+    /** Boolean.  True iff SubString invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     protected SubString instantiate_dyn (/*>>> @Prototype SubString this,*/ PptSlice slice) {
       return new SubString (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
+    public String get_format_str (/*>>>@GuardSatisfied SubString this,*/ OutputFormat format) {
       if (format == OutputFormat.DAIKON) {
         return "%var1% is a substring of %var2%";
       } else if (format.isJavaFamily()) {
@@ -312,7 +324,7 @@ public abstract class StdString extends TwoString {
       return (y.contains (x));
     }
 
-    /** Justified as long as there are samples **/
+    /** Justified as long as there are samples */
     protected double computeConfidence() {
       if (ppt.num_samples() == 0) {
         return Invariant.CONFIDENCE_UNJUSTIFIED;
@@ -326,11 +338,14 @@ public abstract class StdString extends TwoString {
      */
     /*@Pure*/
     public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-      if (swap) return (suppressions_swap);
-      else return (suppressions);
+      if (swap) {
+        return suppressions_swap;
+      } else {
+        return suppressions;
+      }
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (SubString.class, false);
 

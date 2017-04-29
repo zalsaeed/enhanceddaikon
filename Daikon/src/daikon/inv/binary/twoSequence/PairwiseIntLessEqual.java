@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -29,7 +30,7 @@ import typequals.*;
  * Thus, <code>x[0]</code> is compared to <code>y[0]</code>,
  * <code>x[1]</code> to <code>y[1]</code>, and so forth.
  * Prints as <code>x[] &le; y[]</code>.
- **/
+ */
 
 public class PairwiseIntLessEqual
   extends TwoSequence
@@ -39,7 +40,7 @@ public class PairwiseIntLessEqual
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20030822L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug =
     Logger.getLogger("daikon.inv.binary.twoSequence.PairwiseIntLessEqual");
 
@@ -47,8 +48,8 @@ public class PairwiseIntLessEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff PairwiseIntComparison invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   static final boolean debugPairwiseIntComparison = false;
 
@@ -62,40 +63,44 @@ public class PairwiseIntLessEqual
 
   private static /*@Prototype*/ PairwiseIntLessEqual proto = new /*@Prototype*/ PairwiseIntLessEqual ();
 
-  /** Returns the prototype invariant for PairwiseIntLessEqual **/
+  /** Returns the prototype invariant for PairwiseIntLessEqual */
   public static /*@Prototype*/ PairwiseIntLessEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** PairwiseIntLessEqual is only valid on integral types **/
+  /** PairwiseIntLessEqual is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-      if (!(vis[0].type.elementIsIntegral() && vis[1].type.elementIsIntegral()))
+      if (!(vis[0].type.elementIsIntegral() && vis[1].type.elementIsIntegral())) {
         return false;
+      }
 
-    return (true);
+    return true;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   protected PairwiseIntLessEqual instantiate_dyn (/*>>> @Prototype PairwiseIntLessEqual this,*/ PptSlice slice) {
     PairwiseIntLessEqual inv = new PairwiseIntLessEqual(slice);
-    if (logOn())
+    if (logOn()) {
       inv.log ("instantiate");
+    }
     return inv;
   }
 
   protected PairwiseIntLessEqual(PairwiseIntGreaterEqual swapped_pic) {
     super(swapped_pic.ppt);
-    if (logOn())
+    if (logOn()) {
       log ("Instantiated from resurrect_done_swapped");
+    }
   }
 
   /*@Pure*/
@@ -136,8 +141,9 @@ public class PairwiseIntLessEqual
     // Subsequence invariants are implied by the same invariant over
     // the supersequence
     DiscardInfo di = superseq_implies (vis);
-    if (di != null)
-      return (di);
+    if (di != null) {
+      return di;
+    }
 
     return null;
     }
@@ -146,40 +152,44 @@ public class PairwiseIntLessEqual
    * Checks to see if the same invariant exists over supersequences of
    * these variables:
    *
+   * <pre>
    *    (A[] op B[]) ^ (i == j)  &rArr; A[i..] op B[j..]
    *    (A[] op B[]) ^ (i == j)  &rArr; A[..i] op B[..j]
+   * </pre>
    */
   private /*@Nullable*/ DiscardInfo superseq_implies (VarInfo[] vis) {
 
     // Make sure the variables are SequenceScalarSubsequence with the same start/end
     VarInfo v1 = vis[0];
     VarInfo v2 = vis[1];
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceScalarSubsequence))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceScalarSubsequence))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceScalarSubsequence)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceScalarSubsequence)) {
+      return null;
+    }
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceScalarSubsequence der1 = (SequenceScalarSubsequence) v1.derived;
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceScalarSubsequence der2 = (SequenceScalarSubsequence) v2.derived;
     if ((der1.from_start != der2.from_start)
         || (der1.index_shift != der2.index_shift))
-      return (null);
+      return null;
 
     // Make sure the subscripts are equal
     DiscardInfo di = new DiscardInfo (this, DiscardCode.obvious, "");
     if (!ppt.parent.check_implied_canonical (di, der1.sclvar(), der2.sclvar(),
                                              IntEqual.get_proto()))
-      return (null);
+      return null;
 
     // See if the super-sequences have the same invariant
     if (!ppt.parent.check_implied_canonical (di, der1.seqvar(), der2.seqvar(),
                                              PairwiseIntLessEqual.get_proto()))
-      return (null);
+      return null;
 
     // Add in the vis variables to di reason (if they are different)
     di.add_implied_vis (vis);
-    return (di);
+    return di;
   }
 
   protected Invariant resurrect_done_swapped() {
@@ -195,7 +205,7 @@ public class PairwiseIntLessEqual
     return PairwiseIntGreaterEqual.class;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied PairwiseIntLessEqual this*/) {
     return "PairwiseIntLessEqual" + varNames() + ": ";
   }
 
@@ -203,7 +213,8 @@ public class PairwiseIntLessEqual
     return "<=";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied PairwiseIntLessEqual this,*/ OutputFormat format) {
 
     if (format.isJavaFamily()) return format_java_family(format);
 
@@ -215,28 +226,28 @@ public class PairwiseIntLessEqual
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied PairwiseIntLessEqual this*/) {
     return var1().name() + " <= " + var2().name()
       + " (elementwise)";
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied PairwiseIntLessEqual this*/) {
     String[] form = VarInfo.esc_quantify (var1(), var2());
     return form[0] + "(" + form[1] + " <= " + form[2] + ")" + form[3];
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied PairwiseIntLessEqual this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.element_wise(),
                                                var1(), var2());
     return form[0] + "(<= " + form[1] + " " + form[2] + ")" + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied PairwiseIntLessEqual this,*/ OutputFormat format) {
     return "daikon.Quant.pairwiseLTE(" + var1().name_using(format)
       + ", " + var2().name_using(format) + ")";
   }
 
-  public String format_csharp() {
+  public String format_csharp(/*>>>@GuardSatisfied PairwiseIntLessEqual this*/) {
 
     String[] split1 = var1().csharp_array_split();
     String[] split2 = var2().csharp_array_split();
@@ -274,9 +285,10 @@ public class PairwiseIntLessEqual
 
     public InvariantStatus add_modified(long /*@Interned*/ [] a1, long /*@Interned*/ [] a2,
                                         int count) {
-      if (logDetail())
+      if (logDetail()) {
         log (debug, "saw add_modified (" + ArraysMDE.toString(a1) +
              ", " + ArraysMDE.toString(a2) + ")");
+      }
       return check_modified(a1, a2, count);
     }
 
@@ -292,11 +304,13 @@ public class PairwiseIntLessEqual
     }
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -304,8 +318,9 @@ public class PairwiseIntLessEqual
   public static /*@Nullable*/ PairwiseIntLessEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof PairwiseIntLessEqual)
+      if (inv instanceof PairwiseIntLessEqual) {
         return (PairwiseIntLessEqual) inv;
+      }
     }
     return null;
   }
@@ -315,10 +330,10 @@ public class PairwiseIntLessEqual
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** Definition of this invariant (the suppressee) **/
+  /** Definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (PairwiseIntLessEqual.class, 2);
 

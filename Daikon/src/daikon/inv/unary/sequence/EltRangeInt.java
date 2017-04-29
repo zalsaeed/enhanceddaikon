@@ -16,6 +16,7 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -48,17 +49,19 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
   /**
    * Check that instantiation is ok.  The type must be integral
-   * (not boolean or hash code)
+   * (not boolean or hash code).
    */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-    if (!vis[0].file_rep_type.baseIsIntegral())
-      return (false);
+    if (!vis[0].file_rep_type.baseIsIntegral()) {
+      return false;
+    }
 
-    return (true);
+    return true;
   }
 
   /**
@@ -68,7 +71,8 @@ public abstract class EltRangeInt extends SingleScalarSequence {
    * get_format_str().  Instances of %var1% are replaced by the variable
    * name in the specified format.
    */
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied EltRangeInt this,*/ OutputFormat format) {
 
     String fmt_str = get_format_str (format);
 
@@ -88,17 +92,19 @@ public abstract class EltRangeInt extends SingleScalarSequence {
         fmt_str += " (elementwise)";
       }
 
-    if (v1 == null)
+    if (v1 == null) {
       v1 = var1.name_using(format);
+    }
 
     fmt_str = UtilMDE.replaceString(fmt_str, "%var1%", v1);
-    return (fmt_str);
+    return fmt_str;
   }
 
   public InvariantStatus check_modified (long /*@Interned*/ [] x, int count) {
     for (int i = 0; i < x.length; i++) {
-      if (!eq_check (x[i]))
+      if (!eq_check (x[i])) {
         return InvariantStatus.FALSIFIED;
+      }
     }
     return InvariantStatus.NO_CHANGE;
   }
@@ -111,11 +117,13 @@ public abstract class EltRangeInt extends SingleScalarSequence {
     return CONFIDENCE_JUSTIFIED;
   }
 
-  /*@Pure*/ public boolean isSameFormula (Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula (Invariant other) {
     assert other.getClass() == getClass();
-    return (true);
+    return true;
   }
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -132,7 +140,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
   /**
    * Looks for a OneOf invariant over vis.  Used by Even and PowerOfTwo
-   * to dynamically suppress those invariants if a OneOf exists
+   * to dynamically suppress those invariants if a OneOf exists.
    */
   protected /*@Nullable*/ EltOneOf find_oneof (VarInfo[] vis) {
     return (EltOneOf) ppt.parent.find_inv_by_class (vis, EltOneOf.class);
@@ -142,7 +150,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
    * Return a format string for the specified output format.  Each instance
    * of %varN% will be replaced by the correct name for varN.
    */
-  public abstract String get_format_str (OutputFormat format);
+  public abstract String get_format_str (/*>>>@GuardSatisfied EltRangeInt this,*/ OutputFormat format);
 
   /**
    * Returns true if x and y don't invalidate the invariant.
@@ -151,7 +159,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
   /**
    * Returns a list of prototypes of all of the range
-   * invariants
+   * invariants.
    */
   public static List</*@Prototype*/ Invariant> get_proto_all () {
 
@@ -167,7 +175,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
       result.add (Even.get_proto());
       result.add (Bound0_63.get_proto());
 
-    return (result);
+    return result;
   }
 
   /**
@@ -192,26 +200,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ EqualZero proto = new /*@Prototype*/ EqualZero ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ EqualZero get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltOneOf.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public EqualZero instantiate_dyn (/*>>> @Prototype EqualZero this,*/ PptSlice slice) {
       return new EqualZero (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ 0 %var1%)");
-      else
-        return ("%var1% == 0");
+    public String get_format_str (/*>>>@GuardSatisfied EqualZero this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ 0 %var1%)";
+      } else {
+        return "%var1% == 0";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -222,7 +231,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
   /**
    * Internal invariant representing long scalars that are equal
    * to one.  Used for non-instantiating suppressions.  Will never
-   * print since OneOf accomplishes the same thing
+   * print since OneOf accomplishes the same thing.
    */
   public static class EqualOne extends EltRangeInt {
 
@@ -241,26 +250,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ EqualOne proto = new /*@Prototype*/ EqualOne ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ EqualOne get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltOneOf.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public EqualOne instantiate_dyn (/*>>> @Prototype EqualOne this,*/ PptSlice slice) {
       return new EqualOne (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ 1 %var1%)");
-      else
-        return ("%var1% == 1");
+    public String get_format_str (/*>>>@GuardSatisfied EqualOne this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ 1 %var1%)";
+      } else {
+        return "%var1% == 1";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -271,7 +281,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
   /**
    * Internal invariant representing long scalars that are equal
    * to minus one.  Used for non-instantiating suppressions.  Will never
-   * print since OneOf accomplishes the same thing
+   * print since OneOf accomplishes the same thing.
    */
   public static class EqualMinusOne extends EltRangeInt {
 
@@ -290,26 +300,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ EqualMinusOne proto = new /*@Prototype*/ EqualMinusOne ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ EqualMinusOne get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltOneOf.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public EqualMinusOne instantiate_dyn (/*>>> @Prototype EqualMinusOne this,*/ PptSlice slice) {
       return new EqualMinusOne (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ -1 %var1%)");
-      else
-        return ("%var1% == -1");
+    public String get_format_str (/*>>>@GuardSatisfied EqualMinusOne this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ -1 %var1%)";
+      } else {
+        return "%var1% == -1";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -320,7 +331,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
   /**
    * Internal invariant representing long scalars that are greater
    * than or equal to 0.  Used for non-instantiating suppressions.  Will never
-   * print since Bound accomplishes the same thing
+   * print since Bound accomplishes the same thing.
    */
   public static class GreaterEqualZero extends EltRangeInt {
 
@@ -339,26 +350,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ GreaterEqualZero proto = new /*@Prototype*/ GreaterEqualZero ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ GreaterEqualZero get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltLowerBound.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public GreaterEqualZero instantiate_dyn (/*>>> @Prototype GreaterEqualZero this,*/ PptSlice slice) {
       return new GreaterEqualZero (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(>= %var1% 0)");
-      else
-        return ("%var1% >= 0");
+    public String get_format_str (/*>>>@GuardSatisfied GreaterEqualZero this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(>= %var1% 0)";
+      } else {
+        return "%var1% >= 0";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -369,7 +381,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
   /**
    * Internal invariant representing long scalars that are greater
    * than or equal to 64.  Used for non-instantiating suppressions.  Will never
-   * print since Bound accomplishes the same thing
+   * print since Bound accomplishes the same thing.
    */
   public static class GreaterEqual64 extends EltRangeInt {
 
@@ -388,26 +400,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ GreaterEqual64 proto = new /*@Prototype*/ GreaterEqual64 ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ GreaterEqual64 get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltLowerBound.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public GreaterEqual64 instantiate_dyn (/*>>> @Prototype GreaterEqual64 this,*/ PptSlice slice) {
       return new GreaterEqual64 (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(>= 64 %var1%)");
-      else
-        return ("%var1% >= 64");
+    public String get_format_str (/*>>>@GuardSatisfied GreaterEqual64 this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(>= %var1% 64)";
+      } else {
+        return "%var1% >= 64";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -437,26 +450,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ BooleanVal proto = new /*@Prototype*/ BooleanVal ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ BooleanVal get_proto() {
-      return (proto);
+      return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltLowerBound.dkconfig_enabled && EltUpperBound.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public BooleanVal instantiate_dyn (/*>>> @Prototype BooleanVal this,*/ PptSlice slice) {
       return new BooleanVal (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(OR (EQ 0 %var1%) (EQ 1 %var1%))");
-      else
-        return ("%var1% is boolean");
+    public String get_format_str (/*>>>@GuardSatisfied BooleanVal this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(OR (EQ 0 %var1%) (EQ 1 %var1%))";
+      } else {
+        return "%var1% is boolean";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -469,6 +483,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
    * (exactly one bit is set).  Used for non-instantiating
    * suppressions.  Since this is not covered by the Bound or OneOf
    * invariants it is printed.
+   * Prints as <code>x is a power of 2</code>.
    */
   public static class PowerOfTwo extends EltRangeInt {
 
@@ -477,8 +492,8 @@ public abstract class EltRangeInt extends SingleScalarSequence {
     // remove fields, you should change this number to the current date.
     static final long serialVersionUID = 20040113L;
 
-    /** Boolean.  True if PowerOfTwo invariants should be considered. **/
-    public static boolean dkconfig_enabled = true;
+    /** Boolean.  True if PowerOfTwo invariants should be considered. */
+    public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
     protected PowerOfTwo (PptSlice ppt) {
       super (ppt);
@@ -490,30 +505,33 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ PowerOfTwo proto = new /*@Prototype*/ PowerOfTwo ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ PowerOfTwo get_proto() {
-      return (proto);
+      return proto;
     }
 
-    /** returns whether or not this invariant is enabled **/
+    /** returns whether or not this invariant is enabled */
     public boolean enabled() {
       return dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public PowerOfTwo instantiate_dyn (/*>>> @Prototype PowerOfTwo this,*/ PptSlice slice) {
       return new PowerOfTwo (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EXISTS (p) (EQ %var1% (pow 2 p)))");
-      if (format == OutputFormat.JAVA)
+    public String get_format_str (/*>>>@GuardSatisfied PowerOfTwo this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EXISTS (p) (EQ %var1% (pow 2 p)))";
+      }
+      if (format == OutputFormat.JAVA) {
         return "daikon.tools.runtimechecker.Runtime.isPowerOfTwo(%var1%)";
-      if (format == OutputFormat.CSHARPCONTRACT)
+      }
+      if (format == OutputFormat.CSHARPCONTRACT) {
         return "%var1%.IsPowerOfTwo()";
-      else
-        return ("%var1% is a power of 2");
+      } else {
+        return "%var1% is a power of 2";
+      }
     }
 
     /**
@@ -529,14 +547,15 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     /**
      * Since PowerOfTwo is not covered by Bound or OneOf, it is not obvious
-     * (and should thus be printed)
+     * (and should thus be printed).
      */
     /*@Pure*/
     public /*@Nullable*/ DiscardInfo isObviousDynamically (VarInfo[] vis) {
 
        EltOneOf oneof = find_oneof (vis);
-       if (oneof != null)
+       if (oneof != null) {
          return new DiscardInfo (this, DiscardCode.obvious, "Implied by Oneof");
+       }
 
        return null;
      }
@@ -547,6 +566,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
    * Invariant representing longs whose values are always even.
    * Used for non-instantiating suppressions.  Since this is not
    * covered by the Bound or OneOf invariants it is printed.
+   * Prints as <code>x is even</code>.
    */
   public static class Even extends EltRangeInt {
 
@@ -555,7 +575,7 @@ public abstract class EltRangeInt extends SingleScalarSequence {
     // remove fields, you should change this number to the current date.
     static final long serialVersionUID = 20040113L;
 
-    /** Boolean.  True if Even invariants should be considered. **/
+    /** Boolean.  True if Even invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
     protected Even (PptSlice ppt) {
@@ -568,28 +588,30 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ Even proto = new /*@Prototype*/ Even ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ Even get_proto() {
       return proto;
     }
 
-    /** returns whether or not this invariant is enabled **/
+    /** returns whether or not this invariant is enabled */
     public boolean enabled() {
       return dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public Even instantiate_dyn (/*>>> @Prototype Even this,*/ PptSlice slice) {
       return new Even (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ (MOD %var1% 2) 0)");
-      if (format == OutputFormat.CSHARPCONTRACT)
+    public String get_format_str (/*>>>@GuardSatisfied Even this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ (MOD %var1% 2) 0)";
+      }
+      if (format == OutputFormat.CSHARPCONTRACT) {
         return "%var1% % 2 == 0";
-      else
-        return ("%var1% is even");
+      } else {
+        return "%var1% is even";
+      }
     }
 
     public boolean eq_check (long x) {
@@ -598,14 +620,15 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     /**
      * Since Even is not covered by Bound or OneOf, it is not obvious
-     * (and should thus be printed)
+     * (and should thus be printed).
      */
     /*@Pure*/
     public /*@Nullable*/ DiscardInfo isObviousDynamically (VarInfo[] vis) {
        // If there is a oneof, it implies this
        EltOneOf oneof = find_oneof (vis);
-       if (oneof != null)
+       if (oneof != null) {
          return new DiscardInfo (this, DiscardCode.obvious, "Implied by Oneof");
+       }
 
        return null;
      }
@@ -633,26 +656,27 @@ public abstract class EltRangeInt extends SingleScalarSequence {
 
     private static /*@Prototype*/ Bound0_63 proto = new /*@Prototype*/ Bound0_63 ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ Bound0_63 get_proto() {
-      return (proto);
+      return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return EltLowerBound.dkconfig_enabled && EltUpperBound.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public Bound0_63 instantiate_dyn (/*>>> @Prototype Bound0_63 this,*/ PptSlice slice) {
       return new Bound0_63 (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(AND (>= %var1% 0) (>= 63 %var1%))");
-      else
-        return ("0 <= %var1% <= 63");
+    public String get_format_str (/*>>>@GuardSatisfied Bound0_63 this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(AND (>= %var1% 0) (>= 63 %var1%))";
+      } else {
+        return "0 <= %var1% <= 63";
+      }
     }
 
     public boolean eq_check (long x) {

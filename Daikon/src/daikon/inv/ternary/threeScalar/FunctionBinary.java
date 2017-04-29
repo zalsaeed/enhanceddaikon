@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -24,7 +25,7 @@ import typequals.*;
  * Base class for each of the FunctionBinary functions and permutatons.
  * Most of the work is done here.  The subclasses basically define the
  * function and return information describing the function and permutation
- * to these methods
+ * to these methods.
  */
 public abstract class FunctionBinary extends ThreeScalar {
   // We are Serializable, so we specify a version to allow changes to
@@ -34,7 +35,7 @@ public abstract class FunctionBinary extends ThreeScalar {
 
   /**
    * Boolean. True if FunctionBinary invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   public static Logger debug
@@ -59,31 +60,33 @@ public abstract class FunctionBinary extends ThreeScalar {
     super ();
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** FunctionBinary is only valid on isIntegral() types **/
+  /** FunctionBinary is only valid on isIntegral() types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // Make sure that each variable is integral (not boolean or hashcode)
     if (!vis[0].file_rep_type.isIntegral()
         || !vis[1].file_rep_type.isIntegral()
         || !vis[2].file_rep_type.isIntegral())
-      return (false);
+      return false;
 
-    return (true);
+    return true;
   }
 
   // check_modified relies on func having no side effects.
   abstract long func (long arg1, long arg2);
-  /*@Pure*/ abstract boolean is_symmetric();
-  abstract String[] get_method_name();
-  abstract int get_var_order();
+  /*@Pure*/
+  abstract boolean is_symmetric();
+  abstract String[] get_method_name(/*>>>@GuardSatisfied FunctionBinary this*/);
+  abstract int get_var_order(/*>>>@GuardSatisfied FunctionBinary this*/);
   abstract void set_function_id (int function_id);
   abstract int get_function_id ();
 
@@ -115,12 +118,14 @@ public abstract class FunctionBinary extends ThreeScalar {
     for (int ii = 0; ii < subclasses.length; ii++) {
       Class</*@Prototype*/ FunctionBinary> subc = subclasses[ii];
       String function = subc.getName();
-      if (function.indexOf ("CLOVER") >= 0)
+      if (function.indexOf ("CLOVER") >= 0) {
         continue;
+      }
       function = function.replaceFirst (".*FunctionBinary\\$", "");
       function = function.replaceFirst ("_.*", "");
-      if (function.equals ("SubClass"))
+      if (function.equals ("SubClass")) {
         continue;
+      }
       /*@Prototype*/ FunctionBinary[] fb_arr = functions.get (function);
       if (fb_arr == null) {
         fb_arr = new /*@Prototype*/ FunctionBinary[7];
@@ -147,7 +152,7 @@ public abstract class FunctionBinary extends ThreeScalar {
   }
 
   /**
-   * Returns a list of all of the FunctionBinary prototype invariants
+   * Returns a list of all of the FunctionBinary prototype invariants.
    */
   public static List</*@Prototype*/ Invariant> get_proto_all() {
 
@@ -167,7 +172,7 @@ public abstract class FunctionBinary extends ThreeScalar {
         }
       }
     }
-    return (result);
+    return result;
   }
 
   /** Permuted result var. */
@@ -186,15 +191,16 @@ public abstract class FunctionBinary extends ThreeScalar {
   }
 
   /**
-   * Apply the specified sample to the function, returning the result
+   * Apply the specified sample to the function, returning the result.
    * The caller is responsible for permuting the arguments.
    */
   public InvariantStatus check_ordered (long result, long arg1,
                                       long arg2, int count) {
     // This implementation relies on func having no side effects.
     try {
-      if (! ((result) == ( func (arg1, arg2))))
+      if (! ((result) == ( func (arg1, arg2)))) {
         return InvariantStatus.FALSIFIED;
+      }
     } catch (Exception e) {
         return InvariantStatus.FALSIFIED;
     }
@@ -202,7 +208,7 @@ public abstract class FunctionBinary extends ThreeScalar {
   }
 
   /**
-   * Apply the specified sample to the function, returning the result
+   * Apply the specified sample to the function, returning the result.
    * The caller is responsible for permuting the arguments.
    */
   public InvariantStatus add_ordered (long result, long arg1,
@@ -263,27 +269,31 @@ public abstract class FunctionBinary extends ThreeScalar {
     assert var_order != -1;
 
     // If the var order hasn't changed, we don't need to do anything
-    if (var_order == get_var_order())
-      return (this);
+    if (var_order == get_var_order()) {
+      return this;
+    }
 
     // Find the class that corresponds to the new order
-    if (functions.isEmpty())
+    if (functions.isEmpty()) {
       build_func_list();
+    }
     int func_id = get_function_id();
     /*@Prototype*/ FunctionBinary[] fb_arr = func_list.get (func_id);
     assert fb_arr != null;
     for (int ii = 0; ii < fb_arr.length; ii++)
-      if ((fb_arr[ii] != null) && (fb_arr[ii].get_var_order() == var_order))
+      if ((fb_arr[ii] != null) && (fb_arr[ii].get_var_order() == var_order)) {
         return (fb_arr[ii].instantiate_dyn (ppt));
+      }
 
     throw new Error ("Could not find new ordering");
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied FunctionBinary this*/) {
     return format();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied FunctionBinary this,*/ OutputFormat format) {
     if (format == OutputFormat.SIMPLIFY) {
       return format_simplify();
     }
@@ -320,7 +330,7 @@ public abstract class FunctionBinary extends ThreeScalar {
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied FunctionBinary this*/) {
     int var_order = get_var_order();
     String[] methodname = get_method_name();
     VarInfo[] vis = ppt.var_infos;
@@ -351,13 +361,14 @@ public abstract class FunctionBinary extends ThreeScalar {
       assert methodname[2].equals("");
       func = "|java-" + methodname[1].trim() + "|";
     }
-    if (func == null)
+    if (func == null) {
       return "format_simplify_contract() doesn't know function " + methodname[0] + "-" +
         methodname[1] + "-" + methodname[2];
+    }
     return "(EQ " + result + " (" + func + " " + arg1 + " " + arg2 + "))";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied FunctionBinary this*/) {
     int var_order = get_var_order();
     String[] methodname = get_method_name();
 
@@ -416,13 +427,15 @@ public abstract class FunctionBinary extends ThreeScalar {
       func = "|" + methodname[1].trim() + "|";
     }
 
-    if (func == null)
+    if (func == null) {
       return "format_csharp_contract() doesn't know function " + methodname[0] + "-" + methodname[1] + "-" + methodname[2];
+    }
     return result + " == " + func + "(" + arg1 + ", " + arg2 + ")";
   }
 
   // If our classes match, we must match
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
   public double computeConfidence() {
@@ -441,7 +454,7 @@ public abstract class FunctionBinary extends ThreeScalar {
 
   /**
    * If the arg is a sequence size, return the sequence; otherwise return null.
-   **/
+   */
   private /*@Nullable*/ VarInfo sized_sequence(VarInfo size) {
     if (size.derived instanceof SequenceLength) {
       return ((SequenceLength)size.derived).base;
@@ -476,12 +489,13 @@ public abstract class FunctionBinary extends ThreeScalar {
   }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMultiply () {
-    return (false);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Multiply (y, z)</code>
+ * Represents the invariant <code>x = Multiply(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -493,12 +507,12 @@ public static class MultiplyLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ MultiplyLong_xyz proto = new /*@Prototype*/ MultiplyLong_xyz ();
 
-  /** Returns the prototype invariant for MultiplyLong_xyz **/
+  /** Returns the prototype invariant for MultiplyLong_xyz */
   public static /*@Prototype*/ MultiplyLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MultiplyLong_xyz instantiate_dyn (/*>>> @Prototype MultiplyLong_xyz this,*/ PptSlice slice) {
     return new MultiplyLong_xyz (slice);
   }
@@ -513,14 +527,14 @@ public static class MultiplyLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " * ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MultiplyLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -530,13 +544,14 @@ public static class MultiplyLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MultiplyLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -551,29 +566,33 @@ public static class MultiplyLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMultiply() {
-    return (true);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MultiplyLong_xyz.class, 3);
 
@@ -734,7 +753,7 @@ public static class MultiplyLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Multiply (x, z)</code>
+ * Represents the invariant <code>y = Multiply(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -746,12 +765,12 @@ public static class MultiplyLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ MultiplyLong_yxz proto = new /*@Prototype*/ MultiplyLong_yxz ();
 
-  /** Returns the prototype invariant for MultiplyLong_yxz **/
+  /** Returns the prototype invariant for MultiplyLong_yxz */
   public static /*@Prototype*/ MultiplyLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MultiplyLong_yxz instantiate_dyn (/*>>> @Prototype MultiplyLong_yxz this,*/ PptSlice slice) {
     return new MultiplyLong_yxz (slice);
   }
@@ -766,14 +785,14 @@ public static class MultiplyLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " * ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MultiplyLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -783,13 +802,14 @@ public static class MultiplyLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MultiplyLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -804,29 +824,33 @@ public static class MultiplyLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMultiply() {
-    return (true);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MultiplyLong_yxz.class, 3);
 
@@ -987,7 +1011,7 @@ public static class MultiplyLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Multiply (x, y)</code>
+ * Represents the invariant <code>z = Multiply(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -999,12 +1023,12 @@ public static class MultiplyLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ MultiplyLong_zxy proto = new /*@Prototype*/ MultiplyLong_zxy ();
 
-  /** Returns the prototype invariant for MultiplyLong_zxy **/
+  /** Returns the prototype invariant for MultiplyLong_zxy */
   public static /*@Prototype*/ MultiplyLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MultiplyLong_zxy instantiate_dyn (/*>>> @Prototype MultiplyLong_zxy this,*/ PptSlice slice) {
     return new MultiplyLong_zxy (slice);
   }
@@ -1019,14 +1043,14 @@ public static class MultiplyLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " * ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MultiplyLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1036,13 +1060,14 @@ public static class MultiplyLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MultiplyLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -1057,29 +1082,33 @@ public static class MultiplyLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMultiply() {
-    return (true);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MultiplyLong_zxy.class, 3);
 
@@ -1242,12 +1271,13 @@ public static class MultiplyLong_zxy extends FunctionBinary {
   // #define EQUALITY_MIN_MAX_SUPPRESS
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMinimum () {
-    return (false);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Minimum (y, z)</code>
+ * Represents the invariant <code>x = Minimum(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -1259,12 +1289,12 @@ public static class MinimumLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ MinimumLong_xyz proto = new /*@Prototype*/ MinimumLong_xyz ();
 
-  /** Returns the prototype invariant for MinimumLong_xyz **/
+  /** Returns the prototype invariant for MinimumLong_xyz */
   public static /*@Prototype*/ MinimumLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MinimumLong_xyz instantiate_dyn (/*>>> @Prototype MinimumLong_xyz this,*/ PptSlice slice) {
     return new MinimumLong_xyz (slice);
   }
@@ -1279,14 +1309,14 @@ public static class MinimumLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.min(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MinimumLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1296,13 +1326,14 @@ public static class MinimumLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MinimumLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -1317,13 +1348,15 @@ public static class MinimumLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMinimum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return true;
   }
 
   /**
@@ -1331,13 +1364,14 @@ public static class MinimumLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MinimumLong_xyz.class, 3);
 
@@ -1492,7 +1526,7 @@ public static class MinimumLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Minimum (x, z)</code>
+ * Represents the invariant <code>y = Minimum(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -1504,12 +1538,12 @@ public static class MinimumLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ MinimumLong_yxz proto = new /*@Prototype*/ MinimumLong_yxz ();
 
-  /** Returns the prototype invariant for MinimumLong_yxz **/
+  /** Returns the prototype invariant for MinimumLong_yxz */
   public static /*@Prototype*/ MinimumLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MinimumLong_yxz instantiate_dyn (/*>>> @Prototype MinimumLong_yxz this,*/ PptSlice slice) {
     return new MinimumLong_yxz (slice);
   }
@@ -1524,14 +1558,14 @@ public static class MinimumLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.min(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MinimumLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1541,13 +1575,14 @@ public static class MinimumLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MinimumLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -1562,13 +1597,15 @@ public static class MinimumLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMinimum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return true;
   }
 
   /**
@@ -1576,13 +1613,14 @@ public static class MinimumLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MinimumLong_yxz.class, 3);
 
@@ -1737,7 +1775,7 @@ public static class MinimumLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Minimum (x, y)</code>
+ * Represents the invariant <code>z = Minimum(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -1749,12 +1787,12 @@ public static class MinimumLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ MinimumLong_zxy proto = new /*@Prototype*/ MinimumLong_zxy ();
 
-  /** Returns the prototype invariant for MinimumLong_zxy **/
+  /** Returns the prototype invariant for MinimumLong_zxy */
   public static /*@Prototype*/ MinimumLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MinimumLong_zxy instantiate_dyn (/*>>> @Prototype MinimumLong_zxy this,*/ PptSlice slice) {
     return new MinimumLong_zxy (slice);
   }
@@ -1769,14 +1807,14 @@ public static class MinimumLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.min(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MinimumLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1786,13 +1824,14 @@ public static class MinimumLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MinimumLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -1807,13 +1846,15 @@ public static class MinimumLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMinimum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return true;
   }
 
   /**
@@ -1821,13 +1862,14 @@ public static class MinimumLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MinimumLong_zxy.class, 3);
 
@@ -1984,12 +2026,13 @@ public static class MinimumLong_zxy extends FunctionBinary {
   // #define EQUALITY_MIN_MAX_SUPPRESS
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMaximum () {
-    return (false);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Maximum (y, z)</code>
+ * Represents the invariant <code>x = Maximum(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -2001,12 +2044,12 @@ public static class MaximumLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ MaximumLong_xyz proto = new /*@Prototype*/ MaximumLong_xyz ();
 
-  /** Returns the prototype invariant for MaximumLong_xyz **/
+  /** Returns the prototype invariant for MaximumLong_xyz */
   public static /*@Prototype*/ MaximumLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MaximumLong_xyz instantiate_dyn (/*>>> @Prototype MaximumLong_xyz this,*/ PptSlice slice) {
     return new MaximumLong_xyz (slice);
   }
@@ -2021,14 +2064,14 @@ public static class MaximumLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.max(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MaximumLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2038,13 +2081,14 @@ public static class MaximumLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MaximumLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -2059,13 +2103,15 @@ public static class MaximumLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMaximum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return true;
   }
 
   /**
@@ -2073,13 +2119,14 @@ public static class MaximumLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MaximumLong_xyz.class, 3);
 
@@ -2224,7 +2271,7 @@ public static class MaximumLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Maximum (x, z)</code>
+ * Represents the invariant <code>y = Maximum(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -2236,12 +2283,12 @@ public static class MaximumLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ MaximumLong_yxz proto = new /*@Prototype*/ MaximumLong_yxz ();
 
-  /** Returns the prototype invariant for MaximumLong_yxz **/
+  /** Returns the prototype invariant for MaximumLong_yxz */
   public static /*@Prototype*/ MaximumLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MaximumLong_yxz instantiate_dyn (/*>>> @Prototype MaximumLong_yxz this,*/ PptSlice slice) {
     return new MaximumLong_yxz (slice);
   }
@@ -2256,14 +2303,14 @@ public static class MaximumLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.max(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MaximumLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2273,13 +2320,14 @@ public static class MaximumLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MaximumLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -2294,13 +2342,15 @@ public static class MaximumLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMaximum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return true;
   }
 
   /**
@@ -2308,13 +2358,14 @@ public static class MaximumLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MaximumLong_yxz.class, 3);
 
@@ -2459,7 +2510,7 @@ public static class MaximumLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Maximum (x, y)</code>
+ * Represents the invariant <code>z = Maximum(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -2471,12 +2522,12 @@ public static class MaximumLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ MaximumLong_zxy proto = new /*@Prototype*/ MaximumLong_zxy ();
 
-  /** Returns the prototype invariant for MaximumLong_zxy **/
+  /** Returns the prototype invariant for MaximumLong_zxy */
   public static /*@Prototype*/ MaximumLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MaximumLong_zxy instantiate_dyn (/*>>> @Prototype MaximumLong_zxy this,*/ PptSlice slice) {
     return new MaximumLong_zxy (slice);
   }
@@ -2491,14 +2542,14 @@ public static class MaximumLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.max(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MaximumLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2508,13 +2559,14 @@ public static class MaximumLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MaximumLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -2529,13 +2581,15 @@ public static class MaximumLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMaximum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return true;
   }
 
   /**
@@ -2543,13 +2597,14 @@ public static class MaximumLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MaximumLong_zxy.class, 3);
 
@@ -2694,12 +2749,13 @@ public static class MaximumLong_zxy extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isDivision () {
-    return (false);
+  /*@Pure*/
+  public boolean isDivision() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Division (y, z)</code>
+ * Represents the invariant <code>x = Division(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -2711,12 +2767,12 @@ public static class DivisionLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ DivisionLong_xyz proto = new /*@Prototype*/ DivisionLong_xyz ();
 
-  /** Returns the prototype invariant for DivisionLong_xyz **/
+  /** Returns the prototype invariant for DivisionLong_xyz */
   public static /*@Prototype*/ DivisionLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionLong_xyz instantiate_dyn (/*>>> @Prototype DivisionLong_xyz this,*/ PptSlice slice) {
     return new DivisionLong_xyz (slice);
   }
@@ -2731,14 +2787,14 @@ public static class DivisionLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2748,13 +2804,14 @@ public static class DivisionLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long z) {
@@ -2769,29 +2826,33 @@ public static class DivisionLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionLong_xyz.class, 3);
 
@@ -2938,7 +2999,7 @@ public static class DivisionLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Division (x, z)</code>
+ * Represents the invariant <code>y = Division(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -2950,12 +3011,12 @@ public static class DivisionLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ DivisionLong_yxz proto = new /*@Prototype*/ DivisionLong_yxz ();
 
-  /** Returns the prototype invariant for DivisionLong_yxz **/
+  /** Returns the prototype invariant for DivisionLong_yxz */
   public static /*@Prototype*/ DivisionLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionLong_yxz instantiate_dyn (/*>>> @Prototype DivisionLong_yxz this,*/ PptSlice slice) {
     return new DivisionLong_yxz (slice);
   }
@@ -2970,14 +3031,14 @@ public static class DivisionLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2987,13 +3048,14 @@ public static class DivisionLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long z) {
@@ -3008,29 +3070,33 @@ public static class DivisionLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionLong_yxz.class, 3);
 
@@ -3177,7 +3243,7 @@ public static class DivisionLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Division (x, y)</code>
+ * Represents the invariant <code>z = Division(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -3189,12 +3255,12 @@ public static class DivisionLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ DivisionLong_zxy proto = new /*@Prototype*/ DivisionLong_zxy ();
 
-  /** Returns the prototype invariant for DivisionLong_zxy **/
+  /** Returns the prototype invariant for DivisionLong_zxy */
   public static /*@Prototype*/ DivisionLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionLong_zxy instantiate_dyn (/*>>> @Prototype DivisionLong_zxy this,*/ PptSlice slice) {
     return new DivisionLong_zxy (slice);
   }
@@ -3209,14 +3275,14 @@ public static class DivisionLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3226,13 +3292,14 @@ public static class DivisionLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long y) {
@@ -3247,29 +3314,33 @@ public static class DivisionLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionLong_zxy.class, 3);
 
@@ -3416,7 +3487,7 @@ public static class DivisionLong_zxy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>x = Division (z, y)</code>
+ * Represents the invariant <code>x = Division(z, y)</code>
  * over three long scalars.
  * 
  */
@@ -3428,12 +3499,12 @@ public static class DivisionLong_xzy extends FunctionBinary {
 
   private static /*@Prototype*/ DivisionLong_xzy proto = new /*@Prototype*/ DivisionLong_xzy ();
 
-  /** Returns the prototype invariant for DivisionLong_xzy **/
+  /** Returns the prototype invariant for DivisionLong_xzy */
   public static /*@Prototype*/ DivisionLong_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionLong_xzy instantiate_dyn (/*>>> @Prototype DivisionLong_xzy this,*/ PptSlice slice) {
     return new DivisionLong_xzy (slice);
   }
@@ -3448,14 +3519,14 @@ public static class DivisionLong_xzy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionLong_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3465,13 +3536,14 @@ public static class DivisionLong_xzy extends FunctionBinary {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionLong_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long y) {
@@ -3486,29 +3558,33 @@ public static class DivisionLong_xzy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionLong_xzy.class, 3);
 
@@ -3655,7 +3731,7 @@ public static class DivisionLong_xzy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Division (z, x)</code>
+ * Represents the invariant <code>y = Division(z, x)</code>
  * over three long scalars.
  * 
  */
@@ -3667,12 +3743,12 @@ public static class DivisionLong_yzx extends FunctionBinary {
 
   private static /*@Prototype*/ DivisionLong_yzx proto = new /*@Prototype*/ DivisionLong_yzx ();
 
-  /** Returns the prototype invariant for DivisionLong_yzx **/
+  /** Returns the prototype invariant for DivisionLong_yzx */
   public static /*@Prototype*/ DivisionLong_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionLong_yzx instantiate_dyn (/*>>> @Prototype DivisionLong_yzx this,*/ PptSlice slice) {
     return new DivisionLong_yzx (slice);
   }
@@ -3687,14 +3763,14 @@ public static class DivisionLong_yzx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionLong_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3704,13 +3780,14 @@ public static class DivisionLong_yzx extends FunctionBinary {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionLong_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long x) {
@@ -3725,29 +3802,33 @@ public static class DivisionLong_yzx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionLong_yzx.class, 3);
 
@@ -3894,7 +3975,7 @@ public static class DivisionLong_yzx extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Division (y, x)</code>
+ * Represents the invariant <code>z = Division(y, x)</code>
  * over three long scalars.
  * 
  */
@@ -3906,12 +3987,12 @@ public static class DivisionLong_zyx extends FunctionBinary {
 
   private static /*@Prototype*/ DivisionLong_zyx proto = new /*@Prototype*/ DivisionLong_zyx ();
 
-  /** Returns the prototype invariant for DivisionLong_zyx **/
+  /** Returns the prototype invariant for DivisionLong_zyx */
   public static /*@Prototype*/ DivisionLong_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionLong_zyx instantiate_dyn (/*>>> @Prototype DivisionLong_zyx this,*/ PptSlice slice) {
     return new DivisionLong_zyx (slice);
   }
@@ -3926,14 +4007,14 @@ public static class DivisionLong_zyx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionLong_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3943,13 +4024,14 @@ public static class DivisionLong_zyx extends FunctionBinary {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionLong_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long x) {
@@ -3964,29 +4046,33 @@ public static class DivisionLong_zyx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionLong_zyx.class, 3);
 
@@ -4133,12 +4219,13 @@ public static class DivisionLong_zyx extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isPower () {
-    return (false);
+  /*@Pure*/
+  public boolean isPower() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Power (y, z)</code>
+ * Represents the invariant <code>x = Power(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -4150,12 +4237,12 @@ public static class PowerLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ PowerLong_xyz proto = new /*@Prototype*/ PowerLong_xyz ();
 
-  /** Returns the prototype invariant for PowerLong_xyz **/
+  /** Returns the prototype invariant for PowerLong_xyz */
   public static /*@Prototype*/ PowerLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerLong_xyz instantiate_dyn (/*>>> @Prototype PowerLong_xyz this,*/ PptSlice slice) {
     return new PowerLong_xyz (slice);
   }
@@ -4170,14 +4257,14 @@ public static class PowerLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -4187,13 +4274,14 @@ public static class PowerLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long z) {
@@ -4208,29 +4296,33 @@ public static class PowerLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerLong_xyz.class, 3);
 
@@ -4408,7 +4500,7 @@ public static class PowerLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Power (x, z)</code>
+ * Represents the invariant <code>y = Power(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -4420,12 +4512,12 @@ public static class PowerLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ PowerLong_yxz proto = new /*@Prototype*/ PowerLong_yxz ();
 
-  /** Returns the prototype invariant for PowerLong_yxz **/
+  /** Returns the prototype invariant for PowerLong_yxz */
   public static /*@Prototype*/ PowerLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerLong_yxz instantiate_dyn (/*>>> @Prototype PowerLong_yxz this,*/ PptSlice slice) {
     return new PowerLong_yxz (slice);
   }
@@ -4440,14 +4532,14 @@ public static class PowerLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -4457,13 +4549,14 @@ public static class PowerLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long z) {
@@ -4478,29 +4571,33 @@ public static class PowerLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerLong_yxz.class, 3);
 
@@ -4678,7 +4775,7 @@ public static class PowerLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Power (x, y)</code>
+ * Represents the invariant <code>z = Power(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -4690,12 +4787,12 @@ public static class PowerLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ PowerLong_zxy proto = new /*@Prototype*/ PowerLong_zxy ();
 
-  /** Returns the prototype invariant for PowerLong_zxy **/
+  /** Returns the prototype invariant for PowerLong_zxy */
   public static /*@Prototype*/ PowerLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerLong_zxy instantiate_dyn (/*>>> @Prototype PowerLong_zxy this,*/ PptSlice slice) {
     return new PowerLong_zxy (slice);
   }
@@ -4710,14 +4807,14 @@ public static class PowerLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -4727,13 +4824,14 @@ public static class PowerLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long y) {
@@ -4748,29 +4846,33 @@ public static class PowerLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerLong_zxy.class, 3);
 
@@ -4948,7 +5050,7 @@ public static class PowerLong_zxy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>x = Power (z, y)</code>
+ * Represents the invariant <code>x = Power(z, y)</code>
  * over three long scalars.
  * 
  */
@@ -4960,12 +5062,12 @@ public static class PowerLong_xzy extends FunctionBinary {
 
   private static /*@Prototype*/ PowerLong_xzy proto = new /*@Prototype*/ PowerLong_xzy ();
 
-  /** Returns the prototype invariant for PowerLong_xzy **/
+  /** Returns the prototype invariant for PowerLong_xzy */
   public static /*@Prototype*/ PowerLong_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerLong_xzy instantiate_dyn (/*>>> @Prototype PowerLong_xzy this,*/ PptSlice slice) {
     return new PowerLong_xzy (slice);
   }
@@ -4980,14 +5082,14 @@ public static class PowerLong_xzy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerLong_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -4997,13 +5099,14 @@ public static class PowerLong_xzy extends FunctionBinary {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerLong_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long y) {
@@ -5018,29 +5121,33 @@ public static class PowerLong_xzy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerLong_xzy.class, 3);
 
@@ -5218,7 +5325,7 @@ public static class PowerLong_xzy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Power (z, x)</code>
+ * Represents the invariant <code>y = Power(z, x)</code>
  * over three long scalars.
  * 
  */
@@ -5230,12 +5337,12 @@ public static class PowerLong_yzx extends FunctionBinary {
 
   private static /*@Prototype*/ PowerLong_yzx proto = new /*@Prototype*/ PowerLong_yzx ();
 
-  /** Returns the prototype invariant for PowerLong_yzx **/
+  /** Returns the prototype invariant for PowerLong_yzx */
   public static /*@Prototype*/ PowerLong_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerLong_yzx instantiate_dyn (/*>>> @Prototype PowerLong_yzx this,*/ PptSlice slice) {
     return new PowerLong_yzx (slice);
   }
@@ -5250,14 +5357,14 @@ public static class PowerLong_yzx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerLong_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -5267,13 +5374,14 @@ public static class PowerLong_yzx extends FunctionBinary {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerLong_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long x) {
@@ -5288,29 +5396,33 @@ public static class PowerLong_yzx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerLong_yzx.class, 3);
 
@@ -5488,7 +5600,7 @@ public static class PowerLong_yzx extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Power (y, x)</code>
+ * Represents the invariant <code>z = Power(y, x)</code>
  * over three long scalars.
  * 
  */
@@ -5500,12 +5612,12 @@ public static class PowerLong_zyx extends FunctionBinary {
 
   private static /*@Prototype*/ PowerLong_zyx proto = new /*@Prototype*/ PowerLong_zyx ();
 
-  /** Returns the prototype invariant for PowerLong_zyx **/
+  /** Returns the prototype invariant for PowerLong_zyx */
   public static /*@Prototype*/ PowerLong_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerLong_zyx instantiate_dyn (/*>>> @Prototype PowerLong_zyx this,*/ PptSlice slice) {
     return new PowerLong_zyx (slice);
   }
@@ -5520,14 +5632,14 @@ public static class PowerLong_zyx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerLong_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -5537,13 +5649,14 @@ public static class PowerLong_zyx extends FunctionBinary {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerLong_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long x) {
@@ -5558,29 +5671,33 @@ public static class PowerLong_zyx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerLong_zyx.class, 3);
 
@@ -5760,12 +5877,13 @@ public static class PowerLong_zyx extends FunctionBinary {
   // #define EQUALITY_SUPPRESS 1
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isBitwiseAnd () {
-    return (false);
+  /*@Pure*/
+  public boolean isBitwiseAnd() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = BitwiseAnd (y, z)</code>
+ * Represents the invariant <code>x = BitwiseAnd(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -5777,12 +5895,12 @@ public static class BitwiseAndLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseAndLong_xyz proto = new /*@Prototype*/ BitwiseAndLong_xyz ();
 
-  /** Returns the prototype invariant for BitwiseAndLong_xyz **/
+  /** Returns the prototype invariant for BitwiseAndLong_xyz */
   public static /*@Prototype*/ BitwiseAndLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseAndLong_xyz instantiate_dyn (/*>>> @Prototype BitwiseAndLong_xyz this,*/ PptSlice slice) {
     return new BitwiseAndLong_xyz (slice);
   }
@@ -5797,14 +5915,14 @@ public static class BitwiseAndLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " & ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseAndLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -5814,13 +5932,14 @@ public static class BitwiseAndLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseAndLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -5835,29 +5954,33 @@ public static class BitwiseAndLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseAnd() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseAnd() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseAndLong_xyz.class, 3);
 
@@ -6038,7 +6161,7 @@ public static class BitwiseAndLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = BitwiseAnd (x, z)</code>
+ * Represents the invariant <code>y = BitwiseAnd(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -6050,12 +6173,12 @@ public static class BitwiseAndLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseAndLong_yxz proto = new /*@Prototype*/ BitwiseAndLong_yxz ();
 
-  /** Returns the prototype invariant for BitwiseAndLong_yxz **/
+  /** Returns the prototype invariant for BitwiseAndLong_yxz */
   public static /*@Prototype*/ BitwiseAndLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseAndLong_yxz instantiate_dyn (/*>>> @Prototype BitwiseAndLong_yxz this,*/ PptSlice slice) {
     return new BitwiseAndLong_yxz (slice);
   }
@@ -6070,14 +6193,14 @@ public static class BitwiseAndLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " & ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseAndLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -6087,13 +6210,14 @@ public static class BitwiseAndLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseAndLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -6108,29 +6232,33 @@ public static class BitwiseAndLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseAnd() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseAnd() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseAndLong_yxz.class, 3);
 
@@ -6311,7 +6439,7 @@ public static class BitwiseAndLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = BitwiseAnd (x, y)</code>
+ * Represents the invariant <code>z = BitwiseAnd(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -6323,12 +6451,12 @@ public static class BitwiseAndLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseAndLong_zxy proto = new /*@Prototype*/ BitwiseAndLong_zxy ();
 
-  /** Returns the prototype invariant for BitwiseAndLong_zxy **/
+  /** Returns the prototype invariant for BitwiseAndLong_zxy */
   public static /*@Prototype*/ BitwiseAndLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseAndLong_zxy instantiate_dyn (/*>>> @Prototype BitwiseAndLong_zxy this,*/ PptSlice slice) {
     return new BitwiseAndLong_zxy (slice);
   }
@@ -6343,14 +6471,14 @@ public static class BitwiseAndLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " & ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseAndLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -6360,13 +6488,14 @@ public static class BitwiseAndLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseAndLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -6381,29 +6510,33 @@ public static class BitwiseAndLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseAnd() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseAnd() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseAndLong_zxy.class, 3);
 
@@ -6584,12 +6717,13 @@ public static class BitwiseAndLong_zxy extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isLogicalAnd () {
-    return (false);
+  /*@Pure*/
+  public boolean isLogicalAnd() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = LogicalAnd (y, z)</code>
+ * Represents the invariant <code>x = LogicalAnd(y, z)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -6601,12 +6735,12 @@ public static class LogicalAndLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalAndLong_xyz proto = new /*@Prototype*/ LogicalAndLong_xyz ();
 
-  /** Returns the prototype invariant for LogicalAndLong_xyz **/
+  /** Returns the prototype invariant for LogicalAndLong_xyz */
   public static /*@Prototype*/ LogicalAndLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalAndLong_xyz instantiate_dyn (/*>>> @Prototype LogicalAndLong_xyz this,*/ PptSlice slice) {
     return new LogicalAndLong_xyz (slice);
   }
@@ -6621,14 +6755,14 @@ public static class LogicalAndLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " && ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalAndLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -6638,21 +6772,24 @@ public static class LogicalAndLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalAndLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
 
-      if ((y < 0) || (y > 1))
+      if ((y < 0) || (y > 1)) {
         throw new ArithmeticException ("arg1 (" + y + ") is not boolean ");
-      if ((z < 0) || (z > 1))
+      }
+      if ((z < 0) || (z > 1)) {
         throw new ArithmeticException ("arg2 (" + z + ") is not boolean ");
+      }
 
     return ((((y != 0) && ( z != 0)) ? 1 : 0));
   }
@@ -6664,13 +6801,15 @@ public static class LogicalAndLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isLogicalAnd() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalAnd() {
+    return true;
   }
 
   /**
@@ -6678,13 +6817,14 @@ public static class LogicalAndLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalAndLong_xyz.class, 3);
 
@@ -6848,7 +6988,7 @@ public static class LogicalAndLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = LogicalAnd (x, z)</code>
+ * Represents the invariant <code>y = LogicalAnd(x, z)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -6860,12 +7000,12 @@ public static class LogicalAndLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalAndLong_yxz proto = new /*@Prototype*/ LogicalAndLong_yxz ();
 
-  /** Returns the prototype invariant for LogicalAndLong_yxz **/
+  /** Returns the prototype invariant for LogicalAndLong_yxz */
   public static /*@Prototype*/ LogicalAndLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalAndLong_yxz instantiate_dyn (/*>>> @Prototype LogicalAndLong_yxz this,*/ PptSlice slice) {
     return new LogicalAndLong_yxz (slice);
   }
@@ -6880,14 +7020,14 @@ public static class LogicalAndLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " && ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalAndLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -6897,21 +7037,24 @@ public static class LogicalAndLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalAndLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
 
-      if ((x < 0) || (x > 1))
+      if ((x < 0) || (x > 1)) {
         throw new ArithmeticException ("arg1 (" + x + ") is not boolean ");
-      if ((z < 0) || (z > 1))
+      }
+      if ((z < 0) || (z > 1)) {
         throw new ArithmeticException ("arg2 (" + z + ") is not boolean ");
+      }
 
     return ((((x != 0) && ( z != 0)) ? 1 : 0));
   }
@@ -6923,13 +7066,15 @@ public static class LogicalAndLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isLogicalAnd() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalAnd() {
+    return true;
   }
 
   /**
@@ -6937,13 +7082,14 @@ public static class LogicalAndLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalAndLong_yxz.class, 3);
 
@@ -7107,7 +7253,7 @@ public static class LogicalAndLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = LogicalAnd (x, y)</code>
+ * Represents the invariant <code>z = LogicalAnd(x, y)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -7119,12 +7265,12 @@ public static class LogicalAndLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalAndLong_zxy proto = new /*@Prototype*/ LogicalAndLong_zxy ();
 
-  /** Returns the prototype invariant for LogicalAndLong_zxy **/
+  /** Returns the prototype invariant for LogicalAndLong_zxy */
   public static /*@Prototype*/ LogicalAndLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalAndLong_zxy instantiate_dyn (/*>>> @Prototype LogicalAndLong_zxy this,*/ PptSlice slice) {
     return new LogicalAndLong_zxy (slice);
   }
@@ -7139,14 +7285,14 @@ public static class LogicalAndLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " && ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalAndLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -7156,21 +7302,24 @@ public static class LogicalAndLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalAndLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
 
-      if ((x < 0) || (x > 1))
+      if ((x < 0) || (x > 1)) {
         throw new ArithmeticException ("arg1 (" + x + ") is not boolean ");
-      if ((y < 0) || (y > 1))
+      }
+      if ((y < 0) || (y > 1)) {
         throw new ArithmeticException ("arg2 (" + y + ") is not boolean ");
+      }
 
     return ((((x != 0) && ( y != 0)) ? 1 : 0));
   }
@@ -7182,13 +7331,15 @@ public static class LogicalAndLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isLogicalAnd() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalAnd() {
+    return true;
   }
 
   /**
@@ -7196,13 +7347,14 @@ public static class LogicalAndLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalAndLong_zxy.class, 3);
 
@@ -7366,12 +7518,13 @@ public static class LogicalAndLong_zxy extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isBitwiseXor () {
-    return (false);
+  /*@Pure*/
+  public boolean isBitwiseXor() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = BitwiseXor (y, z)</code>
+ * Represents the invariant <code>x = BitwiseXor(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -7383,12 +7536,12 @@ public static class BitwiseXorLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseXorLong_xyz proto = new /*@Prototype*/ BitwiseXorLong_xyz ();
 
-  /** Returns the prototype invariant for BitwiseXorLong_xyz **/
+  /** Returns the prototype invariant for BitwiseXorLong_xyz */
   public static /*@Prototype*/ BitwiseXorLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseXorLong_xyz instantiate_dyn (/*>>> @Prototype BitwiseXorLong_xyz this,*/ PptSlice slice) {
     return new BitwiseXorLong_xyz (slice);
   }
@@ -7403,14 +7556,14 @@ public static class BitwiseXorLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " ^ ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseXorLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -7420,13 +7573,14 @@ public static class BitwiseXorLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseXorLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -7441,13 +7595,15 @@ public static class BitwiseXorLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseXor() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseXor() {
+    return true;
   }
 
   /**
@@ -7455,13 +7611,14 @@ public static class BitwiseXorLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseXorLong_xyz.class, 3);
 
@@ -7609,7 +7766,7 @@ public static class BitwiseXorLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = BitwiseXor (x, z)</code>
+ * Represents the invariant <code>y = BitwiseXor(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -7621,12 +7778,12 @@ public static class BitwiseXorLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseXorLong_yxz proto = new /*@Prototype*/ BitwiseXorLong_yxz ();
 
-  /** Returns the prototype invariant for BitwiseXorLong_yxz **/
+  /** Returns the prototype invariant for BitwiseXorLong_yxz */
   public static /*@Prototype*/ BitwiseXorLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseXorLong_yxz instantiate_dyn (/*>>> @Prototype BitwiseXorLong_yxz this,*/ PptSlice slice) {
     return new BitwiseXorLong_yxz (slice);
   }
@@ -7641,14 +7798,14 @@ public static class BitwiseXorLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " ^ ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseXorLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -7658,13 +7815,14 @@ public static class BitwiseXorLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseXorLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -7679,13 +7837,15 @@ public static class BitwiseXorLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseXor() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseXor() {
+    return true;
   }
 
   /**
@@ -7693,13 +7853,14 @@ public static class BitwiseXorLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseXorLong_yxz.class, 3);
 
@@ -7847,7 +8008,7 @@ public static class BitwiseXorLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = BitwiseXor (x, y)</code>
+ * Represents the invariant <code>z = BitwiseXor(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -7859,12 +8020,12 @@ public static class BitwiseXorLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseXorLong_zxy proto = new /*@Prototype*/ BitwiseXorLong_zxy ();
 
-  /** Returns the prototype invariant for BitwiseXorLong_zxy **/
+  /** Returns the prototype invariant for BitwiseXorLong_zxy */
   public static /*@Prototype*/ BitwiseXorLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseXorLong_zxy instantiate_dyn (/*>>> @Prototype BitwiseXorLong_zxy this,*/ PptSlice slice) {
     return new BitwiseXorLong_zxy (slice);
   }
@@ -7879,14 +8040,14 @@ public static class BitwiseXorLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " ^ ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseXorLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -7896,13 +8057,14 @@ public static class BitwiseXorLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseXorLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -7917,13 +8079,15 @@ public static class BitwiseXorLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseXor() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseXor() {
+    return true;
   }
 
   /**
@@ -7931,13 +8095,14 @@ public static class BitwiseXorLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseXorLong_zxy.class, 3);
 
@@ -8087,12 +8252,13 @@ public static class BitwiseXorLong_zxy extends FunctionBinary {
   // #define METHOD_NAME {"", " ^ ", ""}
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isLogicalXor () {
-    return (false);
+  /*@Pure*/
+  public boolean isLogicalXor() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = LogicalXor (y, z)</code>
+ * Represents the invariant <code>x = LogicalXor(y, z)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -8104,12 +8270,12 @@ public static class LogicalXorLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalXorLong_xyz proto = new /*@Prototype*/ LogicalXorLong_xyz ();
 
-  /** Returns the prototype invariant for LogicalXorLong_xyz **/
+  /** Returns the prototype invariant for LogicalXorLong_xyz */
   public static /*@Prototype*/ LogicalXorLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalXorLong_xyz instantiate_dyn (/*>>> @Prototype LogicalXorLong_xyz this,*/ PptSlice slice) {
     return new LogicalXorLong_xyz (slice);
   }
@@ -8124,14 +8290,14 @@ public static class LogicalXorLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"plume.MathMDE.logicalXor(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalXorLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -8141,21 +8307,24 @@ public static class LogicalXorLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalXorLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
 
-      if ((y < 0) || (y > 1))
+      if ((y < 0) || (y > 1)) {
         throw new ArithmeticException ("arg1 (" + y + ") is not boolean ");
-      if ((z < 0) || (z > 1))
+      }
+      if ((z < 0) || (z > 1)) {
         throw new ArithmeticException ("arg2 (" + z + ") is not boolean ");
+      }
 
     return ((((y != 0) ^ ( z != 0)) ? 1 : 0));
   }
@@ -8167,13 +8336,15 @@ public static class LogicalXorLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isLogicalXor() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalXor() {
+    return true;
   }
 
   /**
@@ -8181,13 +8352,14 @@ public static class LogicalXorLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalXorLong_xyz.class, 3);
 
@@ -8338,7 +8510,7 @@ public static class LogicalXorLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = LogicalXor (x, z)</code>
+ * Represents the invariant <code>y = LogicalXor(x, z)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -8350,12 +8522,12 @@ public static class LogicalXorLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalXorLong_yxz proto = new /*@Prototype*/ LogicalXorLong_yxz ();
 
-  /** Returns the prototype invariant for LogicalXorLong_yxz **/
+  /** Returns the prototype invariant for LogicalXorLong_yxz */
   public static /*@Prototype*/ LogicalXorLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalXorLong_yxz instantiate_dyn (/*>>> @Prototype LogicalXorLong_yxz this,*/ PptSlice slice) {
     return new LogicalXorLong_yxz (slice);
   }
@@ -8370,14 +8542,14 @@ public static class LogicalXorLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"plume.MathMDE.logicalXor(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalXorLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -8387,21 +8559,24 @@ public static class LogicalXorLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalXorLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
 
-      if ((x < 0) || (x > 1))
+      if ((x < 0) || (x > 1)) {
         throw new ArithmeticException ("arg1 (" + x + ") is not boolean ");
-      if ((z < 0) || (z > 1))
+      }
+      if ((z < 0) || (z > 1)) {
         throw new ArithmeticException ("arg2 (" + z + ") is not boolean ");
+      }
 
     return ((((x != 0) ^ ( z != 0)) ? 1 : 0));
   }
@@ -8413,13 +8588,15 @@ public static class LogicalXorLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isLogicalXor() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalXor() {
+    return true;
   }
 
   /**
@@ -8427,13 +8604,14 @@ public static class LogicalXorLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalXorLong_yxz.class, 3);
 
@@ -8584,7 +8762,7 @@ public static class LogicalXorLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = LogicalXor (x, y)</code>
+ * Represents the invariant <code>z = LogicalXor(x, y)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -8596,12 +8774,12 @@ public static class LogicalXorLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalXorLong_zxy proto = new /*@Prototype*/ LogicalXorLong_zxy ();
 
-  /** Returns the prototype invariant for LogicalXorLong_zxy **/
+  /** Returns the prototype invariant for LogicalXorLong_zxy */
   public static /*@Prototype*/ LogicalXorLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalXorLong_zxy instantiate_dyn (/*>>> @Prototype LogicalXorLong_zxy this,*/ PptSlice slice) {
     return new LogicalXorLong_zxy (slice);
   }
@@ -8616,14 +8794,14 @@ public static class LogicalXorLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"plume.MathMDE.logicalXor(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalXorLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -8633,21 +8811,24 @@ public static class LogicalXorLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalXorLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
 
-      if ((x < 0) || (x > 1))
+      if ((x < 0) || (x > 1)) {
         throw new ArithmeticException ("arg1 (" + x + ") is not boolean ");
-      if ((y < 0) || (y > 1))
+      }
+      if ((y < 0) || (y > 1)) {
         throw new ArithmeticException ("arg2 (" + y + ") is not boolean ");
+      }
 
     return ((((x != 0) ^ ( y != 0)) ? 1 : 0));
   }
@@ -8659,13 +8840,15 @@ public static class LogicalXorLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isLogicalXor() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalXor() {
+    return true;
   }
 
   /**
@@ -8673,13 +8856,14 @@ public static class LogicalXorLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalXorLong_zxy.class, 3);
 
@@ -8832,12 +9016,13 @@ public static class LogicalXorLong_zxy extends FunctionBinary {
   // #define EQUALITY_SUPPRESS 1
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isBitwiseOr () {
-    return (false);
+  /*@Pure*/
+  public boolean isBitwiseOr() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = BitwiseOr (y, z)</code>
+ * Represents the invariant <code>x = BitwiseOr(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -8849,12 +9034,12 @@ public static class BitwiseOrLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseOrLong_xyz proto = new /*@Prototype*/ BitwiseOrLong_xyz ();
 
-  /** Returns the prototype invariant for BitwiseOrLong_xyz **/
+  /** Returns the prototype invariant for BitwiseOrLong_xyz */
   public static /*@Prototype*/ BitwiseOrLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseOrLong_xyz instantiate_dyn (/*>>> @Prototype BitwiseOrLong_xyz this,*/ PptSlice slice) {
     return new BitwiseOrLong_xyz (slice);
   }
@@ -8869,14 +9054,14 @@ public static class BitwiseOrLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " | ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseOrLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -8886,13 +9071,14 @@ public static class BitwiseOrLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseOrLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -8907,13 +9093,15 @@ public static class BitwiseOrLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseOr() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseOr() {
+    return true;
   }
 
   /**
@@ -8921,13 +9109,14 @@ public static class BitwiseOrLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseOrLong_xyz.class, 3);
 
@@ -9088,7 +9277,7 @@ public static class BitwiseOrLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = BitwiseOr (x, z)</code>
+ * Represents the invariant <code>y = BitwiseOr(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -9100,12 +9289,12 @@ public static class BitwiseOrLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseOrLong_yxz proto = new /*@Prototype*/ BitwiseOrLong_yxz ();
 
-  /** Returns the prototype invariant for BitwiseOrLong_yxz **/
+  /** Returns the prototype invariant for BitwiseOrLong_yxz */
   public static /*@Prototype*/ BitwiseOrLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseOrLong_yxz instantiate_dyn (/*>>> @Prototype BitwiseOrLong_yxz this,*/ PptSlice slice) {
     return new BitwiseOrLong_yxz (slice);
   }
@@ -9120,14 +9309,14 @@ public static class BitwiseOrLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " | ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseOrLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -9137,13 +9326,14 @@ public static class BitwiseOrLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseOrLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -9158,13 +9348,15 @@ public static class BitwiseOrLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseOr() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseOr() {
+    return true;
   }
 
   /**
@@ -9172,13 +9364,14 @@ public static class BitwiseOrLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseOrLong_yxz.class, 3);
 
@@ -9339,7 +9532,7 @@ public static class BitwiseOrLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = BitwiseOr (x, y)</code>
+ * Represents the invariant <code>z = BitwiseOr(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -9351,12 +9544,12 @@ public static class BitwiseOrLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ BitwiseOrLong_zxy proto = new /*@Prototype*/ BitwiseOrLong_zxy ();
 
-  /** Returns the prototype invariant for BitwiseOrLong_zxy **/
+  /** Returns the prototype invariant for BitwiseOrLong_zxy */
   public static /*@Prototype*/ BitwiseOrLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected BitwiseOrLong_zxy instantiate_dyn (/*>>> @Prototype BitwiseOrLong_zxy this,*/ PptSlice slice) {
     return new BitwiseOrLong_zxy (slice);
   }
@@ -9371,14 +9564,14 @@ public static class BitwiseOrLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " | ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied BitwiseOrLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -9388,13 +9581,14 @@ public static class BitwiseOrLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied BitwiseOrLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -9409,13 +9603,15 @@ public static class BitwiseOrLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isBitwiseOr() {
-    return (true);
+  /*@Pure*/
+  public boolean isBitwiseOr() {
+    return true;
   }
 
   /**
@@ -9423,13 +9619,14 @@ public static class BitwiseOrLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (BitwiseOrLong_zxy.class, 3);
 
@@ -9590,12 +9787,13 @@ public static class BitwiseOrLong_zxy extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isLogicalOr () {
-    return (false);
+  /*@Pure*/
+  public boolean isLogicalOr() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = LogicalOr (y, z)</code>
+ * Represents the invariant <code>x = LogicalOr(y, z)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -9607,12 +9805,12 @@ public static class LogicalOrLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalOrLong_xyz proto = new /*@Prototype*/ LogicalOrLong_xyz ();
 
-  /** Returns the prototype invariant for LogicalOrLong_xyz **/
+  /** Returns the prototype invariant for LogicalOrLong_xyz */
   public static /*@Prototype*/ LogicalOrLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalOrLong_xyz instantiate_dyn (/*>>> @Prototype LogicalOrLong_xyz this,*/ PptSlice slice) {
     return new LogicalOrLong_xyz (slice);
   }
@@ -9627,14 +9825,14 @@ public static class LogicalOrLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " || ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalOrLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -9644,21 +9842,24 @@ public static class LogicalOrLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalOrLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
 
-      if ((y < 0) || (y > 1))
+      if ((y < 0) || (y > 1)) {
         throw new ArithmeticException ("arg1 (" + y + ") is not boolean ");
-      if ((z < 0) || (z > 1))
+      }
+      if ((z < 0) || (z > 1)) {
         throw new ArithmeticException ("arg2 (" + z + ") is not boolean ");
+      }
 
     return ((((y != 0) || ( z != 0)) ? 1 : 0));
   }
@@ -9670,13 +9871,15 @@ public static class LogicalOrLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isLogicalOr() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalOr() {
+    return true;
   }
 
   /**
@@ -9684,13 +9887,14 @@ public static class LogicalOrLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalOrLong_xyz.class, 3);
 
@@ -9860,7 +10064,7 @@ public static class LogicalOrLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = LogicalOr (x, z)</code>
+ * Represents the invariant <code>y = LogicalOr(x, z)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -9872,12 +10076,12 @@ public static class LogicalOrLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalOrLong_yxz proto = new /*@Prototype*/ LogicalOrLong_yxz ();
 
-  /** Returns the prototype invariant for LogicalOrLong_yxz **/
+  /** Returns the prototype invariant for LogicalOrLong_yxz */
   public static /*@Prototype*/ LogicalOrLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalOrLong_yxz instantiate_dyn (/*>>> @Prototype LogicalOrLong_yxz this,*/ PptSlice slice) {
     return new LogicalOrLong_yxz (slice);
   }
@@ -9892,14 +10096,14 @@ public static class LogicalOrLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " || ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalOrLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -9909,21 +10113,24 @@ public static class LogicalOrLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalOrLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
 
-      if ((x < 0) || (x > 1))
+      if ((x < 0) || (x > 1)) {
         throw new ArithmeticException ("arg1 (" + x + ") is not boolean ");
-      if ((z < 0) || (z > 1))
+      }
+      if ((z < 0) || (z > 1)) {
         throw new ArithmeticException ("arg2 (" + z + ") is not boolean ");
+      }
 
     return ((((x != 0) || ( z != 0)) ? 1 : 0));
   }
@@ -9935,13 +10142,15 @@ public static class LogicalOrLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isLogicalOr() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalOr() {
+    return true;
   }
 
   /**
@@ -9949,13 +10158,14 @@ public static class LogicalOrLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalOrLong_yxz.class, 3);
 
@@ -10125,7 +10335,7 @@ public static class LogicalOrLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = LogicalOr (x, y)</code>
+ * Represents the invariant <code>z = LogicalOr(x, y)</code>
  * over three long scalars.
  * For logical operations, Daikon treats 0 as false and all other values as true.
  */
@@ -10137,12 +10347,12 @@ public static class LogicalOrLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ LogicalOrLong_zxy proto = new /*@Prototype*/ LogicalOrLong_zxy ();
 
-  /** Returns the prototype invariant for LogicalOrLong_zxy **/
+  /** Returns the prototype invariant for LogicalOrLong_zxy */
   public static /*@Prototype*/ LogicalOrLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LogicalOrLong_zxy instantiate_dyn (/*>>> @Prototype LogicalOrLong_zxy this,*/ PptSlice slice) {
     return new LogicalOrLong_zxy (slice);
   }
@@ -10157,14 +10367,14 @@ public static class LogicalOrLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " || ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LogicalOrLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -10174,21 +10384,24 @@ public static class LogicalOrLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LogicalOrLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
 
-      if ((x < 0) || (x > 1))
+      if ((x < 0) || (x > 1)) {
         throw new ArithmeticException ("arg1 (" + x + ") is not boolean ");
-      if ((y < 0) || (y > 1))
+      }
+      if ((y < 0) || (y > 1)) {
         throw new ArithmeticException ("arg2 (" + y + ") is not boolean ");
+      }
 
     return ((((x != 0) || ( y != 0)) ? 1 : 0));
   }
@@ -10200,13 +10413,15 @@ public static class LogicalOrLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isLogicalOr() {
-    return (true);
+  /*@Pure*/
+  public boolean isLogicalOr() {
+    return true;
   }
 
   /**
@@ -10214,13 +10429,14 @@ public static class LogicalOrLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LogicalOrLong_zxy.class, 3);
 
@@ -10392,12 +10608,13 @@ public static class LogicalOrLong_zxy extends FunctionBinary {
   // #define EQUALITY_SUPPRESS 1
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isGcd () {
-    return (false);
+  /*@Pure*/
+  public boolean isGcd() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Gcd (y, z)</code>
+ * Represents the invariant <code>x = Gcd(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -10409,12 +10626,12 @@ public static class GcdLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ GcdLong_xyz proto = new /*@Prototype*/ GcdLong_xyz ();
 
-  /** Returns the prototype invariant for GcdLong_xyz **/
+  /** Returns the prototype invariant for GcdLong_xyz */
   public static /*@Prototype*/ GcdLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected GcdLong_xyz instantiate_dyn (/*>>> @Prototype GcdLong_xyz this,*/ PptSlice slice) {
     return new GcdLong_xyz (slice);
   }
@@ -10429,14 +10646,14 @@ public static class GcdLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"plume.MathMDE.gcd(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied GcdLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -10446,13 +10663,14 @@ public static class GcdLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied GcdLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long y, long z) {
@@ -10467,13 +10685,15 @@ public static class GcdLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isGcd() {
-    return (true);
+  /*@Pure*/
+  public boolean isGcd() {
+    return true;
   }
 
   /**
@@ -10481,13 +10701,14 @@ public static class GcdLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (GcdLong_xyz.class, 3);
 
@@ -10665,7 +10886,7 @@ public static class GcdLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Gcd (x, z)</code>
+ * Represents the invariant <code>y = Gcd(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -10677,12 +10898,12 @@ public static class GcdLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ GcdLong_yxz proto = new /*@Prototype*/ GcdLong_yxz ();
 
-  /** Returns the prototype invariant for GcdLong_yxz **/
+  /** Returns the prototype invariant for GcdLong_yxz */
   public static /*@Prototype*/ GcdLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected GcdLong_yxz instantiate_dyn (/*>>> @Prototype GcdLong_yxz this,*/ PptSlice slice) {
     return new GcdLong_yxz (slice);
   }
@@ -10697,14 +10918,14 @@ public static class GcdLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"plume.MathMDE.gcd(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied GcdLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -10714,13 +10935,14 @@ public static class GcdLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied GcdLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long z) {
@@ -10735,13 +10957,15 @@ public static class GcdLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isGcd() {
-    return (true);
+  /*@Pure*/
+  public boolean isGcd() {
+    return true;
   }
 
   /**
@@ -10749,13 +10973,14 @@ public static class GcdLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (GcdLong_yxz.class, 3);
 
@@ -10933,7 +11158,7 @@ public static class GcdLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Gcd (x, y)</code>
+ * Represents the invariant <code>z = Gcd(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -10945,12 +11170,12 @@ public static class GcdLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ GcdLong_zxy proto = new /*@Prototype*/ GcdLong_zxy ();
 
-  /** Returns the prototype invariant for GcdLong_zxy **/
+  /** Returns the prototype invariant for GcdLong_zxy */
   public static /*@Prototype*/ GcdLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected GcdLong_zxy instantiate_dyn (/*>>> @Prototype GcdLong_zxy this,*/ PptSlice slice) {
     return new GcdLong_zxy (slice);
   }
@@ -10965,14 +11190,14 @@ public static class GcdLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"plume.MathMDE.gcd(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied GcdLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -10982,13 +11207,14 @@ public static class GcdLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied GcdLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public long func (long x, long y) {
@@ -11003,13 +11229,15 @@ public static class GcdLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isGcd() {
-    return (true);
+  /*@Pure*/
+  public boolean isGcd() {
+    return true;
   }
 
   /**
@@ -11017,13 +11245,14 @@ public static class GcdLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (GcdLong_zxy.class, 3);
 
@@ -11201,12 +11430,13 @@ public static class GcdLong_zxy extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMod () {
-    return (false);
+  /*@Pure*/
+  public boolean isMod() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Mod (y, z)</code>
+ * Represents the invariant <code>x = Mod(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -11218,12 +11448,12 @@ public static class ModLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ ModLong_xyz proto = new /*@Prototype*/ ModLong_xyz ();
 
-  /** Returns the prototype invariant for ModLong_xyz **/
+  /** Returns the prototype invariant for ModLong_xyz */
   public static /*@Prototype*/ ModLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected ModLong_xyz instantiate_dyn (/*>>> @Prototype ModLong_xyz this,*/ PptSlice slice) {
     return new ModLong_xyz (slice);
   }
@@ -11238,14 +11468,14 @@ public static class ModLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " % ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied ModLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -11255,13 +11485,14 @@ public static class ModLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied ModLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long z) {
@@ -11276,13 +11507,15 @@ public static class ModLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMod() {
-    return (true);
+  /*@Pure*/
+  public boolean isMod() {
+    return true;
   }
 
   /**
@@ -11290,13 +11523,14 @@ public static class ModLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (ModLong_xyz.class, 3);
 
@@ -11448,7 +11682,7 @@ public static class ModLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Mod (x, z)</code>
+ * Represents the invariant <code>y = Mod(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -11460,12 +11694,12 @@ public static class ModLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ ModLong_yxz proto = new /*@Prototype*/ ModLong_yxz ();
 
-  /** Returns the prototype invariant for ModLong_yxz **/
+  /** Returns the prototype invariant for ModLong_yxz */
   public static /*@Prototype*/ ModLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected ModLong_yxz instantiate_dyn (/*>>> @Prototype ModLong_yxz this,*/ PptSlice slice) {
     return new ModLong_yxz (slice);
   }
@@ -11480,14 +11714,14 @@ public static class ModLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " % ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied ModLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -11497,13 +11731,14 @@ public static class ModLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied ModLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long z) {
@@ -11518,13 +11753,15 @@ public static class ModLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMod() {
-    return (true);
+  /*@Pure*/
+  public boolean isMod() {
+    return true;
   }
 
   /**
@@ -11532,13 +11769,14 @@ public static class ModLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (ModLong_yxz.class, 3);
 
@@ -11690,7 +11928,7 @@ public static class ModLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Mod (x, y)</code>
+ * Represents the invariant <code>z = Mod(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -11702,12 +11940,12 @@ public static class ModLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ ModLong_zxy proto = new /*@Prototype*/ ModLong_zxy ();
 
-  /** Returns the prototype invariant for ModLong_zxy **/
+  /** Returns the prototype invariant for ModLong_zxy */
   public static /*@Prototype*/ ModLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected ModLong_zxy instantiate_dyn (/*>>> @Prototype ModLong_zxy this,*/ PptSlice slice) {
     return new ModLong_zxy (slice);
   }
@@ -11722,14 +11960,14 @@ public static class ModLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " % ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied ModLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -11739,13 +11977,14 @@ public static class ModLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied ModLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long y) {
@@ -11760,13 +11999,15 @@ public static class ModLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMod() {
-    return (true);
+  /*@Pure*/
+  public boolean isMod() {
+    return true;
   }
 
   /**
@@ -11774,13 +12015,14 @@ public static class ModLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (ModLong_zxy.class, 3);
 
@@ -11932,7 +12174,7 @@ public static class ModLong_zxy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>x = Mod (z, y)</code>
+ * Represents the invariant <code>x = Mod(z, y)</code>
  * over three long scalars.
  * 
  */
@@ -11944,12 +12186,12 @@ public static class ModLong_xzy extends FunctionBinary {
 
   private static /*@Prototype*/ ModLong_xzy proto = new /*@Prototype*/ ModLong_xzy ();
 
-  /** Returns the prototype invariant for ModLong_xzy **/
+  /** Returns the prototype invariant for ModLong_xzy */
   public static /*@Prototype*/ ModLong_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected ModLong_xzy instantiate_dyn (/*>>> @Prototype ModLong_xzy this,*/ PptSlice slice) {
     return new ModLong_xzy (slice);
   }
@@ -11964,14 +12206,14 @@ public static class ModLong_xzy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " % ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied ModLong_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -11981,13 +12223,14 @@ public static class ModLong_xzy extends FunctionBinary {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied ModLong_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long y) {
@@ -12002,13 +12245,15 @@ public static class ModLong_xzy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isMod() {
-    return (true);
+  /*@Pure*/
+  public boolean isMod() {
+    return true;
   }
 
   /**
@@ -12016,13 +12261,14 @@ public static class ModLong_xzy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (ModLong_xzy.class, 3);
 
@@ -12174,7 +12420,7 @@ public static class ModLong_xzy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Mod (z, x)</code>
+ * Represents the invariant <code>y = Mod(z, x)</code>
  * over three long scalars.
  * 
  */
@@ -12186,12 +12432,12 @@ public static class ModLong_yzx extends FunctionBinary {
 
   private static /*@Prototype*/ ModLong_yzx proto = new /*@Prototype*/ ModLong_yzx ();
 
-  /** Returns the prototype invariant for ModLong_yzx **/
+  /** Returns the prototype invariant for ModLong_yzx */
   public static /*@Prototype*/ ModLong_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected ModLong_yzx instantiate_dyn (/*>>> @Prototype ModLong_yzx this,*/ PptSlice slice) {
     return new ModLong_yzx (slice);
   }
@@ -12206,14 +12452,14 @@ public static class ModLong_yzx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " % ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied ModLong_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -12223,13 +12469,14 @@ public static class ModLong_yzx extends FunctionBinary {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied ModLong_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long x) {
@@ -12244,13 +12491,15 @@ public static class ModLong_yzx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isMod() {
-    return (true);
+  /*@Pure*/
+  public boolean isMod() {
+    return true;
   }
 
   /**
@@ -12258,13 +12507,14 @@ public static class ModLong_yzx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (ModLong_yzx.class, 3);
 
@@ -12416,7 +12666,7 @@ public static class ModLong_yzx extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Mod (y, x)</code>
+ * Represents the invariant <code>z = Mod(y, x)</code>
  * over three long scalars.
  * 
  */
@@ -12428,12 +12678,12 @@ public static class ModLong_zyx extends FunctionBinary {
 
   private static /*@Prototype*/ ModLong_zyx proto = new /*@Prototype*/ ModLong_zyx ();
 
-  /** Returns the prototype invariant for ModLong_zyx **/
+  /** Returns the prototype invariant for ModLong_zyx */
   public static /*@Prototype*/ ModLong_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected ModLong_zyx instantiate_dyn (/*>>> @Prototype ModLong_zyx this,*/ PptSlice slice) {
     return new ModLong_zyx (slice);
   }
@@ -12448,14 +12698,14 @@ public static class ModLong_zyx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " % ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied ModLong_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -12465,13 +12715,14 @@ public static class ModLong_zyx extends FunctionBinary {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied ModLong_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long x) {
@@ -12486,13 +12737,15 @@ public static class ModLong_zyx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isMod() {
-    return (true);
+  /*@Pure*/
+  public boolean isMod() {
+    return true;
   }
 
   /**
@@ -12500,13 +12753,14 @@ public static class ModLong_zyx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (ModLong_zyx.class, 3);
 
@@ -12658,12 +12912,13 @@ public static class ModLong_zyx extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isLshift () {
-    return (false);
+  /*@Pure*/
+  public boolean isLshift() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Lshift (y, z)</code>
+ * Represents the invariant <code>x = Lshift(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -12678,12 +12933,12 @@ public static class LshiftLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ LshiftLong_xyz proto = new /*@Prototype*/ LshiftLong_xyz ();
 
-  /** Returns the prototype invariant for LshiftLong_xyz **/
+  /** Returns the prototype invariant for LshiftLong_xyz */
   public static /*@Prototype*/ LshiftLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LshiftLong_xyz instantiate_dyn (/*>>> @Prototype LshiftLong_xyz this,*/ PptSlice slice) {
     return new LshiftLong_xyz (slice);
   }
@@ -12698,14 +12953,14 @@ public static class LshiftLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " << ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LshiftLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -12715,20 +12970,22 @@ public static class LshiftLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LshiftLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long z) {
 
-      if ((z < arg2_bound[0]) || (z > arg2_bound[1]))
+      if ((z < arg2_bound[0]) || (z > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + z + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((y << z));
   }
@@ -12740,13 +12997,15 @@ public static class LshiftLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isLshift() {
-    return (true);
+  /*@Pure*/
+  public boolean isLshift() {
+    return true;
   }
 
   /**
@@ -12754,13 +13013,14 @@ public static class LshiftLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LshiftLong_xyz.class, 3);
 
@@ -12906,7 +13166,7 @@ public static class LshiftLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Lshift (x, z)</code>
+ * Represents the invariant <code>y = Lshift(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -12921,12 +13181,12 @@ public static class LshiftLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ LshiftLong_yxz proto = new /*@Prototype*/ LshiftLong_yxz ();
 
-  /** Returns the prototype invariant for LshiftLong_yxz **/
+  /** Returns the prototype invariant for LshiftLong_yxz */
   public static /*@Prototype*/ LshiftLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LshiftLong_yxz instantiate_dyn (/*>>> @Prototype LshiftLong_yxz this,*/ PptSlice slice) {
     return new LshiftLong_yxz (slice);
   }
@@ -12941,14 +13201,14 @@ public static class LshiftLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " << ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LshiftLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -12958,20 +13218,22 @@ public static class LshiftLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LshiftLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long z) {
 
-      if ((z < arg2_bound[0]) || (z > arg2_bound[1]))
+      if ((z < arg2_bound[0]) || (z > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + z + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((x << z));
   }
@@ -12983,13 +13245,15 @@ public static class LshiftLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isLshift() {
-    return (true);
+  /*@Pure*/
+  public boolean isLshift() {
+    return true;
   }
 
   /**
@@ -12997,13 +13261,14 @@ public static class LshiftLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LshiftLong_yxz.class, 3);
 
@@ -13149,7 +13414,7 @@ public static class LshiftLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Lshift (x, y)</code>
+ * Represents the invariant <code>z = Lshift(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -13164,12 +13429,12 @@ public static class LshiftLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ LshiftLong_zxy proto = new /*@Prototype*/ LshiftLong_zxy ();
 
-  /** Returns the prototype invariant for LshiftLong_zxy **/
+  /** Returns the prototype invariant for LshiftLong_zxy */
   public static /*@Prototype*/ LshiftLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LshiftLong_zxy instantiate_dyn (/*>>> @Prototype LshiftLong_zxy this,*/ PptSlice slice) {
     return new LshiftLong_zxy (slice);
   }
@@ -13184,14 +13449,14 @@ public static class LshiftLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " << ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LshiftLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -13201,20 +13466,22 @@ public static class LshiftLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LshiftLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long y) {
 
-      if ((y < arg2_bound[0]) || (y > arg2_bound[1]))
+      if ((y < arg2_bound[0]) || (y > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + y + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((x << y));
   }
@@ -13226,13 +13493,15 @@ public static class LshiftLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isLshift() {
-    return (true);
+  /*@Pure*/
+  public boolean isLshift() {
+    return true;
   }
 
   /**
@@ -13240,13 +13509,14 @@ public static class LshiftLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LshiftLong_zxy.class, 3);
 
@@ -13392,7 +13662,7 @@ public static class LshiftLong_zxy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>x = Lshift (z, y)</code>
+ * Represents the invariant <code>x = Lshift(z, y)</code>
  * over three long scalars.
  * 
  */
@@ -13407,12 +13677,12 @@ public static class LshiftLong_xzy extends FunctionBinary {
 
   private static /*@Prototype*/ LshiftLong_xzy proto = new /*@Prototype*/ LshiftLong_xzy ();
 
-  /** Returns the prototype invariant for LshiftLong_xzy **/
+  /** Returns the prototype invariant for LshiftLong_xzy */
   public static /*@Prototype*/ LshiftLong_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LshiftLong_xzy instantiate_dyn (/*>>> @Prototype LshiftLong_xzy this,*/ PptSlice slice) {
     return new LshiftLong_xzy (slice);
   }
@@ -13427,14 +13697,14 @@ public static class LshiftLong_xzy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " << ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LshiftLong_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -13444,20 +13714,22 @@ public static class LshiftLong_xzy extends FunctionBinary {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LshiftLong_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long y) {
 
-      if ((y < arg2_bound[0]) || (y > arg2_bound[1]))
+      if ((y < arg2_bound[0]) || (y > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + y + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((z << y));
   }
@@ -13469,13 +13741,15 @@ public static class LshiftLong_xzy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isLshift() {
-    return (true);
+  /*@Pure*/
+  public boolean isLshift() {
+    return true;
   }
 
   /**
@@ -13483,13 +13757,14 @@ public static class LshiftLong_xzy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LshiftLong_xzy.class, 3);
 
@@ -13635,7 +13910,7 @@ public static class LshiftLong_xzy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = Lshift (z, x)</code>
+ * Represents the invariant <code>y = Lshift(z, x)</code>
  * over three long scalars.
  * 
  */
@@ -13650,12 +13925,12 @@ public static class LshiftLong_yzx extends FunctionBinary {
 
   private static /*@Prototype*/ LshiftLong_yzx proto = new /*@Prototype*/ LshiftLong_yzx ();
 
-  /** Returns the prototype invariant for LshiftLong_yzx **/
+  /** Returns the prototype invariant for LshiftLong_yzx */
   public static /*@Prototype*/ LshiftLong_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LshiftLong_yzx instantiate_dyn (/*>>> @Prototype LshiftLong_yzx this,*/ PptSlice slice) {
     return new LshiftLong_yzx (slice);
   }
@@ -13670,14 +13945,14 @@ public static class LshiftLong_yzx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " << ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LshiftLong_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -13687,20 +13962,22 @@ public static class LshiftLong_yzx extends FunctionBinary {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LshiftLong_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long x) {
 
-      if ((x < arg2_bound[0]) || (x > arg2_bound[1]))
+      if ((x < arg2_bound[0]) || (x > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + x + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((z << x));
   }
@@ -13712,13 +13989,15 @@ public static class LshiftLong_yzx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isLshift() {
-    return (true);
+  /*@Pure*/
+  public boolean isLshift() {
+    return true;
   }
 
   /**
@@ -13726,13 +14005,14 @@ public static class LshiftLong_yzx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LshiftLong_yzx.class, 3);
 
@@ -13878,7 +14158,7 @@ public static class LshiftLong_yzx extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = Lshift (y, x)</code>
+ * Represents the invariant <code>z = Lshift(y, x)</code>
  * over three long scalars.
  * 
  */
@@ -13893,12 +14173,12 @@ public static class LshiftLong_zyx extends FunctionBinary {
 
   private static /*@Prototype*/ LshiftLong_zyx proto = new /*@Prototype*/ LshiftLong_zyx ();
 
-  /** Returns the prototype invariant for LshiftLong_zyx **/
+  /** Returns the prototype invariant for LshiftLong_zyx */
   public static /*@Prototype*/ LshiftLong_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected LshiftLong_zyx instantiate_dyn (/*>>> @Prototype LshiftLong_zyx this,*/ PptSlice slice) {
     return new LshiftLong_zyx (slice);
   }
@@ -13913,14 +14193,14 @@ public static class LshiftLong_zyx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " << ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied LshiftLong_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -13930,20 +14210,22 @@ public static class LshiftLong_zyx extends FunctionBinary {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied LshiftLong_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long x) {
 
-      if ((x < arg2_bound[0]) || (x > arg2_bound[1]))
+      if ((x < arg2_bound[0]) || (x > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + x + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((y << x));
   }
@@ -13955,13 +14237,15 @@ public static class LshiftLong_zyx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isLshift() {
-    return (true);
+  /*@Pure*/
+  public boolean isLshift() {
+    return true;
   }
 
   /**
@@ -13969,13 +14253,14 @@ public static class LshiftLong_zyx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (LshiftLong_zyx.class, 3);
 
@@ -14121,12 +14406,13 @@ public static class LshiftLong_zyx extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isRshiftSigned () {
-    return (false);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = RshiftSigned (y, z)</code>
+ * Represents the invariant <code>x = RshiftSigned(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -14141,12 +14427,12 @@ public static class RshiftSignedLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftSignedLong_xyz proto = new /*@Prototype*/ RshiftSignedLong_xyz ();
 
-  /** Returns the prototype invariant for RshiftSignedLong_xyz **/
+  /** Returns the prototype invariant for RshiftSignedLong_xyz */
   public static /*@Prototype*/ RshiftSignedLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftSignedLong_xyz instantiate_dyn (/*>>> @Prototype RshiftSignedLong_xyz this,*/ PptSlice slice) {
     return new RshiftSignedLong_xyz (slice);
   }
@@ -14161,14 +14447,14 @@ public static class RshiftSignedLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftSignedLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -14178,20 +14464,22 @@ public static class RshiftSignedLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftSignedLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long z) {
 
-      if ((z < arg2_bound[0]) || (z > arg2_bound[1]))
+      if ((z < arg2_bound[0]) || (z > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + z + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((y >> z));
   }
@@ -14203,13 +14491,15 @@ public static class RshiftSignedLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isRshiftSigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return true;
   }
 
   /**
@@ -14217,13 +14507,14 @@ public static class RshiftSignedLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftSignedLong_xyz.class, 3);
 
@@ -14377,7 +14668,7 @@ public static class RshiftSignedLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = RshiftSigned (x, z)</code>
+ * Represents the invariant <code>y = RshiftSigned(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -14392,12 +14683,12 @@ public static class RshiftSignedLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftSignedLong_yxz proto = new /*@Prototype*/ RshiftSignedLong_yxz ();
 
-  /** Returns the prototype invariant for RshiftSignedLong_yxz **/
+  /** Returns the prototype invariant for RshiftSignedLong_yxz */
   public static /*@Prototype*/ RshiftSignedLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftSignedLong_yxz instantiate_dyn (/*>>> @Prototype RshiftSignedLong_yxz this,*/ PptSlice slice) {
     return new RshiftSignedLong_yxz (slice);
   }
@@ -14412,14 +14703,14 @@ public static class RshiftSignedLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftSignedLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -14429,20 +14720,22 @@ public static class RshiftSignedLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftSignedLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long z) {
 
-      if ((z < arg2_bound[0]) || (z > arg2_bound[1]))
+      if ((z < arg2_bound[0]) || (z > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + z + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((x >> z));
   }
@@ -14454,13 +14747,15 @@ public static class RshiftSignedLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isRshiftSigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return true;
   }
 
   /**
@@ -14468,13 +14763,14 @@ public static class RshiftSignedLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftSignedLong_yxz.class, 3);
 
@@ -14628,7 +14924,7 @@ public static class RshiftSignedLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = RshiftSigned (x, y)</code>
+ * Represents the invariant <code>z = RshiftSigned(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -14643,12 +14939,12 @@ public static class RshiftSignedLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftSignedLong_zxy proto = new /*@Prototype*/ RshiftSignedLong_zxy ();
 
-  /** Returns the prototype invariant for RshiftSignedLong_zxy **/
+  /** Returns the prototype invariant for RshiftSignedLong_zxy */
   public static /*@Prototype*/ RshiftSignedLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftSignedLong_zxy instantiate_dyn (/*>>> @Prototype RshiftSignedLong_zxy this,*/ PptSlice slice) {
     return new RshiftSignedLong_zxy (slice);
   }
@@ -14663,14 +14959,14 @@ public static class RshiftSignedLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftSignedLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -14680,20 +14976,22 @@ public static class RshiftSignedLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftSignedLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long y) {
 
-      if ((y < arg2_bound[0]) || (y > arg2_bound[1]))
+      if ((y < arg2_bound[0]) || (y > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + y + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((x >> y));
   }
@@ -14705,13 +15003,15 @@ public static class RshiftSignedLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isRshiftSigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return true;
   }
 
   /**
@@ -14719,13 +15019,14 @@ public static class RshiftSignedLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftSignedLong_zxy.class, 3);
 
@@ -14879,7 +15180,7 @@ public static class RshiftSignedLong_zxy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>x = RshiftSigned (z, y)</code>
+ * Represents the invariant <code>x = RshiftSigned(z, y)</code>
  * over three long scalars.
  * 
  */
@@ -14894,12 +15195,12 @@ public static class RshiftSignedLong_xzy extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftSignedLong_xzy proto = new /*@Prototype*/ RshiftSignedLong_xzy ();
 
-  /** Returns the prototype invariant for RshiftSignedLong_xzy **/
+  /** Returns the prototype invariant for RshiftSignedLong_xzy */
   public static /*@Prototype*/ RshiftSignedLong_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftSignedLong_xzy instantiate_dyn (/*>>> @Prototype RshiftSignedLong_xzy this,*/ PptSlice slice) {
     return new RshiftSignedLong_xzy (slice);
   }
@@ -14914,14 +15215,14 @@ public static class RshiftSignedLong_xzy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftSignedLong_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -14931,20 +15232,22 @@ public static class RshiftSignedLong_xzy extends FunctionBinary {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftSignedLong_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long y) {
 
-      if ((y < arg2_bound[0]) || (y > arg2_bound[1]))
+      if ((y < arg2_bound[0]) || (y > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + y + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((z >> y));
   }
@@ -14956,13 +15259,15 @@ public static class RshiftSignedLong_xzy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isRshiftSigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return true;
   }
 
   /**
@@ -14970,13 +15275,14 @@ public static class RshiftSignedLong_xzy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftSignedLong_xzy.class, 3);
 
@@ -15130,7 +15436,7 @@ public static class RshiftSignedLong_xzy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = RshiftSigned (z, x)</code>
+ * Represents the invariant <code>y = RshiftSigned(z, x)</code>
  * over three long scalars.
  * 
  */
@@ -15145,12 +15451,12 @@ public static class RshiftSignedLong_yzx extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftSignedLong_yzx proto = new /*@Prototype*/ RshiftSignedLong_yzx ();
 
-  /** Returns the prototype invariant for RshiftSignedLong_yzx **/
+  /** Returns the prototype invariant for RshiftSignedLong_yzx */
   public static /*@Prototype*/ RshiftSignedLong_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftSignedLong_yzx instantiate_dyn (/*>>> @Prototype RshiftSignedLong_yzx this,*/ PptSlice slice) {
     return new RshiftSignedLong_yzx (slice);
   }
@@ -15165,14 +15471,14 @@ public static class RshiftSignedLong_yzx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftSignedLong_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -15182,20 +15488,22 @@ public static class RshiftSignedLong_yzx extends FunctionBinary {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftSignedLong_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long x) {
 
-      if ((x < arg2_bound[0]) || (x > arg2_bound[1]))
+      if ((x < arg2_bound[0]) || (x > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + x + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((z >> x));
   }
@@ -15207,13 +15515,15 @@ public static class RshiftSignedLong_yzx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isRshiftSigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return true;
   }
 
   /**
@@ -15221,13 +15531,14 @@ public static class RshiftSignedLong_yzx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftSignedLong_yzx.class, 3);
 
@@ -15381,7 +15692,7 @@ public static class RshiftSignedLong_yzx extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = RshiftSigned (y, x)</code>
+ * Represents the invariant <code>z = RshiftSigned(y, x)</code>
  * over three long scalars.
  * 
  */
@@ -15396,12 +15707,12 @@ public static class RshiftSignedLong_zyx extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftSignedLong_zyx proto = new /*@Prototype*/ RshiftSignedLong_zyx ();
 
-  /** Returns the prototype invariant for RshiftSignedLong_zyx **/
+  /** Returns the prototype invariant for RshiftSignedLong_zyx */
   public static /*@Prototype*/ RshiftSignedLong_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftSignedLong_zyx instantiate_dyn (/*>>> @Prototype RshiftSignedLong_zyx this,*/ PptSlice slice) {
     return new RshiftSignedLong_zyx (slice);
   }
@@ -15416,14 +15727,14 @@ public static class RshiftSignedLong_zyx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftSignedLong_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -15433,20 +15744,22 @@ public static class RshiftSignedLong_zyx extends FunctionBinary {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftSignedLong_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long x) {
 
-      if ((x < arg2_bound[0]) || (x > arg2_bound[1]))
+      if ((x < arg2_bound[0]) || (x > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + x + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((y >> x));
   }
@@ -15458,13 +15771,15 @@ public static class RshiftSignedLong_zyx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isRshiftSigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftSigned() {
+    return true;
   }
 
   /**
@@ -15472,13 +15787,14 @@ public static class RshiftSignedLong_zyx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftSignedLong_zyx.class, 3);
 
@@ -15632,12 +15948,13 @@ public static class RshiftSignedLong_zyx extends FunctionBinary {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isRshiftUnsigned () {
-    return (false);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = RshiftUnsigned (y, z)</code>
+ * Represents the invariant <code>x = RshiftUnsigned(y, z)</code>
  * over three long scalars.
  * 
  */
@@ -15652,12 +15969,12 @@ public static class RshiftUnsignedLong_xyz extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftUnsignedLong_xyz proto = new /*@Prototype*/ RshiftUnsignedLong_xyz ();
 
-  /** Returns the prototype invariant for RshiftUnsignedLong_xyz **/
+  /** Returns the prototype invariant for RshiftUnsignedLong_xyz */
   public static /*@Prototype*/ RshiftUnsignedLong_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftUnsignedLong_xyz instantiate_dyn (/*>>> @Prototype RshiftUnsignedLong_xyz this,*/ PptSlice slice) {
     return new RshiftUnsignedLong_xyz (slice);
   }
@@ -15672,14 +15989,14 @@ public static class RshiftUnsignedLong_xyz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >>> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftUnsignedLong_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -15689,20 +16006,22 @@ public static class RshiftUnsignedLong_xyz extends FunctionBinary {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftUnsignedLong_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long z) {
 
-      if ((z < arg2_bound[0]) || (z > arg2_bound[1]))
+      if ((z < arg2_bound[0]) || (z > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + z + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((y >>> z));
   }
@@ -15714,13 +16033,15 @@ public static class RshiftUnsignedLong_xyz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isRshiftUnsigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return true;
   }
 
   /**
@@ -15728,13 +16049,14 @@ public static class RshiftUnsignedLong_xyz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftUnsignedLong_xyz.class, 3);
 
@@ -15888,7 +16210,7 @@ public static class RshiftUnsignedLong_xyz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = RshiftUnsigned (x, z)</code>
+ * Represents the invariant <code>y = RshiftUnsigned(x, z)</code>
  * over three long scalars.
  * 
  */
@@ -15903,12 +16225,12 @@ public static class RshiftUnsignedLong_yxz extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftUnsignedLong_yxz proto = new /*@Prototype*/ RshiftUnsignedLong_yxz ();
 
-  /** Returns the prototype invariant for RshiftUnsignedLong_yxz **/
+  /** Returns the prototype invariant for RshiftUnsignedLong_yxz */
   public static /*@Prototype*/ RshiftUnsignedLong_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftUnsignedLong_yxz instantiate_dyn (/*>>> @Prototype RshiftUnsignedLong_yxz this,*/ PptSlice slice) {
     return new RshiftUnsignedLong_yxz (slice);
   }
@@ -15923,14 +16245,14 @@ public static class RshiftUnsignedLong_yxz extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >>> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftUnsignedLong_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -15940,20 +16262,22 @@ public static class RshiftUnsignedLong_yxz extends FunctionBinary {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftUnsignedLong_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long z) {
 
-      if ((z < arg2_bound[0]) || (z > arg2_bound[1]))
+      if ((z < arg2_bound[0]) || (z > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + z + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((x >>> z));
   }
@@ -15965,13 +16289,15 @@ public static class RshiftUnsignedLong_yxz extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isRshiftUnsigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return true;
   }
 
   /**
@@ -15979,13 +16305,14 @@ public static class RshiftUnsignedLong_yxz extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftUnsignedLong_yxz.class, 3);
 
@@ -16139,7 +16466,7 @@ public static class RshiftUnsignedLong_yxz extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = RshiftUnsigned (x, y)</code>
+ * Represents the invariant <code>z = RshiftUnsigned(x, y)</code>
  * over three long scalars.
  * 
  */
@@ -16154,12 +16481,12 @@ public static class RshiftUnsignedLong_zxy extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftUnsignedLong_zxy proto = new /*@Prototype*/ RshiftUnsignedLong_zxy ();
 
-  /** Returns the prototype invariant for RshiftUnsignedLong_zxy **/
+  /** Returns the prototype invariant for RshiftUnsignedLong_zxy */
   public static /*@Prototype*/ RshiftUnsignedLong_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftUnsignedLong_zxy instantiate_dyn (/*>>> @Prototype RshiftUnsignedLong_zxy this,*/ PptSlice slice) {
     return new RshiftUnsignedLong_zxy (slice);
   }
@@ -16174,14 +16501,14 @@ public static class RshiftUnsignedLong_zxy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >>> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftUnsignedLong_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -16191,20 +16518,22 @@ public static class RshiftUnsignedLong_zxy extends FunctionBinary {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftUnsignedLong_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long x, long y) {
 
-      if ((y < arg2_bound[0]) || (y > arg2_bound[1]))
+      if ((y < arg2_bound[0]) || (y > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + y + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((x >>> y));
   }
@@ -16216,13 +16545,15 @@ public static class RshiftUnsignedLong_zxy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isRshiftUnsigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return true;
   }
 
   /**
@@ -16230,13 +16561,14 @@ public static class RshiftUnsignedLong_zxy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftUnsignedLong_zxy.class, 3);
 
@@ -16390,7 +16722,7 @@ public static class RshiftUnsignedLong_zxy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>x = RshiftUnsigned (z, y)</code>
+ * Represents the invariant <code>x = RshiftUnsigned(z, y)</code>
  * over three long scalars.
  * 
  */
@@ -16405,12 +16737,12 @@ public static class RshiftUnsignedLong_xzy extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftUnsignedLong_xzy proto = new /*@Prototype*/ RshiftUnsignedLong_xzy ();
 
-  /** Returns the prototype invariant for RshiftUnsignedLong_xzy **/
+  /** Returns the prototype invariant for RshiftUnsignedLong_xzy */
   public static /*@Prototype*/ RshiftUnsignedLong_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftUnsignedLong_xzy instantiate_dyn (/*>>> @Prototype RshiftUnsignedLong_xzy this,*/ PptSlice slice) {
     return new RshiftUnsignedLong_xzy (slice);
   }
@@ -16425,14 +16757,14 @@ public static class RshiftUnsignedLong_xzy extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >>> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftUnsignedLong_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -16442,20 +16774,22 @@ public static class RshiftUnsignedLong_xzy extends FunctionBinary {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftUnsignedLong_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long y) {
 
-      if ((y < arg2_bound[0]) || (y > arg2_bound[1]))
+      if ((y < arg2_bound[0]) || (y > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + y + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((z >>> y));
   }
@@ -16467,13 +16801,15 @@ public static class RshiftUnsignedLong_xzy extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isRshiftUnsigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return true;
   }
 
   /**
@@ -16481,13 +16817,14 @@ public static class RshiftUnsignedLong_xzy extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftUnsignedLong_xzy.class, 3);
 
@@ -16641,7 +16978,7 @@ public static class RshiftUnsignedLong_xzy extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>y = RshiftUnsigned (z, x)</code>
+ * Represents the invariant <code>y = RshiftUnsigned(z, x)</code>
  * over three long scalars.
  * 
  */
@@ -16656,12 +16993,12 @@ public static class RshiftUnsignedLong_yzx extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftUnsignedLong_yzx proto = new /*@Prototype*/ RshiftUnsignedLong_yzx ();
 
-  /** Returns the prototype invariant for RshiftUnsignedLong_yzx **/
+  /** Returns the prototype invariant for RshiftUnsignedLong_yzx */
   public static /*@Prototype*/ RshiftUnsignedLong_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftUnsignedLong_yzx instantiate_dyn (/*>>> @Prototype RshiftUnsignedLong_yzx this,*/ PptSlice slice) {
     return new RshiftUnsignedLong_yzx (slice);
   }
@@ -16676,14 +17013,14 @@ public static class RshiftUnsignedLong_yzx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >>> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftUnsignedLong_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -16693,20 +17030,22 @@ public static class RshiftUnsignedLong_yzx extends FunctionBinary {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftUnsignedLong_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long z, long x) {
 
-      if ((x < arg2_bound[0]) || (x > arg2_bound[1]))
+      if ((x < arg2_bound[0]) || (x > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + x + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((z >>> x));
   }
@@ -16718,13 +17057,15 @@ public static class RshiftUnsignedLong_yzx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isRshiftUnsigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return true;
   }
 
   /**
@@ -16732,13 +17073,14 @@ public static class RshiftUnsignedLong_yzx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftUnsignedLong_yzx.class, 3);
 
@@ -16892,7 +17234,7 @@ public static class RshiftUnsignedLong_yzx extends FunctionBinary {
 }
 
 /**
- * Represents the invariant <code>z = RshiftUnsigned (y, x)</code>
+ * Represents the invariant <code>z = RshiftUnsigned(y, x)</code>
  * over three long scalars.
  * 
  */
@@ -16907,12 +17249,12 @@ public static class RshiftUnsignedLong_zyx extends FunctionBinary {
 
   private static /*@Prototype*/ RshiftUnsignedLong_zyx proto = new /*@Prototype*/ RshiftUnsignedLong_zyx ();
 
-  /** Returns the prototype invariant for RshiftUnsignedLong_zyx **/
+  /** Returns the prototype invariant for RshiftUnsignedLong_zyx */
   public static /*@Prototype*/ RshiftUnsignedLong_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected RshiftUnsignedLong_zyx instantiate_dyn (/*>>> @Prototype RshiftUnsignedLong_zyx this,*/ PptSlice slice) {
     return new RshiftUnsignedLong_zyx (slice);
   }
@@ -16927,14 +17269,14 @@ public static class RshiftUnsignedLong_zyx extends FunctionBinary {
 
   private static String[] method_name = new String[] {"", " >>> ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied RshiftUnsignedLong_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -16944,20 +17286,22 @@ public static class RshiftUnsignedLong_zyx extends FunctionBinary {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied RshiftUnsignedLong_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public long func (long y, long x) {
 
-      if ((x < arg2_bound[0]) || (x > arg2_bound[1]))
+      if ((x < arg2_bound[0]) || (x > arg2_bound[1])) {
         throw new ArithmeticException ("arg2 (" + x + ") out of range "
                                        + arg2_bound[0] + ".." + arg2_bound[1]);
+      }
 
     return ((y >>> x));
   }
@@ -16969,13 +17313,15 @@ public static class RshiftUnsignedLong_zyx extends FunctionBinary {
 
   public InvariantStatus add_modified(long x, long y,
                                       long z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isRshiftUnsigned() {
-    return (true);
+  /*@Pure*/
+  public boolean isRshiftUnsigned() {
+    return true;
   }
 
   /**
@@ -16983,13 +17329,14 @@ public static class RshiftUnsignedLong_zyx extends FunctionBinary {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (RshiftUnsignedLong_zyx.class, 3);
 

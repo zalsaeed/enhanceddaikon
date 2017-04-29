@@ -103,6 +103,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -112,7 +113,7 @@ import typequals.*;
  * Base class for each of the CLASSNAME functions and permutatons.
  * Most of the work is done here.  The subclasses basically define the
  * function and return information describing the function and permutation
- * to these methods
+ * to these methods.
  */
 public abstract class CLASSNAME extends SUPERCLASS {
   // We are Serializable, so we specify a version to allow changes to
@@ -122,7 +123,7 @@ public abstract class CLASSNAME extends SUPERCLASS {
 
   /**
    * Boolean. True if CLASSNAME invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   public static Logger debug
@@ -147,31 +148,33 @@ public abstract class CLASSNAME extends SUPERCLASS {
     super ();
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** CLASSNAME is only valid on IS_INTEGRAL types **/
+  /** CLASSNAME is only valid on IS_INTEGRAL types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // Make sure that each variable is integral (not boolean or hashcode)
     if (!vis[0].file_rep_type.IS_INTEGRAL
         || !vis[1].file_rep_type.IS_INTEGRAL
         || !vis[2].file_rep_type.IS_INTEGRAL)
-      return (false);
+      return false;
 
-    return (true);
+    return true;
   }
 
   // check_modified relies on func having no side effects.
   abstract PRIMITIVE func (PRIMITIVE arg1, PRIMITIVE arg2);
-  /*@Pure*/ abstract boolean is_symmetric();
-  abstract String[] get_method_name();
-  abstract int get_var_order();
+  /*@Pure*/
+  abstract boolean is_symmetric();
+  abstract String[] get_method_name(/*>>>@GuardSatisfied CLASSNAME this*/);
+  abstract int get_var_order(/*>>>@GuardSatisfied CLASSNAME this*/);
   abstract void set_function_id (int function_id);
   abstract int get_function_id ();
 
@@ -203,12 +206,14 @@ public abstract class CLASSNAME extends SUPERCLASS {
     for (int ii = 0; ii < subclasses.length; ii++) {
       Class</*@Prototype*/ CLASSNAME> subc = subclasses[ii];
       String function = subc.getName();
-      if (function.indexOf ("CLOVER") >= 0)
+      if (function.indexOf ("CLOVER") >= 0) {
         continue;
+      }
       function = function.replaceFirst (".*FunctionBinary\\$", "");
       function = function.replaceFirst ("_.*", "");
-      if (function.equals ("SubClass"))
+      if (function.equals ("SubClass")) {
         continue;
+      }
       /*@Prototype*/ CLASSNAME[] fb_arr = functions.get (function);
       if (fb_arr == null) {
         fb_arr = new /*@Prototype*/ CLASSNAME[7];
@@ -259,8 +264,9 @@ public abstract class CLASSNAME extends SUPERCLASS {
             // System.out.println ("attempting instantiation of " + fb.getClass());
             if ((ss == null) || !ss.suppressed (slice)) {
               Invariant inv = fb.instantiate_dyn (slice);
-              if (Debug.logOn() && (inv != null))
+              if (Debug.logOn() && (inv != null)) {
                 inv.log ("instantiated non-suppressed invariant %s", inv.format());
+              }
               result.add (inv);
             }
           } else /* NIS not enabled */ {
@@ -270,12 +276,12 @@ public abstract class CLASSNAME extends SUPERCLASS {
       }
     }
 
-    return (result);
+    return result;
   }
 #endif
 
   /**
-   * Returns a list of all of the CLASSNAME prototype invariants
+   * Returns a list of all of the CLASSNAME prototype invariants.
    */
   public static List</*@Prototype*/ Invariant> get_proto_all() {
 
@@ -295,7 +301,7 @@ public abstract class CLASSNAME extends SUPERCLASS {
         }
       }
     }
-    return (result);
+    return result;
   }
 
   /** Permuted result var. */
@@ -314,15 +320,16 @@ public abstract class CLASSNAME extends SUPERCLASS {
   }
 
   /**
-   * Apply the specified sample to the function, returning the result
+   * Apply the specified sample to the function, returning the result.
    * The caller is responsible for permuting the arguments.
    */
   public InvariantStatus check_ordered (PRIMITIVE result, PRIMITIVE arg1,
                                       PRIMITIVE arg2, int count) {
     // This implementation relies on func having no side effects.
     try {
-      if (! EQUAL(result, func (arg1, arg2)))
+      if (! EQUAL(result, func (arg1, arg2))) {
         return InvariantStatus.FALSIFIED;
+      }
     } catch (Exception e) {
         return InvariantStatus.FALSIFIED;
     }
@@ -330,7 +337,7 @@ public abstract class CLASSNAME extends SUPERCLASS {
   }
 
   /**
-   * Apply the specified sample to the function, returning the result
+   * Apply the specified sample to the function, returning the result.
    * The caller is responsible for permuting the arguments.
    */
   public InvariantStatus add_ordered (PRIMITIVE result, PRIMITIVE arg1,
@@ -391,27 +398,31 @@ public abstract class CLASSNAME extends SUPERCLASS {
     assert var_order != -1;
 
     // If the var order hasn't changed, we don't need to do anything
-    if (var_order == get_var_order())
-      return (this);
+    if (var_order == get_var_order()) {
+      return this;
+    }
 
     // Find the class that corresponds to the new order
-    if (functions.isEmpty())
+    if (functions.isEmpty()) {
       build_func_list();
+    }
     int func_id = get_function_id();
     /*@Prototype*/ CLASSNAME[] fb_arr = func_list.get (func_id);
     assert fb_arr != null;
     for (int ii = 0; ii < fb_arr.length; ii++)
-      if ((fb_arr[ii] != null) && (fb_arr[ii].get_var_order() == var_order))
+      if ((fb_arr[ii] != null) && (fb_arr[ii].get_var_order() == var_order)) {
         return (fb_arr[ii].instantiate_dyn (ppt));
+      }
 
     throw new Error ("Could not find new ordering");
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied CLASSNAME this*/) {
     return format();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied CLASSNAME this,*/ OutputFormat format) {
     if (format == OutputFormat.SIMPLIFY) {
       return format_simplify();
     }
@@ -449,7 +460,7 @@ public abstract class CLASSNAME extends SUPERCLASS {
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied CLASSNAME this*/) {
     int var_order = get_var_order();
     String[] methodname = get_method_name();
     VarInfo[] vis = ppt.var_infos;
@@ -480,13 +491,14 @@ public abstract class CLASSNAME extends SUPERCLASS {
       assert methodname[2].equals("");
       func = "|java-" + methodname[1].trim() + "|";
     }
-    if (func == null)
+    if (func == null) {
       return "format_simplify_contract() doesn't know function " + methodname[0] + "-" +
         methodname[1] + "-" + methodname[2];
+    }
     return "(EQ " + result + " (" + func + " " + arg1 + " " + arg2 + "))";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied CLASSNAME this*/) {
     int var_order = get_var_order();
     String[] methodname = get_method_name();
 
@@ -545,13 +557,15 @@ public abstract class CLASSNAME extends SUPERCLASS {
       func = "|" + methodname[1].trim() + "|";
     }
 
-    if (func == null)
+    if (func == null) {
       return "format_csharp_contract() doesn't know function " + methodname[0] + "-" + methodname[1] + "-" + methodname[2];
+    }
     return result + " == " + func + "(" + arg1 + ", " + arg2 + ")";
   }
 
   // If our classes match, we must match
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
   public double computeConfidence() {
@@ -570,7 +584,7 @@ public abstract class CLASSNAME extends SUPERCLASS {
 
   /**
    * If the arg is a sequence size, return the sequence; otherwise return null.
-   **/
+   */
   private /*@Nullable*/ VarInfo sized_sequence(VarInfo size) {
     if (size.derived instanceof SequenceLength) {
       return ((SequenceLength)size.derived).base;

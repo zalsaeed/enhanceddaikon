@@ -20,6 +20,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -27,7 +28,8 @@ import typequals.*;
 
 /**
  * Represents an invariant of &gt; between two double scalars.
- **/
+ * Prints as <code>x &gt; y</code>.
+ */
 public final class FloatGreaterThan
   extends TwoFloat {
 
@@ -40,8 +42,8 @@ public final class FloatGreaterThan
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff FloatGreaterThan invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.twoScalar.FloatGreaterThan");
@@ -56,26 +58,27 @@ public final class FloatGreaterThan
 
   private static /*@Prototype*/ FloatGreaterThan proto = new /*@Prototype*/ FloatGreaterThan ();
 
-  /** Returns the prototype invariant for FloatGreaterThan **/
+  /** Returns the prototype invariant for FloatGreaterThan */
   public static /*@Prototype*/ FloatGreaterThan get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Returns whether or not the specified var types are valid for FloatGreaterThan **/
+  /** Returns whether or not the specified var types are valid for FloatGreaterThan */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-      return (true);
+      return true;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected FloatGreaterThan instantiate_dyn (/*>>> @Prototype FloatGreaterThan this,*/ PptSlice slice) {
 
     return new FloatGreaterThan (slice);
@@ -92,7 +95,7 @@ public final class FloatGreaterThan
 
   /**
    * Returns the class that corresponds to this class with its variable
-   * order swapped
+   * order swapped.
    */
   public static Class<? extends Invariant> swap_class () {
     return FloatLessThan.class;
@@ -105,25 +108,27 @@ public final class FloatGreaterThan
   public static /*@Nullable*/ FloatGreaterThan find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof FloatGreaterThan)
+      if (inv instanceof FloatGreaterThan) {
         return (FloatGreaterThan) inv;
+      }
     }
 
     // If the invariant is suppressed, create it
     if ((suppressions != null) && suppressions.suppressed (ppt)) {
       FloatGreaterThan inv = proto.instantiate_dyn (ppt);
       // System.out.printf ("%s is suppressed in ppt %s%n", inv.format(), ppt.name());
-      return (inv);
+      return inv;
     }
 
     return null;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied FloatGreaterThan this*/) {
     return "FloatGreaterThan" + varNames();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied FloatGreaterThan this,*/ OutputFormat format) {
 
     String var1name = var1().name_using(format);
     String var2name = var2().name_using(format);
@@ -166,9 +171,10 @@ public final class FloatGreaterThan
   }
 
   public InvariantStatus add_modified(double v1, double v2, int count) {
-    if (logDetail() || debug.isLoggable(Level.FINE))
+    if (logDetail() || debug.isLoggable(Level.FINE)) {
       log (debug, "add_modified (" + v1 + ", " + v2 + ",  "
            + "ppt.num_values = " + ppt.num_values() + ")");
+    }
     if ((logOn() || debug.isLoggable(Level.FINE)) &&
         check_modified(v1, v2, count) == InvariantStatus.FALSIFIED)
       log (debug, "destroy in add_modified (" + v1 + ", " + v2 + ",  "
@@ -195,13 +201,15 @@ public final class FloatGreaterThan
 
   // For Comparison interface
   public double eq_confidence() {
-    if (isExact())
+    if (isExact()) {
       return getConfidence();
-    else
+    } else {
       return Invariant.CONFIDENCE_NEVER;
+    }
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return false;
   }
@@ -226,11 +234,13 @@ public final class FloatGreaterThan
     return super.add(v1, v2, mod_index, count);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     // Also ought to check against LinearBinary, etc.
 
@@ -284,21 +294,25 @@ public final class FloatGreaterThan
 
       // Check for the same invariant over enclosing arrays
       di = pairwise_implies (vis);
-      if (di != null)
-        return (di);
+      if (di != null) {
+        return di;
+      }
 
         // Check for a linear binary that implies > or <
         di = lb_implies (vis);
-        if (di != null)
-          return (di);
+        if (di != null) {
+          return di;
+        }
 
     { // Sequence length tests
       SequenceLength sl1 = null;
-      if (var1.isDerived() && (var1.derived instanceof SequenceLength))
+      if (var1.isDerived() && (var1.derived instanceof SequenceLength)) {
         sl1 = (SequenceLength) var1.derived;
+      }
       SequenceLength sl2 = null;
-      if (var2.isDerived() && (var2.derived instanceof SequenceLength))
+      if (var2.isDerived() && (var2.derived instanceof SequenceLength)) {
         sl2 = (SequenceLength) var2.derived;
+      }
 
       // "size(a)-1 cmp size(b)-1" is never even instantiated;
       // use "size(a) cmp size(b)" instead.
@@ -334,11 +348,13 @@ public final class FloatGreaterThan
 
   /**
    * Checks to see if there is a linear binary relationship between the
-   * variables that implies &gt; or <
+   * variables that implies &gt; or &lt;
+   * <pre>
    *  a * x + b * y + c == 0
    *
-   *  (y = (-a/b)*x + (-c/b) ^ (-a/b == 1) ^ (-c/b > 0) &rArr; y &gt; x
-   *  (y = (-a/b)*x + (-c/b) ^ (-a/b == 1) ^ (-c/b < 0) &rArr; y &lt; x
+   *  (y = (-a/b)*x + (-c/b) ^ (-a/b == 1) ^ (-c/b &gt; 0) &rArr; y &gt; x
+   *  (y = (-a/b)*x + (-c/b) ^ (-a/b == 1) ^ (-c/b &lt; 0) &rArr; y &lt; x
+   * </pre>
    *
    *
    * Returns null if this is not true.  Appropriate DiscardInfo otherwise.
@@ -352,16 +368,19 @@ public final class FloatGreaterThan
     // Look for a linear binary invariant over the same variables
     LinearBinaryFloat lb = (LinearBinaryFloat) ppt.parent.find_inv_by_class
                                                     (vis, LinearBinaryFloat.class);
-    if ((lb == null) || !lb.isActive())
-      return (null);
+    if ((lb == null) || !lb.isActive()) {
+      return null;
+    }
 
     // Only 'a == 1' implies a less than or greater than relationship
-    if (-lb.core.a/lb.core.b != 1.0)
-      return (null);
+    if (-lb.core.a/lb.core.b != 1.0) {
+      return null;
+    }
 
     // The b coefficient determines less than or greater than
-    if ((Global.fuzzy.gt (-lb.core.c/lb.core.b, 0)))
-      return (null);
+    if ((Global.fuzzy.gt (-lb.core.c/lb.core.b, 0))) {
+      return null;
+    }
 
     return new DiscardInfo (this, DiscardCode.obvious, "implied by "
                             + lb.format());
@@ -379,34 +398,36 @@ public final class FloatGreaterThan
     VarInfo v2 = vis[1];
 
     // Make sure v1 and v2 are SequenceFloatSubscript with the same shift
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceFloatSubscript))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceFloatSubscript))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceFloatSubscript)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceFloatSubscript)) {
+      return null;
+    }
     @SuppressWarnings("nullness") // checker bug in flow
     /*@NonNull*/ SequenceFloatSubscript der1 = (SequenceFloatSubscript) v1.derived;
     @SuppressWarnings("nullness") // checker bug in flow
     /*@NonNull*/ SequenceFloatSubscript der2 = (SequenceFloatSubscript) v2.derived;
     if  (der1.index_shift != der2.index_shift)
-      return (null);
+      return null;
 
     // Make sure that the indices are equal
     if (!ppt.parent.is_equal (der1.sclvar().canonicalRep(),
                               der2.sclvar().canonicalRep())) {
-      return (null);
+      return null;
     }
 
     // See if the same relationship holds over the arrays
     Invariant proto = PairwiseFloatGreaterThan.get_proto();
     DiscardInfo di = ppt.parent.check_implied_canonical (this,
                                 der1.seqvar(), der2.seqvar(), proto);
-    return (di);
+    return di;
   }
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** Returns the non-instantiating suppressions for this invariant. **/
+  /** Returns the non-instantiating suppressions for this invariant. */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
     return null;
