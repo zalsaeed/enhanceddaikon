@@ -1,10 +1,9 @@
 package daikon.chicory;
 
-import daikon.Chicory;
+
 import daikon.chicory.Runtime;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.*;
 import java.net.Socket;
 import java.util.*;
@@ -30,7 +29,7 @@ public class Runtime {
   public static int nonce = 0;
 
   /** debug flag */
-  public static final boolean debug = false;
+  public static boolean debug = false;
 
   /** setting debug to show setting information on console */
   public static final boolean settings_debug = false;
@@ -52,7 +51,9 @@ public class Runtime {
    * List of classes recently transformed. This list is examined in each enter/exit and the decl
    * information for any new classes are printed out and the class is then removed from the list.
    */
-  public static final List<ClassInfo> new_classes =
+  // The order of this list depends on the order of loading by the JVM.
+  // Declared as LinkedList instead of List to permit use of removeFirst().
+  public static final /*@GuardedBy("<self>")*/ LinkedList<ClassInfo> new_classes =
       new LinkedList<ClassInfo>();
 
   /** List of all instrumented classes */
@@ -129,7 +130,7 @@ public class Runtime {
    * Which static initializers have been run. Each element of the Set is a fully qualified class
    * name.
    */
-   static Set<String> initSet = new HashSet<String>();
+  private static Set<String> initSet = new HashSet<String>();
 
     //TODO delete it, used it to deboug the the number of traces written at entery
     static int traces_counter = 0;
@@ -168,61 +169,13 @@ public class Runtime {
    * help us reconstruct a collection from the reflected objects. 
    */
   public static List<Object> observed_objects = new ArrayList<Object>();
-
-  /**
-   * first method that we have seen in the whole application
-   * this is to invoke the process new class and traces writing 
-   * once we see the exit of this same method
-   */
-  public static int firstMethodObserved = 0;
-  
-  /**
-   * Flag to see if thei is our first time enrting a method ever
-   * or we have seen this before ...
-   */
-  public static boolean firstMethodEntered = true;
+  //TODO Think about a better way than haveing all objects in a list. E.g. pass the current object as you encounter it 
+  // to the enter or exit methods. 
 
   // Constructor
   private Runtime() {
     throw new Error("Do not create instances of Runtime");
   }
-
-    /** Printf to dtrace file. **/
-    /*@FormatMethod*/
-    @SuppressWarnings("formatter") // call to format method is correct because of @FormatMethod annotation
-    final private static void printf(String format, /*@Nullable*/ Object... args)
-    {
-        if (!dtrace_closed)
-            dtrace.printf(format, args);
-    }
-
-    /** Println to dtrace file. **/
-    final private static void println(String msg)
-    {
-        if (!dtrace_closed)
-            dtrace.println(msg);
-    }
-
-    /** Println to dtrace file. **/
-    final private static void println(int val)
-    {
-        if (!dtrace_closed)
-            dtrace.println(val);
-    }
-
-    /** Println to dtrace file. **/
-    final private static void println(Object obj)
-    {
-        if (!dtrace_closed)
-            dtrace.println(obj);
-    }
-
-    /** Println to dtrace file. **/
-    final private static void println()
-    {
-        if (!dtrace_closed)
-            dtrace.println();
-    }
 
   /**
    * Thrown to indicate that main should not print a stack trace, but only print the message itself
@@ -427,41 +380,6 @@ public class Runtime {
           + methods.get(mi_index).method_name);
   }
 
-    /**
-     * @author zalsaeed
-     * 
-     * Write all the objects state that Chicory holds in memory
-     * to disk for use in the second run ...
-     */
-    public static void writeObjStates(){
-        File objectsState = new File (".", "objs.xml");
-    	
-    	DecalState currentState = new DecalState();
-    	synchronized (all_classes){
-    		currentState.setAllClassesList(Runtime.all_classes);
-    	}
-    	//currentState.setAllMethodsList(Runtime.methods);
-    	
-    	
-    	XStream xstream = new XStream();
-    	//xstream.addImplicitCollection(DecalState.class, "all_classes");
-    	xstream.alias("decals", DecalState.class);
-    	
-    	try{
-    		ObjectOutputStream out =
-    				xstream.createObjectOutputStream(
-    						new FileOutputStream(objectsState));
-    	
-    		out.writeObject(currentState);
-			out.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	
-    }
-
   /**
    * Checks the in_dtrace flag by looking back up the stack trace. Throws an exception if there is a
    * discrepancy.
@@ -499,8 +417,9 @@ public class Runtime {
 //    		System.out.println("Who called me? " + s.getClassName() + " : " + s.getLineNumber() + s.getMethodName());
 //    	}
     	
-    assert !initSet.contains(className) : className + " already exists in initSet";
-
+    if (initSet.contains(className)) {
+      throw new Error("initNotify(" + className + ") when initSet already contains " + className);
+    }
     if(Runtime.working_debug)
       System.out.println("[Chicory.Runtime.initNotify()] initialized ---> " + className);
     initSet.add(className);
@@ -514,33 +433,6 @@ public class Runtime {
   public static boolean isInitialized(String className) {
     return initSet.contains(className);
   }
-    
-    /**
-     * @author zalsaeed
-     * It was created to see if an instance of a class that is 
-     * present in the {@new_classes} and return only those to
-     * process them.
-     * 
-     * @return
-     */
-    public static List<ClassInfo> classes_ready_to_process(){
-    	List<ClassInfo> set_of_classes = new ArrayList<ClassInfo>();
-        synchronized (new_classes) {
-          if (new_classes.size() > 0) {
-        	  for(Object o:observed_objects)
-        	  {
-        		  for(ClassInfo ci:new_classes){
-        			  if(o.getClass().getName() == ci.class_name){
-        				  System.out.println("Yes, they are te same ...................................");
-        		          set_of_classes.add(ci);
-        		          new_classes.remove (ci);
-        			  }
-        		  }
-        	  }
-          }
-        }
-    	return set_of_classes;
-    }
     
     /**
      * @author zalsaeed
@@ -597,41 +489,6 @@ public class Runtime {
     	if(Runtime.working_debug)
     		System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
     }
-    	
-    // This the old method where all classes and all method are processed.
-    	//TO/DO do I need any other arguments?
-    	//TO/DO is it OK to init class for many times? 
-//    	synchronized (all_classes){
-//    	
-//    		System.out.println("before -> all_classes.size(): " + all_classes.size());
-//	    	for(ClassInfo class_info:all_classes){
-//	    		System.out.println("within -> all_classes.size(): " + all_classes.size());
-//	    		System.out.println ("\tstart processing class " + class_info.class_name);
-//	    		
-//	    		if (debug)
-//	                System.out.println ("processing class " + class_info.class_name);
-//	    		
-//	    		//print the header of the .dtrace file 
-//	    		if (first_class) {
-//	                decl_writer.printHeaderInfo (class_info.class_name);
-//	                first_class = false;
-//	              }
-//	    		
-//	    		class_info.initViaReflection();
-//	    		
-//	    		for (MethodInfo mi: class_info.method_infos)
-//	            {
-//	                mi.traversalEnter = RootInfo.enter_process(mi, Runtime.nesting_depth);
-//	                mi.traversalExit = RootInfo.exit_process(mi, Runtime.nesting_depth);
-//	            }
-//	    		
-//	    		//the comp_info is always null for me. 
-//	            decl_writer.print_decl_class (class_info, comp_info);
-//	    	}
-//	    	System.out.println("after -> all_classes.size(): " + all_classes.size());
-//    	}
-//    	System.out.println("exit <<<<< [Chicory.Runtime.process_classes()]");
-//    }
 
   /**
    * Writes out decl information for any new classes (those in the new_classes field) and removes
@@ -652,8 +509,7 @@ public class Runtime {
       ClassInfo class_info = null;
       synchronized (new_classes) {
         if (new_classes.size() > 0) {
-          class_info = new_classes.get(0);
-          new_classes.remove (0);
+          class_info = new_classes.removeFirst();
         }
       }
 
@@ -721,8 +577,9 @@ public class Runtime {
     // requirement that all variables used as locks be final or
     // effectively final.  If a bug exists whereby Runtime.dtrace
     // is not effectively final, this would unfortunately mask that error.
+    final /*@GuardedBy("<self>")*/ PrintStream dtrace = Runtime.dtrace;
 
-    synchronized (Runtime.dtrace) {
+    synchronized (dtrace) {
       // The shutdown hook is synchronized on this, so close it up
       // ourselves, lest the call to System.exit cause deadlock.
       dtrace.println();
@@ -869,6 +726,8 @@ public class Runtime {
     java.lang.Runtime.getRuntime()
         .addShutdownHook(
             new Thread() {
+              @SuppressWarnings(
+                  "lock") // TODO: Fix Checker Framework issue 523 and remove this @SuppressWarnings.
               public void run() {
                 if (!dtrace_closed) {
                   // When the program being instrumented exits, the buffers

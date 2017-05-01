@@ -3,10 +3,8 @@ package daikon;
 import daikon.chicory.*;
 import daikon.util.*;
 import java.io.*;
-import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /*>>>
 import org.checkerframework.checker.nullness.qual.*;
@@ -43,11 +41,20 @@ public class Chicory {
   @Option("Decl formatted file containing comparability information")
   public static /*@Nullable*/ File comparability_file = null;
 
+  /**
+   * If true, no variable values are printed. Static variables are not initialized yet when the
+   * routine is entered, and static variable are not necessarily initialized to their final values
+   * when the routine is exited. These .dtrace entries are purely for the benefit of tools that use
+   * Chicory for program tracing, to determine when methods are entered and exited.
+   */
+  @Option("Write static initialzer program points")
+  public static boolean instrument_clinit = false;
+
   @Option("Include variables that are visible under normal java access rules")
   public static boolean std_visibility = false;
 
   @Option("Print progress information")
-  public static boolean verbose = true;
+  public static boolean verbose = false;
 
   @Option("Print debug information and save instrumented classes")
   public static boolean debug = false;
@@ -68,9 +75,6 @@ public class Chicory {
 
   @Option("Create the new declaration record format")
   public static boolean new_decl_format = true;
-
-  @Option ("Use first BCEL on classpath rather than PLSE's version")
-  public static boolean default_bcel = false;
 
   /**
    * Path to java agent jar file that performs the transformation. The "main" procedure is {@link
@@ -141,15 +145,6 @@ public class Chicory {
 
   /** Synopsis for the chicory command line */
   public static final String synopsis = "daikon.Chicory [options] target [target-args]";
-  
-  /**
-   * Flag to indicate to the runtime whether this is the first 
-   * run (specific for collecting decals) or the second one?
-   */
-  public static boolean firstRun = true;
-
-  /** List of all instrumented classes **/
-  public static List<ClassInfo> all_classes = new ArrayList<ClassInfo>();
 
   /**
    * Entry point of Chicory.
@@ -558,6 +553,9 @@ public class Chicory {
   public String args_to_string(List<String> args) {
     String str = "";
     for (String arg : args) {
+      if (arg.indexOf(" ") != -1) {
+        str = "'" + str + "'";
+      }
       str += arg + " ";
     }
     return (str.trim());

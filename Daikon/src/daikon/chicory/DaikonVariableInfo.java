@@ -44,19 +44,28 @@ public abstract class DaikonVariableInfo
 
   /** Print debug information about the variables */
   // "false" argument means it's disabled by default.
-  static SimpleLog debug_vars = new SimpleLog ("debug_vars.txt", false);
+  static SimpleLog debug_vars = new SimpleLog(false);
 
-  private static SimpleLog debug_array = new SimpleLog ("debug_array.txt", false);
+  private static SimpleLog debug_array = new SimpleLog(false);
 
   /** Default string for comparability info. */
   private static final String compareInfoDefaultString = "22";
 
+  // It's not enough to use one of the following 3 strings.
+  // You also need to set the flags that are returned by get_var_flags()!
+
+  /** Indicates that a given variable is non-null. */
+  protected static final String isNonNullString = " # isNonNull=true";
+
   /** Indicates that a given variable is a parameter to a method. */
   protected static final String isParamString = " # isParam=true";
 
+  /** Indicates that a given variable is non-null and a parameter. */
+  protected static final String isNonNullParamString = " # isNonNull=true isParam=true";
+
   // Certain hardcoded class names
-  protected static final String classClassName = "java.lang.Class";
   protected static final String stringClassName = "java.lang.String";
+  protected static final String classClassName = "java.lang.Class";
 
   // Suffix for "typeOf" (CLASSNAME) variables that represent a class,
   // eg, "foo.getClass().getName()".
@@ -391,7 +400,7 @@ public abstract class DaikonVariableInfo
           System.out.printf("\t\t\t\t[Chicory.DaikonVariableInfo.addParampter()] processing parameter '%s'%n", name);
       debug_vars.indent("processing parameter '%s'%n", name);
       DaikonVariableInfo theChild =
-          addDeclVar(cinfo, type, name, offset, depth, i, param_offset);
+          addParamDeclVar(cinfo, type, name, offset, depth, i, param_offset);
       param_offset++;
       if ((type == Double.TYPE) || (type == Long.TYPE)) param_offset++;
       assert cinfo.clazz != null : "@AssumeAssertion(nullness): need to check justification";
@@ -412,7 +421,7 @@ public abstract class DaikonVariableInfo
    */
   /*@RequiresNonNull("#1.clazz")*/
   protected void addClassVars(
-       final ClassInfo cinfo, boolean dontPrintInstanceVars, Class<?> type, String offset, int depth) {
+      ClassInfo cinfo, boolean dontPrintInstanceVars, Class<?> type, String offset, int depth) {
 
     if(Runtime.working_debug)
         System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addClassVars] "
@@ -680,40 +689,14 @@ public abstract class DaikonVariableInfo
     }
     
     /**
-     * Adds the decl info for a single parameter as a child of this node.
-     * Also adds "derived" variables
-     * such as the runtime .class variable.
+     * Added this method to store the info of a list elements in a child. 
      *
-     * @return The newly created DaikonVariableInfo object, whose
-     * parent is this.
-     */
-    protected DaikonVariableInfo addDeclVar(ClassInfo cinfo, Class<?> type,
-           String name, String offset, int depth, int argNum, int param_offset)
-    {
-        debug_vars.log ("enter addDeclVar(param)%n");
-        // add this variable to the tree as a child of curNode
-        DaikonVariableInfo newChild = new ParameterInfo(offset + name, argNum,
-                                                        type, param_offset);
-
-        addChild(newChild);
-
-        boolean ignore = newChild.check_for_dup_names();
-        if (!ignore)
-            newChild.checkForDerivedVariables(type, name, offset);
-
-        debug_vars.log ("exit addDeclVar(param)%n");
-        return newChild;
-    }
-    
-    /**
      * @author zalsaeed
-     * 
-     * Added this method to store the info of a list elements in a chield. 
      *
      * @return The newly created DaikonVariableInfo object, whose
      * parent is this.
      */
-    protected DaikonVariableInfo addDeclVar(Class<?> type,
+    protected DaikonVariableInfo addParamDeclVar(Class<?> type,
            String name, String offset, Class<? extends List<?>>parentType)
     {
         debug_vars.log ("enter addDeclVar(ListElement)%n");
@@ -838,6 +821,8 @@ public abstract class DaikonVariableInfo
   /**
    * Adds the decl info for a single class variable (a field) as a child of this node. Also adds
    * "derived" variables such as the runtime .class variable.
+   * 
+   * edited by @author zalsaeed to act as needed for dynamic data structures.
    *
    * @return the newly created DaikonVariableInfo object, whose parent is this
    */
@@ -858,8 +843,6 @@ public abstract class DaikonVariableInfo
       field.setAccessible(true);
     }
 
-    Class<?> type = field.getType();
-    String theName = field.getName();
     int modifiers = field.getModifiers();
     if (Modifier.isStatic(modifiers)) {
       offset = field.getDeclaringClass().getName() + ".";
@@ -867,17 +850,22 @@ public abstract class DaikonVariableInfo
       offset = "this.";
     }
 
+    Class<?> type = field.getType();
+    String type_name = stdClassName(type) + arr_str + appendAuxInfo(field);
+
+    String theName = field.getName();
+
     // Convert the internal reflection name for an outer class
     // 'this' field to the Java language format.
     if (theName.startsWith("this$")) {
+      offset = "";
       theName = type.getName() + ".this";
-            offset = "";
+      if (!type_name.contains("#")) {
+        type_name += " # isNonNull=true";
+      } else {
+        type_name += ", isNonNull=true";
+      }
     }
-
-    String type_name = stdClassName (type) + arr_str;
-
-    // Print auxiliary information.
-    type_name += appendAuxInfo(field);
 
     DaikonVariableInfo newField =
         new FieldInfo(
@@ -1277,7 +1265,7 @@ public abstract class DaikonVariableInfo
         	   
         	   //add this object as a ListElement to the ListInfo
         	   @SuppressWarnings("unchecked")
-        	   DaikonVariableInfo newChild = child.addDeclVar(obj.getClass(), 
+        	   DaikonVariableInfo newChild = child.addParamDeclVar(obj.getClass(), 
         			   obj.getClass().getSimpleName(), currentOffset, (Class<? extends List<?>>)type);
         	   
         	   //Adding the object's (or elements) fields as FieldInfos to the ListElement
@@ -1437,7 +1425,7 @@ public abstract class DaikonVariableInfo
     if (!type.equals(String.class)) return;
 
     String postString = ""; //either array braces or an empty string
-    if ((offset + theName).contains("[]")) postString = "[]";
+    if (isArray) postString = "[]";
 
     // add DaikonVariableInfo type
     DaikonVariableInfo stringInfo =
@@ -1446,7 +1434,7 @@ public abstract class DaikonVariableInfo
             stringClassName + postString,
             stringClassName + postString,
             offset + theName,
-            (offset+theName).contains("[]"));
+            isArray);
 
     addChild(stringInfo);
   }
@@ -1485,7 +1473,7 @@ public abstract class DaikonVariableInfo
    */
   /*@RequiresNonNull("#1.clazz")*/
   protected void addChildNodes(
-     final ClassInfo cinfo, Class<?> type, String theName, String offset, int depthRemaining) {
+      ClassInfo cinfo, Class<?> type, String theName, String offset, int depthRemaining) {
 
     if(Runtime.working_debug)
         System.out.printf("\t\t\tenter >>>>> [Chicory.DaikonVariableInfo.addChildNodes()] name: %s, offset: %s type:%s%n",
