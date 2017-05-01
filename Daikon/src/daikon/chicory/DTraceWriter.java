@@ -290,9 +290,12 @@ public class DTraceWriter extends DaikonWriter {
       if (!(curInfo instanceof StaticObjInfo)) {
         outFile.println(curInfo.getName());
         outFile.println(curInfo.getDTraceValueString(val));
-        if(Runtime.working_debug)
+        if(Runtime.working_debug) {
+        	String v = curInfo.getDTraceValueString(val);
+            String single_line_value = v.replaceAll("[\r\n]+", " <|> ");
             System.out.printf ("\t\t\t  --variable %s [%d]= %s%n",
             			  curInfo.getName(), curInfo.children.size(), single_line_value);
+        }
       }
 
       if (debug_vars) {
