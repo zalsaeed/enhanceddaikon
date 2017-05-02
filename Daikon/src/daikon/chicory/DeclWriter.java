@@ -471,9 +471,9 @@ public class DeclWriter extends DaikonWriter {
             ((comp_info == null) ? null : comp_info.find_ppt(name)));
       }
       
+      outFile.println();
+      
     }
-    
-    outFile.println();
     
     if (debug) System.out.println("Exit print_class_ppt");
       

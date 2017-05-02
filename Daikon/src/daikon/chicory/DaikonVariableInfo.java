@@ -1337,11 +1337,11 @@ public abstract class DaikonVariableInfo
 	   
 	   if(genericFieldType instanceof ParameterizedType){
 		   ParameterizedType aType = (ParameterizedType) genericFieldType;
-		   Type[] fieldArgTypes = aType.getActualTypeArguments();
+		   Type[] fieldArgTypes = aType.getActualTypeArguments(); //getActualTypeArguments
 		   if(Runtime.working_debug)
 			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Field args types: " + fieldArgTypes);
 		   for(Type fieldArgType : fieldArgTypes){
-			   Class fieldArgClass = (Class) fieldArgType;
+			   Class<?> fieldArgClass = (Class<?>) fieldArgType;
 			   if (!fieldArgClass.isPrimitive()){
 				   if(Runtime.working_debug)
 					   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive." + fieldArgClass.getTypeName());
