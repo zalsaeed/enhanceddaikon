@@ -1240,13 +1240,13 @@ public abstract class DaikonVariableInfo
         	    * Tracking elements of same type issue:
         	    * 
         	    * Tracking the ID of the elements this way doesn't guarantee that we are tracking the same element 
-        	    * each time we observe this list/collection. It is possible that the order of elements would change and thus 
-        	    * all IDs would change and cause confusion. Also, it is possible that one element gets deleted and elements after 
-        	    * it get shifted one position to the left, hence change their IDs too. The only way to track these elements and 
-        	    * make sure which element is deleted or shifted is by using the hashcode of the object for tracking. And keeping 
-        	    * it in our records for later possible comparison. However, even this solution has some flaws. First, it is expensive
-        	    * to keep track of collections in memory. Second, elements of same object type could have same hashcode, thus the 
-        	    * hashcode is not unique. 
+        	    * each time we observe this list/collection. It is possible that the order of elements would change and
+        	    * thus all IDs would change and cause confusion. Also, it is possible that one element gets deleted and
+        	    * elements after it get shifted one position to the left, hence change their IDs too. The only way to
+        	    * track these elements and make sure which element is deleted or shifted is by using the hashcode of
+        	    * the object for tracking. And keeping it in our records for later possible comparison. However, even
+        	    * this solution has some flaws. First, it is expensive to keep track of collections in memory. Second,
+        	    * elements of same object type could have same hashcode, thus the hashcode is not unique. 
         	    */
         	   
         	   if(Runtime.working_debug){
@@ -1341,19 +1341,28 @@ public abstract class DaikonVariableInfo
 		   if(Runtime.working_debug)
 			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Field args types: " + fieldArgTypes);
 		   for(Type fieldArgType : fieldArgTypes){
-			   Class<?> fieldArgClass = (Class<?>) fieldArgType;
-			   if (!fieldArgClass.isPrimitive()){
-				   if(Runtime.working_debug)
-					   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive." + fieldArgClass.getTypeName());
-				   //Go over each object (e.g. in a list) and get its fields.
+			   if(fieldArgType instanceof ParameterizedType) { //store it as it is
 				   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
 					   //TODO check if the objects in list are primitive values
 					   Object element = iter.next();
 					   element.getClass();
-					   listOfElements.add(element);   
+					   listOfElements.add(element);
 				   }
-			   }   
-		   }   
+			   } else { // cast it to class to check oif it is primitive 
+				   Class<?> fieldArgClass = (Class<?>) fieldArgType;
+				   if (!fieldArgClass.isPrimitive()){
+					   if(Runtime.working_debug)
+						   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive." + fieldArgClass.getTypeName());
+					   //Go over each object (e.g. in a list) and get its fields.
+					   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
+						   //TODO check if the objects in list are primitive values
+						   Object element = iter.next();
+						   element.getClass();
+						   listOfElements.add(element);   
+					   }
+				   }
+			   }
+		   }
 	   }
 	   
 	   if(accessChanged)
