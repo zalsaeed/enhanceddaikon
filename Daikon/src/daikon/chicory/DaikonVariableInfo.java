@@ -1341,7 +1341,7 @@ public abstract class DaikonVariableInfo
 		   if(Runtime.working_debug)
 			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Field args types: " + fieldArgTypes);
 		   for(Type fieldArgType : fieldArgTypes){
-			   if(fieldArgType instanceof ParameterizedType) { //store it as it is
+			   if(fieldArgType instanceof ParameterizedType) { //(e.g. List<Hashtable<String, String>>) store it as it is
 				   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
 					   //TODO check if the objects in list are primitive values
 					   Object element = iter.next();
