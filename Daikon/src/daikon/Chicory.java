@@ -343,6 +343,7 @@ public class Chicory {
       //cmdlist.add("-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=8000 -Djava.compiler=NONE");
     }
 
+    cmdlist.add("-Xss265m");
     cmdlist.add("-cp");
     cmdlist.add(cp);
     cmdlist.add("-ea");
