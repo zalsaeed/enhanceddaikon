@@ -16,6 +16,7 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -48,17 +49,19 @@ public abstract class RangeFloat extends SingleFloat {
 
   /**
    * Check that instantiation is ok.  The type must be integral
-   * (not boolean or hash code)
+   * (not boolean or hash code).
    */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-    if (!vis[0].file_rep_type.baseIsFloat())
-      return (false);
+    if (!vis[0].file_rep_type.baseIsFloat()) {
+      return false;
+    }
 
-    return (true);
+    return true;
   }
 
   /**
@@ -68,25 +71,28 @@ public abstract class RangeFloat extends SingleFloat {
    * get_format_str().  Instances of %var1% are replaced by the variable
    * name in the specified format.
    */
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied RangeFloat this,*/ OutputFormat format) {
 
     String fmt_str = get_format_str (format);
 
     VarInfo var1 = ppt.var_infos[0];
     String v1 = null;
 
-    if (v1 == null)
+    if (v1 == null) {
       v1 = var1.name_using(format);
+    }
 
     fmt_str = UtilMDE.replaceString(fmt_str, "%var1%", v1);
-    return (fmt_str);
+    return fmt_str;
   }
 
   public InvariantStatus check_modified (double x, int count) {
-    if (eq_check (x))
-      return (InvariantStatus.NO_CHANGE);
-    else
-      return (InvariantStatus.FALSIFIED);
+    if (eq_check (x)) {
+      return InvariantStatus.NO_CHANGE;
+    } else {
+      return InvariantStatus.FALSIFIED;
+    }
   }
 
   public InvariantStatus add_modified (double x, int count) {
@@ -97,11 +103,13 @@ public abstract class RangeFloat extends SingleFloat {
     return CONFIDENCE_JUSTIFIED;
   }
 
-  /*@Pure*/ public boolean isSameFormula (Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula (Invariant other) {
     assert other.getClass() == getClass();
-    return (true);
+    return true;
   }
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -118,7 +126,7 @@ public abstract class RangeFloat extends SingleFloat {
 
   /**
    * Looks for a OneOf invariant over vis.  Used by Even and PowerOfTwo
-   * to dynamically suppress those invariants if a OneOf exists
+   * to dynamically suppress those invariants if a OneOf exists.
    */
   protected /*@Nullable*/ OneOfFloat find_oneof (VarInfo[] vis) {
     return (OneOfFloat) ppt.parent.find_inv_by_class (vis, OneOfFloat.class);
@@ -128,7 +136,7 @@ public abstract class RangeFloat extends SingleFloat {
    * Return a format string for the specified output format.  Each instance
    * of %varN% will be replaced by the correct name for varN.
    */
-  public abstract String get_format_str (OutputFormat format);
+  public abstract String get_format_str (/*>>>@GuardSatisfied RangeFloat this,*/ OutputFormat format);
 
   /**
    * Returns true if x and y don't invalidate the invariant.
@@ -137,7 +145,7 @@ public abstract class RangeFloat extends SingleFloat {
 
   /**
    * Returns a list of prototypes of all of the range
-   * invariants
+   * invariants.
    */
   public static List</*@Prototype*/ Invariant> get_proto_all () {
 
@@ -148,7 +156,7 @@ public abstract class RangeFloat extends SingleFloat {
     result.add (GreaterEqualZero.get_proto());
     result.add (GreaterEqual64.get_proto());
 
-    return (result);
+    return result;
   }
 
   /**
@@ -173,26 +181,27 @@ public abstract class RangeFloat extends SingleFloat {
 
     private static /*@Prototype*/ EqualZero proto = new /*@Prototype*/ EqualZero ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ EqualZero get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return OneOfFloat.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public EqualZero instantiate_dyn (/*>>> @Prototype EqualZero this,*/ PptSlice slice) {
       return new EqualZero (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ 0 %var1%)");
-      else
-        return ("%var1% == 0");
+    public String get_format_str (/*>>>@GuardSatisfied EqualZero this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ 0 %var1%)";
+      } else {
+        return "%var1% == 0";
+      }
     }
 
     public boolean eq_check (double x) {
@@ -203,7 +212,7 @@ public abstract class RangeFloat extends SingleFloat {
   /**
    * Internal invariant representing double scalars that are equal
    * to one.  Used for non-instantiating suppressions.  Will never
-   * print since OneOf accomplishes the same thing
+   * print since OneOf accomplishes the same thing.
    */
   public static class EqualOne extends RangeFloat {
 
@@ -222,26 +231,27 @@ public abstract class RangeFloat extends SingleFloat {
 
     private static /*@Prototype*/ EqualOne proto = new /*@Prototype*/ EqualOne ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ EqualOne get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return OneOfFloat.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public EqualOne instantiate_dyn (/*>>> @Prototype EqualOne this,*/ PptSlice slice) {
       return new EqualOne (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ 1 %var1%)");
-      else
-        return ("%var1% == 1");
+    public String get_format_str (/*>>>@GuardSatisfied EqualOne this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ 1 %var1%)";
+      } else {
+        return "%var1% == 1";
+      }
     }
 
     public boolean eq_check (double x) {
@@ -252,7 +262,7 @@ public abstract class RangeFloat extends SingleFloat {
   /**
    * Internal invariant representing double scalars that are equal
    * to minus one.  Used for non-instantiating suppressions.  Will never
-   * print since OneOf accomplishes the same thing
+   * print since OneOf accomplishes the same thing.
    */
   public static class EqualMinusOne extends RangeFloat {
 
@@ -271,26 +281,27 @@ public abstract class RangeFloat extends SingleFloat {
 
     private static /*@Prototype*/ EqualMinusOne proto = new /*@Prototype*/ EqualMinusOne ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ EqualMinusOne get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return OneOfFloat.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public EqualMinusOne instantiate_dyn (/*>>> @Prototype EqualMinusOne this,*/ PptSlice slice) {
       return new EqualMinusOne (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ -1 %var1%)");
-      else
-        return ("%var1% == -1");
+    public String get_format_str (/*>>>@GuardSatisfied EqualMinusOne this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ -1 %var1%)";
+      } else {
+        return "%var1% == -1";
+      }
     }
 
     public boolean eq_check (double x) {
@@ -301,7 +312,7 @@ public abstract class RangeFloat extends SingleFloat {
   /**
    * Internal invariant representing double scalars that are greater
    * than or equal to 0.  Used for non-instantiating suppressions.  Will never
-   * print since Bound accomplishes the same thing
+   * print since Bound accomplishes the same thing.
    */
   public static class GreaterEqualZero extends RangeFloat {
 
@@ -320,26 +331,27 @@ public abstract class RangeFloat extends SingleFloat {
 
     private static /*@Prototype*/ GreaterEqualZero proto = new /*@Prototype*/ GreaterEqualZero ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ GreaterEqualZero get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return LowerBoundFloat.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public GreaterEqualZero instantiate_dyn (/*>>> @Prototype GreaterEqualZero this,*/ PptSlice slice) {
       return new GreaterEqualZero (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(>= %var1% 0)");
-      else
-        return ("%var1% >= 0");
+    public String get_format_str (/*>>>@GuardSatisfied GreaterEqualZero this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(>= %var1% 0)";
+      } else {
+        return "%var1% >= 0";
+      }
     }
 
     public boolean eq_check (double x) {
@@ -350,7 +362,7 @@ public abstract class RangeFloat extends SingleFloat {
   /**
    * Internal invariant representing double scalars that are greater
    * than or equal to 64.  Used for non-instantiating suppressions.  Will never
-   * print since Bound accomplishes the same thing
+   * print since Bound accomplishes the same thing.
    */
   public static class GreaterEqual64 extends RangeFloat {
 
@@ -369,26 +381,27 @@ public abstract class RangeFloat extends SingleFloat {
 
     private static /*@Prototype*/ GreaterEqual64 proto = new /*@Prototype*/ GreaterEqual64 ();
 
-    /** returns the prototype invariant **/
+    /** returns the prototype invariant */
     public static /*@Prototype*/ GreaterEqual64 get_proto() {
       return proto;
     }
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() {
       return LowerBoundFloat.dkconfig_enabled;
     }
 
-    /** instantiates the invariant on the specified slice **/
+    /** instantiates the invariant on the specified slice */
     public GreaterEqual64 instantiate_dyn (/*>>> @Prototype GreaterEqual64 this,*/ PptSlice slice) {
       return new GreaterEqual64 (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(>= 64 %var1%)");
-      else
-        return ("%var1% >= 64");
+    public String get_format_str (/*>>>@GuardSatisfied GreaterEqual64 this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(>= %var1% 64)";
+      } else {
+        return "%var1% >= 64";
+      }
     }
 
     public boolean eq_check (double x) {

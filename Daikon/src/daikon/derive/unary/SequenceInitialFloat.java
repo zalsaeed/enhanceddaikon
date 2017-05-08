@@ -15,7 +15,7 @@ import org.checkerframework.dataflow.qual.*;
 /**
  * This represents a sequence element at a particular offset (such as
  * first, second, penultimate, last).
- **/
+ */
 public final class SequenceInitialFloat
   extends UnaryDerivation
 {
@@ -28,7 +28,7 @@ public final class SequenceInitialFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SequenceInitial derived variables should be generated.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   /** Typically 0, 1, -1, or -2.  A negative number means counting from end. */
@@ -40,10 +40,11 @@ public final class SequenceInitialFloat
   public SequenceInitialFloat(VarInfo vi, int index) {
     super(vi);
     this.index = index;
-    if (index < 0)
+    if (index < 0) {
       minLength = -index;
-    else
+    } else {
       minLength = index+1;
+    }
   }
 
   public VarInfo seqvar() {
@@ -69,22 +70,26 @@ public final class SequenceInitialFloat
 
   public ValueAndModified computeValueAndModifiedImpl(ValueTuple vt) {
     int source_mod = base.getModified(vt);
-    if (source_mod == ValueTuple.MISSING_NONSENSICAL)
+    if (source_mod == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     Object val = base.getValue(vt);
-    if (val == null)
+    if (val == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     if (base.rep_type == ProglangType.DOUBLE_ARRAY) {
       double[] val_array = (double[])val;
-      if (val_array.length < minLength)
+      if (val_array.length < minLength) {
         return ValueAndModified.MISSING_NONSENSICAL;
+      }
       int real_index = (index<0 ? val_array.length + index : index);
       return new ValueAndModified(Intern.internedDouble(val_array[real_index]), source_mod);
     } else {
       @SuppressWarnings("interning") // object invariant: array elements are interned
       /*@Interned*/ Object[] val_array = (/*@Interned*/ Object[])val;
-      if (val_array.length < minLength)
+      if (val_array.length < minLength) {
         return ValueAndModified.MISSING_NONSENSICAL;
+      }
       int real_index = (index<0 ? val_array.length + index : index);
       return new ValueAndModified(val_array[real_index], source_mod);
     }
@@ -94,13 +99,15 @@ public final class SequenceInitialFloat
     return VarInfo.make_subscript (base, null, index);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     return (other instanceof SequenceInitialFloat)
       && (((SequenceInitialFloat) other).index == this.index);
   }
 
-  /** Returns the ESC name **/
-  /*@SideEffectFree*/ public String esc_name(String index) {
+  /** Returns the ESC name */
+  /*@SideEffectFree*/
+  public String esc_name(String index) {
     return String.format ("%s[0]", base.esc_name());
   }
 

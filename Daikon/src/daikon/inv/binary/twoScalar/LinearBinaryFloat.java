@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -22,7 +23,7 @@ import typequals.*;
  * The constants <code>a</code>, <code>b</code> and <code>c</code> are
  * mutually relatively prime,
  * and the constant <code>a</code> is always positive.
- **/
+ */
 public class LinearBinaryFloat
   extends TwoFloat
 {
@@ -35,8 +36,8 @@ public class LinearBinaryFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff LinearBinary invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public LinearBinaryCoreFloat core;
 
@@ -55,31 +56,33 @@ public class LinearBinaryFloat
 
   private static /*@Prototype*/ LinearBinaryFloat proto = new /*@Prototype*/ LinearBinaryFloat ();
 
-  /** Returns a prototype LinearBinaryFloat invariant **/
+  /** Returns a prototype LinearBinaryFloat invariant */
   public static /*@Prototype*/ LinearBinaryFloat get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** LinearBinary is only valid on integral types **/
+  /** LinearBinary is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected LinearBinaryFloat instantiate_dyn (/*>>> @Prototype LinearBinaryFloat this,*/ PptSlice slice) {
     return new LinearBinaryFloat(slice);
   }
 
-  /*@SideEffectFree*/ public LinearBinaryFloat clone() {
+  /*@SideEffectFree*/
+  public LinearBinaryFloat clone(/*>>>@GuardSatisfied LinearBinaryFloat this*/) {
     LinearBinaryFloat result = (LinearBinaryFloat) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -91,18 +94,20 @@ public class LinearBinaryFloat
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LinearBinaryFloat this*/) {
     return "LinearBinaryFloat" + varNames() + ": "
       + "falsified=" + falsified
       + "; " + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied LinearBinaryFloat this,*/ OutputFormat format) {
     return core.format_using(format, var1().name_using(format),
                              var2().name_using(format));
   }
 
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive() {
     return core.isActive();
   }
 
@@ -114,9 +119,9 @@ public class LinearBinaryFloat
    * Merge the invariants in invs to form a new invariant.  Each must be
    * a LinearBinaryFloat invariant.  The work is done by the LinearBinary core
    *
-   * @param invs        List of invariants to merge.  They should all be
+   * @param invs        list of invariants to merge.  They should all be
    *                    permuted to match the variable order in parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -129,10 +134,11 @@ public class LinearBinaryFloat
     // Merge the cores and build a new invariant containing the merged core
     LinearBinaryFloat result = new LinearBinaryFloat (parent_ppt);
     LinearBinaryCoreFloat newcore = core.merge (cores, result);
-    if (newcore == null)
-      return (null);
+    if (newcore == null) {
+      return null;
+    }
     result.core = newcore;
-    return (result);
+    return result;
   }
 
   public InvariantStatus check_modified(double x, double y, int count) {
@@ -143,7 +149,7 @@ public class LinearBinaryFloat
     return core.add_modified(x, y, count);
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LinearBinaryFloat this*/) {
     return core.enoughSamples();
   }
 
@@ -151,7 +157,8 @@ public class LinearBinaryFloat
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return true;
   }
 
@@ -212,11 +219,13 @@ public class LinearBinaryFloat
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((LinearBinaryFloat) other).core);
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof LinearBinaryFloat) {
       return core.isExclusiveFormula(((LinearBinaryFloat) other).core);
     }
@@ -227,8 +236,9 @@ public class LinearBinaryFloat
   public static /*@Nullable*/ LinearBinaryFloat find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof LinearBinaryFloat)
+      if (inv instanceof LinearBinaryFloat) {
         return (LinearBinaryFloat) inv;
+      }
     }
     return null;
   }

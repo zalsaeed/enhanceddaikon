@@ -20,6 +20,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -27,7 +28,8 @@ import typequals.*;
 
 /**
  * Represents an invariant of &ge; between two String scalars.
- **/
+ * Prints as <code>x &ge; y</code>.
+ */
 public final class StringGreaterEqual
   extends TwoString {
 
@@ -40,8 +42,8 @@ public final class StringGreaterEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff StringGreaterEqual invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.twoScalar.StringGreaterEqual");
@@ -56,21 +58,22 @@ public final class StringGreaterEqual
 
   private static /*@Prototype*/ StringGreaterEqual proto = new /*@Prototype*/ StringGreaterEqual ();
 
-  /** Returns the prototype invariant for StringGreaterEqual **/
+  /** Returns the prototype invariant for StringGreaterEqual */
   public static /*@Prototype*/ StringGreaterEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Returns whether or not the specified var types are valid for StringGreaterEqual **/
+  /** Returns whether or not the specified var types are valid for StringGreaterEqual */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
         boolean result = (! (vis[0].has_typeof() || vis[0].has_typeof()));
         // System.out.printf("StringGreaterEqual.instantiate_ok(");
@@ -81,7 +84,7 @@ public final class StringGreaterEqual
         return result;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected StringGreaterEqual instantiate_dyn (/*>>> @Prototype StringGreaterEqual this,*/ PptSlice slice) {
 
     return new StringGreaterEqual (slice);
@@ -98,7 +101,7 @@ public final class StringGreaterEqual
 
   /**
    * Returns the class that corresponds to this class with its variable
-   * order swapped
+   * order swapped.
    */
   public static Class<? extends Invariant> swap_class () {
     return StringLessEqual.class;
@@ -111,25 +114,27 @@ public final class StringGreaterEqual
   public static /*@Nullable*/ StringGreaterEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof StringGreaterEqual)
+      if (inv instanceof StringGreaterEqual) {
         return (StringGreaterEqual) inv;
+      }
     }
 
     // If the invariant is suppressed, create it
     if ((suppressions != null) && suppressions.suppressed (ppt)) {
       StringGreaterEqual inv = proto.instantiate_dyn (ppt);
       // System.out.printf ("%s is suppressed in ppt %s%n", inv.format(), ppt.name());
-      return (inv);
+      return inv;
     }
 
     return null;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied StringGreaterEqual this*/) {
     return "StringGreaterEqual" + varNames();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied StringGreaterEqual this,*/ OutputFormat format) {
 
     String var1name = var1().name_using(format);
     String var2name = var2().name_using(format);
@@ -173,9 +178,10 @@ public final class StringGreaterEqual
   }
 
   public InvariantStatus add_modified(/*@Interned*/ String v1, /*@Interned*/ String v2, int count) {
-    if (logDetail() || debug.isLoggable(Level.FINE))
+    if (logDetail() || debug.isLoggable(Level.FINE)) {
       log (debug, "add_modified (" + v1 + ", " + v2 + ",  "
            + "ppt.num_values = " + ppt.num_values() + ")");
+    }
     if ((logOn() || debug.isLoggable(Level.FINE)) &&
         check_modified(v1, v2, count) == InvariantStatus.FALSIFIED)
       log (debug, "destroy in add_modified (" + v1 + ", " + v2 + ",  "
@@ -202,13 +208,15 @@ public final class StringGreaterEqual
 
   // For Comparison interface
   public double eq_confidence() {
-    if (isExact())
+    if (isExact()) {
       return getConfidence();
-    else
+    } else {
       return Invariant.CONFIDENCE_NEVER;
+    }
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return false;
   }
@@ -233,16 +241,19 @@ public final class StringGreaterEqual
     return super.add(v1, v2, mod_index, count);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     // Also ought to check against LinearBinary, etc.
 
-      if (other instanceof StringLessThan)
+      if (other instanceof StringLessThan) {
         return true;
+      }
 
     return false;
   }
@@ -287,10 +298,10 @@ public final class StringGreaterEqual
     return null;
   } // isObviousDynamically
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** Returns the non-instantiating suppressions for this invariant. **/
+  /** Returns the non-instantiating suppressions for this invariant. */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
     if (suppressions == null) {
@@ -312,7 +323,7 @@ public final class StringGreaterEqual
 
         });
     }
-    return (suppressions);
+    return suppressions;
   }
 
 }

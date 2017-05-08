@@ -20,6 +20,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -27,7 +28,8 @@ import typequals.*;
 
 /**
  * Represents an invariant of != between two String scalars.
- **/
+ * Prints as <code>x != y</code>.
+ */
 public final class StringNonEqual
   extends TwoString {
 
@@ -40,8 +42,8 @@ public final class StringNonEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff StringNonEqual invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.twoScalar.StringNonEqual");
@@ -56,27 +58,28 @@ public final class StringNonEqual
 
   private static /*@Prototype*/ StringNonEqual proto = new /*@Prototype*/ StringNonEqual ();
 
-  /** Returns the prototype invariant for StringNonEqual **/
+  /** Returns the prototype invariant for StringNonEqual */
   public static /*@Prototype*/ StringNonEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Returns whether or not the specified var types are valid for StringNonEqual **/
+  /** Returns whether or not the specified var types are valid for StringNonEqual */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
         boolean result = (! (vis[0].has_typeof() ^ vis[0].has_typeof()));
         return result;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected StringNonEqual instantiate_dyn (/*>>> @Prototype StringNonEqual this,*/ PptSlice slice) {
 
     return new StringNonEqual (slice);
@@ -88,8 +91,9 @@ public final class StringNonEqual
       return this;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
-    return (true);
+  /*@Pure*/
+  public boolean is_symmetric() {
+    return true;
   }
 
   // JHP: this should be removed in favor of checks in PptTopLevel
@@ -99,25 +103,27 @@ public final class StringNonEqual
   public static /*@Nullable*/ StringNonEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof StringNonEqual)
+      if (inv instanceof StringNonEqual) {
         return (StringNonEqual) inv;
+      }
     }
 
     // If the invariant is suppressed, create it
     if ((suppressions != null) && suppressions.suppressed (ppt)) {
       StringNonEqual inv = proto.instantiate_dyn (ppt);
       // System.out.printf ("%s is suppressed in ppt %s%n", inv.format(), ppt.name());
-      return (inv);
+      return inv;
     }
 
     return null;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied StringNonEqual this*/) {
     return "StringNonEqual" + varNames();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied StringNonEqual this,*/ OutputFormat format) {
 
     String var1name = var1().name_using(format);
     String var2name = var2().name_using(format);
@@ -170,9 +176,10 @@ public final class StringNonEqual
   }
 
   public InvariantStatus add_modified(/*@Interned*/ String v1, /*@Interned*/ String v2, int count) {
-    if (logDetail() || debug.isLoggable(Level.FINE))
+    if (logDetail() || debug.isLoggable(Level.FINE)) {
       log (debug, "add_modified (" + v1 + ", " + v2 + ",  "
            + "ppt.num_values = " + ppt.num_values() + ")");
+    }
     if ((logOn() || debug.isLoggable(Level.FINE)) &&
         check_modified(v1, v2, count) == InvariantStatus.FALSIFIED)
       log (debug, "destroy in add_modified (" + v1 + ", " + v2 + ",  "
@@ -199,13 +206,15 @@ public final class StringNonEqual
 
   // For Comparison interface
   public double eq_confidence() {
-    if (isExact())
+    if (isExact()) {
       return getConfidence();
-    else
+    } else {
       return Invariant.CONFIDENCE_NEVER;
+    }
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return false;
   }
@@ -230,16 +239,19 @@ public final class StringNonEqual
     return super.add(v1, v2, mod_index, count);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     // Also ought to check against LinearBinary, etc.
 
-      if (other instanceof StringEqual)
+      if (other instanceof StringEqual) {
         return true;
+      }
 
     return false;
   }
@@ -298,10 +310,10 @@ public final class StringNonEqual
     return null;
   } // isObviousDynamically
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** Returns the non-instantiating suppressions for this invariant. **/
+  /** Returns the non-instantiating suppressions for this invariant. */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
     if (suppressions == null) {
@@ -323,7 +335,7 @@ public final class StringNonEqual
 
         });
     }
-    return (suppressions);
+    return suppressions;
   }
 
 }

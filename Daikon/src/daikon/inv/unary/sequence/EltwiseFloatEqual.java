@@ -7,12 +7,12 @@ import daikon.derive.*;
 import daikon.derive.binary.*;
 import daikon.inv.*;
 import daikon.Quantify.QuantFlags;
-// import daikon.inv.binary.twoScalar.CORECLASS;
 import plume.*;
 import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -21,7 +21,7 @@ import typequals.*;
   /**
    * Represents equality between adjacent elements (x[i], x[i+1]) of a
    * double sequence.  Prints as <code>x[] elements are equal</code>.
-   **/
+   */
 
 public class EltwiseFloatEqual
   extends EltwiseFloatComparison
@@ -35,8 +35,8 @@ public class EltwiseFloatEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff EltwiseIntComparison invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   static final boolean debugEltwiseIntComparison = false;
 
@@ -50,41 +50,44 @@ public class EltwiseFloatEqual
 
   private static /*@Prototype*/ EltwiseFloatEqual proto = new /*@Prototype*/ EltwiseFloatEqual ();
 
-  /** Returns the prototype invariant for EltwiseFloatEqual **/
+  /** Returns the prototype invariant for EltwiseFloatEqual */
   public static /*@Prototype*/ EltwiseFloatEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Non-equality EltwiseFloatEqual invariants are only valid on integral types **/
+  /** Non-equality EltwiseFloatEqual invariants are only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate the invariant on the specified slice **/
+  /** Instantiate the invariant on the specified slice */
   protected EltwiseFloatEqual instantiate_dyn (/*>>> @Prototype EltwiseFloatEqual this,*/ PptSlice slice) {
     return new EltwiseFloatEqual(slice);
   }
 
-  /*@SideEffectFree*/ public EltwiseFloatEqual clone() {
+  /*@SideEffectFree*/
+  public EltwiseFloatEqual clone(/*>>>@GuardSatisfied EltwiseFloatEqual this*/) {
     EltwiseFloatEqual result = (EltwiseFloatEqual) super.clone();
     return result;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied EltwiseFloatEqual this*/) {
     return "EltwiseFloatEqual" + varNames() + ": "
       + "falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied EltwiseFloatEqual this,*/ OutputFormat format) {
     if (format.isJavaFamily()) return format_java_family(format);
 
     if (format == OutputFormat.DAIKON) return format_daikon();
@@ -95,7 +98,7 @@ public class EltwiseFloatEqual
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied EltwiseFloatEqual this*/) {
     if (debugEltwiseIntComparison) {
       System.out.println(repr());
     }
@@ -103,23 +106,23 @@ public class EltwiseFloatEqual
     return (var().name() + " sorted by ==");
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied EltwiseFloatEqual this*/) {
     String[] form = VarInfo.esc_quantify (false, var(), var());
 
       return form[0] + "(" + form[1] + " == " + form[2] + ")" + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied EltwiseFloatEqual this,*/ OutputFormat format) {
     return "daikon.Quant.eltwiseEqual(" + var().name_using(format) + ")";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied EltwiseFloatEqual this*/) {
     String[] split = var().csharp_array_split();
     String name = var().csharp_name();
     return "Contract.ForAll(0, " + split[0] + ".Count()-1, i => " + split[0] + "[i]" + split[1] + " == " + split[0] + "[i+1]" + split[1] + ")";
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied EltwiseFloatEqual this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.adjacent(),
                                                var(), var());
 
@@ -154,12 +157,14 @@ public class EltwiseFloatEqual
 
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
     return true;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return (other instanceof EltwiseFloatEqual);
   }
 
@@ -167,12 +172,14 @@ public class EltwiseFloatEqual
   // Also, reasonably complicated, need to ensure exact correctness, not sure if the
   // regression tests test this functionality
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     // This whole approach is wrong in the case when the sequence can
     // ever consist of only one element.  For now, just forget
     // it. -SMcC
-    if (true)
+    if (true) {
       return false;
+    }
 
     if (other instanceof EltwiseFloatComparison) {
 
@@ -188,8 +195,9 @@ public class EltwiseFloatEqual
   public static /*@Nullable*/ EltwiseFloatEqual find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof EltwiseFloatEqual)
+      if (inv instanceof EltwiseFloatEqual) {
         return (EltwiseFloatEqual) inv;
+      }
     }
     return null;
   }
@@ -273,10 +281,11 @@ public class EltwiseFloatEqual
       // Find the slice with the full sequence, check for an invariant of this type
       PptSlice sliceToCheck;
 
-      if (deriv instanceof SequenceScalarSubsequence)
+      if (deriv instanceof SequenceScalarSubsequence) {
         sliceToCheck = ppt.parent.findSlice(((SequenceScalarSubsequence)deriv).seqvar());
-      else
+      } else {
         sliceToCheck = ppt.parent.findSlice(((SequenceFloatSubsequence)deriv).seqvar());
+      }
 
       if (sliceToCheck != null) {
         for (Invariant inv : sliceToCheck.invs) {

@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
@@ -20,7 +21,7 @@ import org.checkerframework.dataflow.qual.*;
  * predicate if we know that both sequences came from the same
  * original data structure.  Derived type is the same as that of
  * the first sequence.
- **/
+ */
 public final class SequencesPredicate
   extends BinaryDerivation
 {
@@ -29,7 +30,7 @@ public final class SequencesPredicate
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20020122L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug
     = Logger.getLogger("daikon.derive.binary.SequencesPredicate");
 
@@ -37,54 +38,54 @@ public final class SequencesPredicate
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SequencesPredicate derived variables should be generated.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   /**
    * Boolean.  True if Daikon should only generate derivations on fields
    * of the same data structure.
-   **/
+   */
   public static boolean dkconfig_fieldOnly = true;
 
   /**
    * Boolean.  True if Daikon should only generate derivations on boolean
    * predicates.
-   **/
+   */
   public static boolean dkconfig_boolOnly = true;
 
-  public VarInfo var1() { return base1; }
-  public VarInfo var2() { return base2; }
+  public VarInfo var1(/*>>>@GuardSatisfied SequencesPredicate this*/) { return base1; }
+  public VarInfo var2(/*>>>@GuardSatisfied SequencesPredicate this*/) { return base2; }
 
   /**
    * What value to predicate on.
-   **/
+   */
   private long choose;
 
   /**
    * Whether we keep or discard values that match this.choose.
-   **/
+   */
   private boolean keep;
 
   /**
    * What this predication is called (e.g. for choose == 0 and 1, use "false"
    * and "true").
-   **/
+   */
   private String name;
 
   /**
    * Create a new SequencesJoin derivation.
-   * @param vi1 The first of the two variables this is based on
-   * @param vi2 The second of the two variables this is based on
-   **/
+   * @param vi1 the first of the two variables this is based on
+   * @param vi2 the second of the two variables this is based on
+   */
   public SequencesPredicate(VarInfo vi1, VarInfo vi2, long argChoose, String argName) {
     this (vi1, vi2, argChoose, argName, true);
   }
 
   /**
    * Create a new SequencesJoin derivation.
-   * @param vi1 The first of the two variables this is based on
-   * @param vi2 The second of the two variables this is based on
-   **/
+   * @param vi1 the first of the two variables this is based on
+   * @param vi2 the second of the two variables this is based on
+   */
   public SequencesPredicate(VarInfo vi1, VarInfo vi2, long argChoose, String argName, boolean argKeep) {
     super(vi1, vi2);
     choose = argChoose;
@@ -97,8 +98,8 @@ public final class SequencesPredicate
    * var2 equals this.choose.  It is assumed that val1 and val2
    * originated from the same, larger data structure.
    * @param full_vt the value tuple of a program point to compute the
-   * derived value from.
-   **/
+   * derived value from
+   */
   public ValueAndModified computeValueAndModifiedImpl (ValueTuple full_vt) {
     Object val1 = var1().getValue(full_vt);
     Object val2 = var2().getValue(full_vt);
@@ -192,12 +193,14 @@ public final class SequencesPredicate
     return VarInfo.make_function ("predicateSlice", var1(), var2());
   }
 
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied SequencesPredicate this*/) {
     return "[SequencesPredicate of " + var1().name() + " " +
       var2().name() + " for " + name + "]";
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     // For Toh (tohn) to do.
     if (other instanceof SequencesPredicate) {
       SequencesPredicate o = (SequencesPredicate) other;
@@ -208,8 +211,9 @@ public final class SequencesPredicate
     return false;
   }
 
-  /** Returns the ESC name **/
-  /*@SideEffectFree*/ public String esc_name(String index) {
+  /** Returns the ESC name */
+  /*@SideEffectFree*/
+  public String esc_name(String index) {
     return String.format ("predicate(%s,%s)", var1().esc_name(),
                           var2().esc_name());
   }

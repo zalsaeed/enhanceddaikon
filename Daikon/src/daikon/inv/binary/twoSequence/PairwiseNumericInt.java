@@ -17,6 +17,7 @@ import plume.*;
 import java.util.*;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.checker.signature.qual.*;
 import org.checkerframework.dataflow.qual.*;
@@ -30,7 +31,7 @@ import typequals.*;
  * this file).  The subclass must provide the methods instantiate(),
  * check(), and format(). Symmetric functions should define
  * is_symmetric() to return true.
- **/
+ */
 public abstract class PairwiseNumericInt extends TwoSequence {
 
   // We are Serializable, so we specify a version to allow changes to
@@ -57,18 +58,19 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     ProglangType type1 = vis[0].file_rep_type;
     ProglangType type2 = vis[1].file_rep_type;
     if (!type1.baseIsIntegral() || !type2.baseIsIntegral()) {
-      return (false);
+      return false;
     }
 
-    return (true);
-  }
-
-  /*@Pure*/ public boolean isExact() {
     return true;
   }
 
-  public String repr() {
-    return UtilMDE.unqualified_name (getClass()) + ": " + format() +
+  /*@Pure*/
+  public boolean isExact() {
+    return true;
+  }
+
+  public String repr(/*>>>@GuardSatisfied PairwiseNumericInt this*/) {
+    return getClass().getSimpleName() + ": " + format() +
       (swap ? " [swapped]" : " [unswapped]");
   }
 
@@ -79,11 +81,13 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * get_format_str().  Instances of %varN% are replaced by the variable
    * name in the specified format.
    */
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied PairwiseNumericInt this,*/ OutputFormat format) {
 
-    if (ppt == null)
+    if (ppt == null) {
       return (String.format ("proto ppt [class %s] format %s", getClass(),
                              get_format_str (format)));
+    }
     String fmt_str = get_format_str (format);
     String v1 = null;
     String v2 = null;
@@ -140,10 +144,12 @@ public abstract class PairwiseNumericInt extends TwoSequence {
       } else if (format == OutputFormat.DAIKON) {
         fmt_str += " (elementwise)";
       }
-      if (v1 == null)
+      if (v1 == null) {
         v1 = var1().name_using(format);
-      if (v2 == null)
+      }
+      if (v2 == null) {
         v2 = var2().name_using(format);
+      }
 
     // Note that we do not use String.replaceAll here, because that's
     // inseparable from the regex library, and we don't want to have to
@@ -156,7 +162,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
       fmt_str = "[" + getClass() + "]" + fmt_str + " ("
              + var1().get_value_info() + ", " + var2().get_value_info() +  ")";
     }
-    return (fmt_str);
+    return fmt_str;
   }
 
   /**
@@ -167,9 +173,10 @@ public abstract class PairwiseNumericInt extends TwoSequence {
   public InvariantStatus check_modified(long[] x, long[] y,
                                         int count) {
     if (x.length != y.length) {
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         log ("Falsified - x length = %s y length = %s", x.length, y.length);
-      return (InvariantStatus.FALSIFIED);
+      }
+      return InvariantStatus.FALSIFIED;
     }
 
     if (Debug.logDetail()) {
@@ -180,16 +187,18 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     try {
       for (int i = 0; i < x.length; i++) {
         if (!eq_check (x[i], y[i])) {
-          if (Debug.logOn())
+          if (Debug.logOn()) {
             log ("Falsified - x[%s]=%s y[%s]=%s", i, x[i], i, y[i]);
-          return (InvariantStatus.FALSIFIED);
+          }
+          return InvariantStatus.FALSIFIED;
         }
       }
-      return (InvariantStatus.NO_CHANGE);
+      return InvariantStatus.NO_CHANGE;
     } catch (Exception e) {
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         log ("Falsified - exception %s", e);
-      return (InvariantStatus.FALSIFIED);
+      }
+      return InvariantStatus.FALSIFIED;
     }
   }
 
@@ -200,7 +209,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * if 'x[] op y[]'  This can't fully be handled as a suppression since
    * a suppression needs to insure that foo == bar as well.  But that
    * is not a requirement here (the fact that 'x[] op y[]' implies that
-   * foo == bar when x[] and y[] are not missing)
+   * foo == bar when x[] and y[] are not missing).
    */
   public /*@Nullable*/ DiscardInfo is_subsequence (VarInfo[] vis) {
 
@@ -208,10 +217,12 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     VarInfo v2 = var2(vis);
 
     // Make sure each var is a sequence subsequence
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceScalarSubsequence))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceScalarSubsequence))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceScalarSubsequence)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceScalarSubsequence)) {
+      return null;
+    }
 
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceScalarSubsequence der1 = (SequenceScalarSubsequence) v1.derived;
@@ -224,13 +235,15 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     // of the same length.  Thus any subsequence that starts from the
     // beginning or finishes at the end must end or start at the same
     // spot (or it would have been falsified when it didn't)
-    if (der1.from_start != der2.from_start)
-      return (null);
+    if (der1.from_start != der2.from_start) {
+      return null;
+    }
 
     // Look up this class over the sequence variables
     Invariant inv = find (getClass(), der1.seqvar(), der2.seqvar());
-    if (inv == null)
-      return (null);
+    if (inv == null) {
+      return null;
+    }
     return new DiscardInfo(this, DiscardCode.obvious, "Implied by " +
                            inv.format());
   }
@@ -239,8 +252,9 @@ public abstract class PairwiseNumericInt extends TwoSequence {
   public /*@Nullable*/ DiscardInfo isObviousDynamically (VarInfo[] vis) {
 
     DiscardInfo super_result = super.isObviousDynamically(vis);
-    if (super_result != null)
+    if (super_result != null) {
       return super_result;
+    }
 
       // any elementwise relation across subsequences is made obvious by
       // the same relation across the original sequence
@@ -257,11 +271,12 @@ public abstract class PairwiseNumericInt extends TwoSequence {
       StringBuffer why = null;
       for (int j = 0; j < antecedents.length; j++) {
         Invariant inv = antecedents[j].find ();
-        if (inv == null)
+        if (inv == null) {
           continue obvious_loop;
-        if (why == null)
+        }
+        if (why == null) {
           why = new StringBuffer(inv.format());
-        else {
+        } else {
           why.append(" and ");
           why.append(inv.format());
         }
@@ -269,7 +284,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
       return new DiscardInfo (this, DiscardCode.obvious, "Implied by " + why);
     }
 
-    return (null);
+    return null;
   }
 
   /**
@@ -298,7 +313,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * </pre>
    * NOTE: this is not currently used.  Many (if not all) of the missing
    * table cells above could be filled in with linear binary invariants
-   * (eg, m = n + 1)
+   * (eg, m = n + 1).
    */
   public /*@Nullable*/ InvDef array_sizes_eq (VarInfo v1, VarInfo v2) {
 
@@ -312,8 +327,9 @@ public abstract class PairwiseNumericInt extends TwoSequence {
 
     // If either variable is not derived, there is no possible invariant
     // (since we covered all of the direct size comparisons above)
-    if ((v1.derived == null) || (v2.derived == null))
-      return (null);
+    if ((v1.derived == null) || (v2.derived == null)) {
+      return null;
+    }
 
     // Get the sequence subsequence derivations
     SequenceScalarSubsequence v1_ss = (SequenceScalarSubsequence) v1.derived;
@@ -325,34 +341,37 @@ public abstract class PairwiseNumericInt extends TwoSequence {
         && (v1_ss.index_shift == v2_ss.index_shift))
       return (new InvDef (v1_ss.sclvar(), v2_ss.sclvar(), IntEqual.class));
 
-    return (null);
+    return null;
   }
 
   /**
    * Returns a variable that corresponds to the size of v.  Returns null
-   * if no such variable exists.  There are two cases that are
-   * not handled:  x[..n] with an index shift and x[n..]
+   * if no such variable exists.
+   *
+   * There are two cases that are
+   * not handled:  x[..n] with an index shift and x[n..].
    */
   public /*@Nullable*/ VarInfo get_array_size (VarInfo v) {
 
     assert v.rep_type.isArray();
 
-    if (v.derived == null)
+    if (v.derived == null) {
       return (v.sequenceSize());
-    else if (v.derived instanceof SequenceScalarSubsequence) {
+    } else if (v.derived instanceof SequenceScalarSubsequence) {
       SequenceScalarSubsequence ss = (SequenceScalarSubsequence) v.derived;
-      if (ss.from_start && (ss.index_shift == -1))
+      if (ss.from_start && (ss.index_shift == -1)) {
         return (ss.sclvar());
+      }
     }
 
-    return (null);
+    return null;
   }
 
   /**
    * Return a format string for the specified output format.  Each instance
    * of %varN% will be replaced by the correct name for varN.
    */
-  public abstract String get_format_str (OutputFormat format);
+  public abstract String get_format_str (/*>>>@GuardSatisfied PairwiseNumericInt this,*/ OutputFormat format);
 
   /**
    * Returns true if x and y don't invalidate the invariant.
@@ -381,7 +400,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
       result.add (BitwiseSubset.get_proto (true));
 
     // System.out.printf ("%s get proto: %s\n", PairwiseNumericInt.class, result);
-    return (result);
+    return result;
   }
 
   // suppressor definitions, used by many of the classes below
@@ -430,35 +449,35 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     private static /*@Prototype*/ Divides proto = new /*@Prototype*/ Divides (false);
     private static /*@Prototype*/ Divides proto_swap = new /*@Prototype*/ Divides (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ PairwiseNumericInt get_proto (boolean swap) {
       if (swap) {
-        return (proto_swap);
+        return proto_swap;
       } else {
-        return (proto);
+        return proto;
       }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff divides invariants should be considered. **/
-    public static boolean dkconfig_enabled = true;
+    /** Boolean.  True iff divides invariants should be considered. */
+    public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     protected Divides instantiate_dyn (/*>>> @Prototype Divides this,*/ PptSlice slice) {
       return new Divides (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ 0 (MOD %var1% %var2%))");
-      else if (format == OutputFormat.CSHARPCONTRACT)
-        return ("%var1% % %var2% == 0");
-      else
-
-        return ("%var1% % %var2% == 0");
+    public String get_format_str (/*>>>@GuardSatisfied Divides this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ 0 (MOD %var1% %var2%))";
+      } else if (format == OutputFormat.CSHARPCONTRACT) {
+        return "%var1% % %var2% == 0";
+      } else {
+        return "%var1% % %var2% == 0";
+      }
     }
 
     public boolean eq_check (long x, long y) {
@@ -487,11 +506,14 @@ public abstract class PairwiseNumericInt extends TwoSequence {
      */
     /*@Pure*/
     public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-      if (swap) return (suppressions_swap);
-      else return (suppressions);
+      if (swap) {
+        return suppressions_swap;
+      } else {
+        return suppressions;
+      }
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (Divides.class, false);
 
@@ -515,7 +537,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
      *
      * @return non-null value iff this invariant is obvious from
      *          other invariants in the same slice
-     **/
+     */
     /*@Pure*/
     public /*@Nullable*/ DiscardInfo isObviousDynamically(VarInfo[] vis) {
       // First call super type's method, and if it returns non-null, then
@@ -581,7 +603,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
   /**
    * Represents the square invariant between
    * corresponding elements of two sequences of long.  Prints as <code>x[] = y[]**2</code>.
-   **/
+   */
   public static class Square extends PairwiseNumericInt {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -599,37 +621,40 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     private static /*@Prototype*/ Square proto = new /*@Prototype*/ Square (false);
     private static /*@Prototype*/ Square proto_swap = new /*@Prototype*/ Square (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ Square get_proto (boolean swap) {
-      if (swap) return proto_swap;
-      else return proto;
+      if (swap) {
+        return proto_swap;
+      } else {
+        return proto;
+      }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff square invariants should be considered. **/
-    public static boolean dkconfig_enabled = true;
+    /** Boolean.  True iff square invariants should be considered. */
+    public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
     protected Square instantiate_dyn (/*>>> @Prototype Square this,*/ PptSlice slice) {
       return new Square (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ %var1% (* %var2% %var2))");
-      else if (format == OutputFormat.CSHARPCONTRACT)
+    public String get_format_str (/*>>>@GuardSatisfied Square this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ %var1% (* %var2% %var2))";
+      } else if (format == OutputFormat.CSHARPCONTRACT) {
         return "%var1% == %var2%*%var2%";
-      else if (format.isJavaFamily()) {
+      } else if (format.isJavaFamily()) {
 
-        return ("%var1% == %var2%*%var2%");
+        return "%var1% == %var2%*%var2%";
       } else {
-        return ("%var1% == %var2%**2");
+        return "%var1% == %var2%**2";
       }
     }
 
-    /** Check to see if x == y squared. **/
+    /** Check to see if x == y squared. */
     public boolean eq_check (long x, long y) {
       return ((x == y*y));
     }
@@ -651,7 +676,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * corresponding elements of two sequences of long; that is, when <code>x[]</code> is zero,
    * <code>y[]</code> is also zero.
    * Prints as <code>x[] = 0 &rArr; y[] = 0</code>.
-   **/
+   */
   public static class ZeroTrack extends PairwiseNumericInt {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -669,51 +694,56 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     private static /*@Prototype*/ ZeroTrack proto = new /*@Prototype*/ ZeroTrack (false);
     private static /*@Prototype*/ ZeroTrack proto_swap = new /*@Prototype*/ ZeroTrack (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ ZeroTrack get_proto (boolean swap) {
-      if (swap)
+      if (swap) {
         return proto_swap;
-      else
+      } else {
         return proto;
+      }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff zero-track invariants should be considered. **/
+    /** Boolean.  True iff zero-track invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     protected ZeroTrack instantiate_dyn (/*>>> @Prototype ZeroTrack this,*/ PptSlice slice) {
       return new ZeroTrack (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
+    public String get_format_str (/*>>>@GuardSatisfied ZeroTrack this,*/ OutputFormat format) {
       if (format == OutputFormat.SIMPLIFY) {
-        return ("(IMPLIES (EQ %var1% 0) (EQ %var2% 0))");
+        return "(IMPLIES (EQ %var1% 0) (EQ %var2% 0))";
       } else if (format.isJavaFamily() || format == OutputFormat.CSHARPCONTRACT) {
-        return ("(!(%var1% == 0)) || (%var2% == 0)");
+        return "(!(%var1% == 0)) || (%var2% == 0)";
       } else {
-        return ("(%var1% == 0) ==> (%var2% == 0)");
+        return "(%var1% == 0) ==> (%var2% == 0)";
       }
     }
 
     public boolean eq_check (long x, long y) {
-      if (x == 0)
+      if (x == 0) {
         return (y == 0);
-      else
-        return (true);
+      } else {
+        return true;
+      }
     }
 
     /** Returns a list of non-instantiating suppressions for this invariant. */
     /*@Pure*/
     public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-      if (swap) return (suppressions_swap);
-      else return (suppressions);
+      if (swap) {
+        return suppressions_swap;
+      } else {
+        return suppressions;
+      }
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (ZeroTrack.class, false);
 
@@ -733,7 +763,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
   /**
    * Represents the bitwise complement invariant between
    * corresponding elements of two sequences of long.  Prints as <code>x[] = ~y[]</code>.
-   **/
+   */
   public static class BitwiseComplement extends PairwiseNumericInt {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -750,38 +780,39 @@ public abstract class PairwiseNumericInt extends TwoSequence {
 
     private static /*@Prototype*/ BitwiseComplement proto = new /*@Prototype*/ BitwiseComplement ();
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ BitwiseComplement get_proto() {
-      return (proto);
+      return proto;
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff bitwise complement invariants should be considered. **/
+    /** Boolean.  True iff bitwise complement invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     protected BitwiseComplement instantiate_dyn (/*>>> @Prototype BitwiseComplement this,*/ PptSlice slice) {
       return new BitwiseComplement (slice);
     }
 
-    /*@Pure*/ public boolean is_symmetric() {
-      return (true);
+    /*@Pure*/
+    public boolean is_symmetric() {
+      return true;
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ %var1% (~ %var2%))");
-      else if (format == OutputFormat.CSHARPCONTRACT)
+    public String get_format_str (/*>>>@GuardSatisfied BitwiseComplement this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ %var1% (~ %var2%))";
+      } else if (format == OutputFormat.CSHARPCONTRACT) {
         return "%var1% == ~%var2%";
-      else
-
-        return ("%var1% == ~%var2%");
+      } else {
+        return "%var1% == ~%var2%";
+      }
     }
 
-    /** Check to see if x == ~y . **/
+    /** Check to see if x == ~y . */
     public boolean eq_check (long x, long y) {
       return ((x == ~y));
     }
@@ -791,7 +822,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * Represents the bitwise subset invariant between
    * corresponding elements of two sequences of long; that is, the bits of <code>y[]</code> are a subset of the
    * bits of <code>x[]</code>.  Prints as <code>x[] = y[] | x[]</code>.
-   **/
+   */
   public static class BitwiseSubset extends PairwiseNumericInt {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -809,36 +840,37 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     private static /*@Prototype*/ BitwiseSubset proto = new /*@Prototype*/ BitwiseSubset (false);
     private static /*@Prototype*/ BitwiseSubset proto_swap = new /*@Prototype*/ BitwiseSubset (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ BitwiseSubset get_proto (boolean swap) {
-      if (swap)
+      if (swap) {
         return proto_swap;
-      else
+      } else {
         return proto;
+      }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff bitwise subset invariants should be considered. **/
+    /** Boolean.  True iff bitwise subset invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     public BitwiseSubset instantiate_dyn (/*>>> @Prototype BitwiseSubset this,*/ PptSlice slice) {
       return new BitwiseSubset (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ %var1% (|java-bitwise-or| %var2% %var1%))");
-      else if (format == OutputFormat.DAIKON)
-        return ("%var2% is a bitwise subset of %var1%");
-      else if (format == OutputFormat.CSHARPCONTRACT)
+    public String get_format_str (/*>>>@GuardSatisfied BitwiseSubset this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ %var1% (|java-bitwise-or| %var2% %var1%))";
+      } else if (format == OutputFormat.DAIKON) {
+        return "%var2% is a bitwise subset of %var1%";
+      } else if (format == OutputFormat.CSHARPCONTRACT) {
         return "%var1% == (%var2% | %var1%)";
-      else
-
-        return ("%var1% == (%var2% | %var1%)");
+      } else {
+        return "%var1% == (%var2% | %var1%)";
+      }
     }
 
     public boolean eq_check (long x, long y) {
@@ -863,11 +895,14 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     /** Returns a list of non-instantiating suppressions for this invariant. */
     /*@Pure*/
     public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-      if (swap) return (suppressions_swap);
-      else return (suppressions);
+      if (swap) {
+        return suppressions_swap;
+      } else {
+        return suppressions;
+      }
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (BitwiseSubset.class, false);
 
@@ -885,7 +920,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * Represents the BitwiseAnd == 0 invariant between
    * corresponding elements of two sequences of long; that is, <code>x[]</code> and <code>y[]</code> have no
    * bits in common.  Prints as <code>x[] &amp; y[] == 0</code>.
-   **/
+   */
   public static class BitwiseAndZero extends PairwiseNumericInt {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -902,35 +937,36 @@ public abstract class PairwiseNumericInt extends TwoSequence {
 
     private static /*@Prototype*/ BitwiseAndZero proto = new /*@Prototype*/ BitwiseAndZero ();
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ BitwiseAndZero get_proto () {
-      return (proto);
+      return proto;
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff BitwiseAndZero invariants should be considered. **/
+    /** Boolean.  True iff BitwiseAndZero invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     public BitwiseAndZero instantiate_dyn (/*>>> @Prototype BitwiseAndZero this,*/ PptSlice slice) {
       return new BitwiseAndZero (slice);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ (|java-&| %var1% %var2%) 0)");
-      else if (format == OutputFormat.CSHARPCONTRACT)
-        return ("(%var1% & %var2%) == 0");
-      else
-
-        return ("(%var1% & %var2%) == 0");
+    public String get_format_str (/*>>>@GuardSatisfied BitwiseAndZero this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ (|java-&| %var1% %var2%) 0)";
+      } else if (format == OutputFormat.CSHARPCONTRACT) {
+        return "(%var1% & %var2%) == 0";
+      } else {
+        return "(%var1% & %var2%) == 0";
+      }
     }
 
-    /*@Pure*/ public boolean is_symmetric() {
-      return (true);
+    /*@Pure*/
+    public boolean is_symmetric() {
+      return true;
     }
 
     public boolean eq_check (long x, long y) {
@@ -940,10 +976,10 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     /** Returns a list of non-instantiating suppressions for this invariant. */
     /*@Pure*/
     public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-      return (suppressions);
+      return suppressions;
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (BitwiseAndZero.class, 2);
 
@@ -956,7 +992,7 @@ public abstract class PairwiseNumericInt extends TwoSequence {
    * corresponding elements of two sequences of long;
    * that is, <code>x[]</code> right-shifted by <code>y[]</code>
    * is always zero.  Prints as <code>x[] &gt;&gt; y[] = 0</code>.
-   **/
+   */
   public static class ShiftZero  extends PairwiseNumericInt {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -974,50 +1010,55 @@ public abstract class PairwiseNumericInt extends TwoSequence {
     private static /*@Prototype*/ ShiftZero proto = new /*@Prototype*/ ShiftZero (false);
     private static /*@Prototype*/ ShiftZero proto_swap = new /*@Prototype*/ ShiftZero (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ ShiftZero get_proto (boolean swap) {
-      if (swap)
+      if (swap) {
         return proto_swap;
-      else
+      } else {
         return proto;
+      }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff ShiftZero invariants should be considered. **/
+    /** Boolean.  True iff ShiftZero invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     protected ShiftZero instantiate_dyn (/*>>> @Prototype ShiftZero this,*/ PptSlice slice) {
       return new ShiftZero (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
-      if (format == OutputFormat.SIMPLIFY)
-        return ("(EQ (|java->>| %var1% %var2%) 0)");
-      else if (format == OutputFormat.CSHARPCONTRACT)
-        return ("(%var1% >> %var2% == 0)");
-      else
-
-        return ("(%var1% >> %var2% == 0)");
+    public String get_format_str (/*>>>@GuardSatisfied ShiftZero this,*/ OutputFormat format) {
+      if (format == OutputFormat.SIMPLIFY) {
+        return "(EQ (|java->>| %var1% %var2%) 0)";
+      } else if (format == OutputFormat.CSHARPCONTRACT) {
+        return "(%var1% >> %var2% == 0)";
+      } else {
+        return "(%var1% >> %var2% == 0)";
+      }
     }
 
     public boolean eq_check (long x, long y) {
-      if ((y < 0) || (y > 63))
+      if ((y < 0) || (y > 63)) {
         throw new ArithmeticException ("shift op (" + y + ") is out of range");
+      }
       return ((x >> y) == 0);
     }
 
     /** Returns a list of non-instantiating suppressions for this invariant. */
     /*@Pure*/
     public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-      if (swap) return (suppressions_swap);
-      else return (suppressions);
+      if (swap) {
+        return suppressions_swap;
+      } else {
+        return suppressions;
+      }
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (ShiftZero.class, false);
 

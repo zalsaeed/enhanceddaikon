@@ -15,7 +15,7 @@ import org.checkerframework.dataflow.qual.*;
 
 /**
  * Intersection between two comparable sequences.
- **/
+ */
 public final class SequenceScalarIntersection
   extends BinaryDerivation
 {
@@ -30,7 +30,7 @@ public final class SequenceScalarIntersection
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SequenceScalarIntersection derived variables should be generated.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   public SequenceScalarIntersection(VarInfo vi1, VarInfo vi2) {
@@ -41,18 +41,22 @@ public final class SequenceScalarIntersection
     debug.fine ("Computing value and modified");
 
     int mod1 = base1.getModified(full_vt);
-    if (mod1 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod1 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     int mod2 = base2.getModified(full_vt);
-    if (mod2 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod2 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     Object val1 = base1.getValue(full_vt);
-    if (val1 == null)
+    if (val1 == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     long[] val1_array = (long[]) val1;
     Object val2 = base2.getValue(full_vt);
-    if (val2 == null)
+    if (val2 == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     long[] val2_array = (long[]) val2;
 
     long[] tmp = new long[val1_array.length + val2_array.length];
@@ -79,12 +83,14 @@ public final class SequenceScalarIntersection
     return VarInfo.make_function ("intersection", base1, base2);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     return (other instanceof SequenceScalarIntersection);
   }
 
-  /** Returns the ESC name for sequence subsequence **/
-  /*@SideEffectFree*/ public String esc_name(String index) {
+  /** Returns the ESC name for sequence subsequence */
+  /*@SideEffectFree*/
+  public String esc_name(String index) {
     return String.format ("intersection[%s,%s]", base1.esc_name(),
                           base2.esc_name());
   }

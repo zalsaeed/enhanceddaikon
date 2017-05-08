@@ -1,22 +1,28 @@
 package daikon.tools;
 
-import java.util.*;
 import daikon.*;
+import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.nullness.qual.*;
 */
 
 /**
- * A class that gives an example of how to use a FileIO.Processor object to
- * read a trace.  Invoke it like:
+ * A class that gives an example of how to use a FileIO.Processor object to read a trace file.
+ * Invoke it like:
+ *
  * <pre>
  *   java daikon.tools.ReadTrace file1 file2 ...
  * </pre>
+ *
  * A concrete example invocation:
+ *
  * <pre>
- *   java -cp $DAIKONDIR/java:$DAIKONDIR/java/lib/plume.jar daikon.tools.ReadTrace /scratch/$USER/tests/daikon-tests/StackAr/StackAr.dtrace.gz
+ *   java -cp $DAIKONDIR/daikon.jar daikon.tools.ReadTrace /scratch/$USER/tests/daikon-tests/StackAr/StackAr.dtrace.gz
  * </pre>
+ *
+ * You probably won't run this program. Instead, you will copy parts of its source code in the
+ * process of writing your own program that reads a dtrace file.
  */
 public class ReadTrace {
 
@@ -25,7 +31,7 @@ public class ReadTrace {
     CollectDataProcessor processor = new CollectDataProcessor();
     PptMap ppts = new PptMap();
     try {
-      FileIO.read_data_trace_files (Arrays.asList(args), ppts, processor, false);
+      FileIO.read_data_trace_files(Arrays.asList(args), ppts, processor, false);
     } catch (Exception e) {
       throw new Error(e);
     }
@@ -44,21 +50,22 @@ public class ReadTrace {
   }
 
   /**
-   * Populates the <code>samples</code> map with all the data read from the file.
-   * This is only reasonable for small trace files, since all the data will
-   * be retained in memory!
+   * Populates the <code>samples</code> map with all the data read from the file. This is only
+   * reasonable for small trace files, since all the data will be retained in memory!
    */
   public static class CollectDataProcessor extends FileIO.Processor {
 
-    public Map<PptTopLevel,List<ValueTuple>> samples = new LinkedHashMap<PptTopLevel,List<ValueTuple>>();
+    public Map<PptTopLevel, List<ValueTuple>> samples =
+        new LinkedHashMap<PptTopLevel, List<ValueTuple>>();
 
     /** Process the sample, by adding it to the <code>samples</code> map. */
     /*@RequiresNonNull("FileIO.data_trace_state")*/
-    public void process_sample (PptMap all_ppts, PptTopLevel ppt,
-                                ValueTuple vt, /*@Nullable*/ Integer nonce) {
+    public void process_sample(
+        PptMap all_ppts, PptTopLevel ppt, ValueTuple vt, /*@Nullable*/ Integer nonce) {
 
       // Add orig and derived variables to the ValueTuple
-      assert vt.vals != null : "@AssumeAssertion(nullness): bug: Checker Framework bug:  vals is a non-null array, but is reported as nullable";
+      assert vt.vals != null
+          : "@AssumeAssertion(nullness): bug: Checker Framework bug:  vals is a non-null array, but is reported as nullable";
       FileIO.compute_orig_variables(ppt, vt.vals, vt.mods, nonce);
       FileIO.compute_derived_variables(ppt, vt.vals, vt.mods);
 
@@ -66,11 +73,10 @@ public class ReadTrace {
       vt = new ValueTuple(vt.vals, vt.mods);
 
       // Add the sample to the map
-      if (! samples.containsKey(ppt)) {
+      if (!samples.containsKey(ppt)) {
         samples.put(ppt, new ArrayList<ValueTuple>());
       }
       samples.get(ppt).add(vt);
     }
   }
-
 }

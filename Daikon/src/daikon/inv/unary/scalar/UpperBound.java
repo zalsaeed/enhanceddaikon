@@ -16,6 +16,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -25,7 +26,7 @@ import typequals.*;
   /**
    * Represents the invariant <tt>x &lt;= c</tt>, where <code>c</code>
    * is a constant and <code>x</code> is a long scalar.
-   **/
+   */
 
 // One reason not to combine LowerBound and UpperBound into a single range
 // invariant is that they have separate justifications:  one may be
@@ -42,8 +43,8 @@ public class UpperBound
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff UpperBound invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
   /**
    * Long integer.  Together with the corresponding
    * <code>maximal_interesting</code> parameter, specifies the
@@ -53,7 +54,7 @@ public class UpperBound
    * to -1 and <code>maximal_interesting</code>
    * to 2 would only permit output of
    * UpperBound invariants whose cutoff was one of (-1,0,1,2).
-   **/
+   */
   public static long dkconfig_minimal_interesting = -1;
   /**
    * Long integer.  Together with the corresponding
@@ -64,7 +65,7 @@ public class UpperBound
    * to -1 and <code>maximal_interesting</code>
    * to 2 would only permit output of
    * UpperBound invariants whose cutoff was one of (-1,0,1,2).
-   **/
+   */
   public static long dkconfig_maximal_interesting = 2;
 
   /*@Unused(when=Prototype.class)*/
@@ -84,31 +85,33 @@ public class UpperBound
 
   private static /*@Prototype*/ UpperBound proto = new /*@Prototype*/ UpperBound ();
 
-  /** Returns the prototype invariant for UpperBound **/
+  /** Returns the prototype invariant for UpperBound */
   public static /*@Prototype*/ UpperBound get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** UpperBound is only valid on integral types **/
+  /** UpperBound is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
-
-    return (vis[0].file_rep_type.baseIsIntegral());
+    if (!valid_types (vis)) {
+      return false;
     }
 
-  /** instantiate an invariant on the specified slice **/
+    return vis[0].file_rep_type.baseIsIntegral();
+    }
+
+  /** instantiate an invariant on the specified slice */
   public UpperBound instantiate_dyn (/*>>> @Prototype UpperBound this,*/ PptSlice slice) {
     return new UpperBound (slice);
   }
 
-  /*@SideEffectFree*/ public UpperBound clone() {
+  /*@SideEffectFree*/
+  public UpperBound clone(/*>>>@GuardSatisfied UpperBound this*/) {
     UpperBound result = (UpperBound) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -119,12 +122,13 @@ public class UpperBound
     return core.max();          // i.e., core.max1
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied UpperBound this*/) {
     return "UpperBound" + varNames() + ": "
       + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied UpperBound this,*/ OutputFormat format) {
     String name = var().name_using(format);
     PptTopLevel pptt = ppt.parent;
 
@@ -141,8 +145,9 @@ public class UpperBound
             // If variable is a double, then use fuzzy comparison
             if (vi.rep_type == ProglangType.DOUBLE) {
               Double constantVal = (Double)vi.constantValue();
-              if (Global.fuzzy.eq(constantVal, core.max1) || (Double.isNaN(constantVal) && Double.isNaN(core.max1)))
+              if (Global.fuzzy.eq(constantVal, core.max1) || (Double.isNaN(constantVal) && Double.isNaN(core.max1))) {
                 return name + " <= " + vi.name();
+              }
             }
             // Otherwise just use the equals method
             else {
@@ -180,7 +185,7 @@ public class UpperBound
 
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied UpperBound this*/) {
     return core.enoughSamples();
   }
 
@@ -188,17 +193,20 @@ public class UpperBound
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return core.isExact();
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((UpperBound) other).core);
   }
 
   // XXX FIXME This looks like a hack that should be removed.  -MDE 6/13/2002
   // Use hasUninterestingConstant() instead. -SMcC 2/26/2003
-  /*@Pure*/ public boolean isInteresting() {
+  /*@Pure*/
+  public boolean isInteresting() {
     return (-1 < core.max1 && core.max1 < 2);
   }
 
@@ -314,11 +322,13 @@ public class UpperBound
     return null;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
 
     if (other instanceof LowerBound) {
-      if (max() < ((LowerBound) other).min())
+      if (max() < ((LowerBound) other).min()) {
         return true;
+      }
     }
 
     if (other instanceof OneOfScalar) {
@@ -331,8 +341,9 @@ public class UpperBound
   public static /*@Nullable*/ UpperBound find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof UpperBound)
+      if (inv instanceof UpperBound) {
         return (UpperBound) inv;
+      }
     }
     return null;
   }
@@ -342,7 +353,7 @@ public class UpperBound
    * formula at an upper point.  See merge() below.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
   /**
@@ -351,12 +362,12 @@ public class UpperBound
    * in each invariant, applies them to a new parent invariant and
    * returns the merged invariant (if any).
    *
-   * @param invs        List of invariants to merge.  The invariants must all
+   * @param invs        list of invariants to merge.  The invariants must all
    *                    be of the same type and should come from the
    *                    children of parent_ppt.  They should also all
    *                    be permuted to match the variable order in
    *                    parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -372,6 +383,6 @@ public class UpperBound
     }
 
     result.log ("Merged '%s' from %s child invariants", result.format(),invs.size());
-    return (result);
+    return result;
   }
 }

@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -22,7 +23,7 @@ import typequals.*;
  * The constants <code>a</code>, <code>b</code> and <code>c</code> are
  * mutually relatively prime,
  * and the constant <code>a</code> is always positive.
- **/
+ */
 public class LinearBinary
   extends TwoScalar
 {
@@ -35,8 +36,8 @@ public class LinearBinary
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff LinearBinary invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public LinearBinaryCore core;
 
@@ -55,36 +56,38 @@ public class LinearBinary
 
   private static /*@Prototype*/ LinearBinary proto = new /*@Prototype*/ LinearBinary ();
 
-  /** Returns a prototype LinearBinary invariant **/
+  /** Returns a prototype LinearBinary invariant */
   public static /*@Prototype*/ LinearBinary get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** LinearBinary is only valid on integral types **/
+  /** LinearBinary is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
       // Don't look for linearbinary over hashcodes and booleans
       if (!vis[0].file_rep_type.isIntegral()
           || !vis[1].file_rep_type.isIntegral())
         return false;
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate an invariant on the specified slice **/
+  /** Instantiate an invariant on the specified slice */
   protected LinearBinary instantiate_dyn (/*>>> @Prototype LinearBinary this,*/ PptSlice slice) {
     return new LinearBinary(slice);
   }
 
-  /*@SideEffectFree*/ public LinearBinary clone() {
+  /*@SideEffectFree*/
+  public LinearBinary clone(/*>>>@GuardSatisfied LinearBinary this*/) {
     LinearBinary result = (LinearBinary) super.clone();
     result.core = core.clone();
     result.core.wrapper = result;
@@ -96,18 +99,20 @@ public class LinearBinary
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LinearBinary this*/) {
     return "LinearBinary" + varNames() + ": "
       + "falsified=" + falsified
       + "; " + core.repr();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied LinearBinary this,*/ OutputFormat format) {
     return core.format_using(format, var1().name_using(format),
                              var2().name_using(format));
   }
 
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive() {
     return core.isActive();
   }
 
@@ -119,9 +124,9 @@ public class LinearBinary
    * Merge the invariants in invs to form a new invariant.  Each must be
    * a LinearBinary invariant.  The work is done by the LinearBinary core
    *
-   * @param invs        List of invariants to merge.  They should all be
+   * @param invs        list of invariants to merge.  They should all be
    *                    permuted to match the variable order in parent_ppt.
-   * @param parent_ppt  Slice that will contain the new invariant
+   * @param parent_ppt  slice that will contain the new invariant
    */
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
 
@@ -134,10 +139,11 @@ public class LinearBinary
     // Merge the cores and build a new invariant containing the merged core
     LinearBinary result = new LinearBinary (parent_ppt);
     LinearBinaryCore newcore = core.merge (cores, result);
-    if (newcore == null)
-      return (null);
+    if (newcore == null) {
+      return null;
+    }
     result.core = newcore;
-    return (result);
+    return result;
   }
 
   public InvariantStatus check_modified(long x, long y, int count) {
@@ -148,7 +154,7 @@ public class LinearBinary
     return core.add_modified(x, y, count);
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LinearBinary this*/) {
     return core.enoughSamples();
   }
 
@@ -156,7 +162,8 @@ public class LinearBinary
     return core.computeConfidence();
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return true;
   }
 
@@ -217,11 +224,13 @@ public class LinearBinary
     return null;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return core.isSameFormula(((LinearBinary) other).core);
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof LinearBinary) {
       return core.isExclusiveFormula(((LinearBinary) other).core);
     }
@@ -232,8 +241,9 @@ public class LinearBinary
   public static /*@Nullable*/ LinearBinary find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof LinearBinary)
+      if (inv instanceof LinearBinary) {
         return (LinearBinary) inv;
+      }
     }
     return null;
   }

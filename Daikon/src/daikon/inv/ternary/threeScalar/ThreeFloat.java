@@ -9,12 +9,14 @@ import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import typequals.*;
 */
 
 /**
- * Abstract base class used for comparing three double scalars.
- **/
+ * Abstract base class for invariants over three numeric variables.
+ * An example is {@code z = ax + by + c}.
+ */
 public abstract class ThreeFloat
   extends TernaryInvariant
 {
@@ -31,7 +33,7 @@ public abstract class ThreeFloat
     super();
   }
 
-  /** Returns whether or not the specified types are valid **/
+  /** Returns whether or not the specified types are valid. */
   public final boolean valid_types (VarInfo[] vis) {
 
     return ((vis.length == 3)
@@ -40,15 +42,15 @@ public abstract class ThreeFloat
             && vis[2].file_rep_type.isFloat());
   }
 
-  public VarInfo var1() {
+  public VarInfo var1(/*>>>@GuardSatisfied ThreeFloat this*/) {
     return ppt.var_infos[0];
   }
 
-  public VarInfo var2() {
+  public VarInfo var2(/*>>>@GuardSatisfied ThreeFloat this*/) {
     return ppt.var_infos[1];
   }
 
-  public VarInfo var3() {
+  public VarInfo var3(/*>>>@GuardSatisfied ThreeFloat this*/) {
     return ppt.var_infos[2];
   }
 
@@ -56,14 +58,16 @@ public abstract class ThreeFloat
     // Tests for whether a value is missing should be performed before
     // making this call, so as to reduce overall work.
     assert ! falsified;
-    if ((mod_index < 0) || (mod_index > 8))
+    if ((mod_index < 0) || (mod_index > 8)) {
       assert (mod_index >= 0) && (mod_index < 8)
         : "var 1 " + ppt.var_infos[0].name() + " value = "
          + val1 + "mod_index = " +  mod_index;
+    }
     double v1 = ((Double) val1).doubleValue();
     double v2 = ((Double) val2).doubleValue();
-    if (!(val3 instanceof Double))
+    if (!(val3 instanceof Double)) {
       System.out.println ("val3 should be PRIMITIVE, but is " + val3.getClass());
+    }
     double v3 = ((Double) val3).doubleValue();
     if (mod_index == 0) {
       return check_unmodified(v1, v2, v3, count);
@@ -76,11 +80,12 @@ public abstract class ThreeFloat
     // Tests for whether a value is missing should be performed before
     // making this call, so as to reduce overall work.
     assert ! falsified;
-    if ((mod_index < 0) || (mod_index > 8))
+    if ((mod_index < 0) || (mod_index > 8)) {
       assert (mod_index >= 0) && (mod_index < 8)
         : "var 1 " + ppt.var_infos[0].name() + " value = "
          + val1 + "mod_index = " +  mod_index + " line "
          + FileIO.get_linenum();
+    }
     double v1 = ((Double) val1).doubleValue();
     double v2 = ((Double) val2).doubleValue();
     if (!(val3 instanceof Double)) {
@@ -103,6 +108,15 @@ public abstract class ThreeFloat
     }
   }
 
+  /**
+   * Presents a sample to the invariant.
+   * Returns whether the sample is consistent with the invariant.
+   * Does not change the state of the invariant.
+   * @param count how many identical samples were observed in a row.
+   * For example, three calls to check_modified with a count parameter of 1 is
+   * equivalent to one call to check_modified with a count parameter of 3.
+   * @return whether or not the sample is consistent with the invariant
+   */
   public abstract InvariantStatus check_modified(double v1, double v2, double v3, int count);
 
   public InvariantStatus check_unmodified(double v1, double v2, double v3, int count) {
@@ -110,15 +124,18 @@ public abstract class ThreeFloat
   }
 
   /**
-   * This method need not check for falsified;
-   * that is done by the caller.
-   **/
+   * Similar to {@link #check_modified} except that it can change the state
+   * of the invariant if necessary.  If the invariant doesn't have any
+   * state, then the implementation should simply call {@link
+   * #check_modified}.  This method need not check for falsification; that
+   * is done by the caller.
+   */
   public abstract InvariantStatus add_modified(double v1, double v2, double v3, int count);
 
   /**
    * By default, do nothing if the value hasn't been seen yet.
    * Subclasses can override this.
-   **/
+   */
   public InvariantStatus add_unmodified(double v1, double v2, double v3, int count) {
     return InvariantStatus.NO_CHANGE;
   }

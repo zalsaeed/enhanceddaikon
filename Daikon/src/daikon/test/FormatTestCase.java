@@ -1,24 +1,20 @@
 package daikon.test;
 
-import plume.*;
-import daikon.*;
-
-import daikon.inv.Invariant;
-import daikon.inv.OutputFormat;
-import daikon.inv.unary.UnaryInvariant;
-import daikon.inv.binary.BinaryInvariant;
-import daikon.inv.ternary.threeScalar.ThreeScalar;
 import static daikon.inv.Invariant.asInvClass;
 
+import daikon.*;
+import daikon.inv.Invariant;
+import daikon.inv.OutputFormat;
+import daikon.inv.binary.BinaryInvariant;
+import daikon.inv.ternary.threeScalar.ThreeScalar;
+import daikon.inv.unary.UnaryInvariant;
 import java.io.*;
-
 import java.lang.reflect.*;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
-
+import plume.*;
 import plume.Intern;
 
 /*>>>
@@ -28,73 +24,60 @@ import typequals.*;
 */
 
 /**
- * This class is used by InvariantFormatTester to store data
- * representing test cases and for formatting results related to that
- * data. This class is related to tests performed on one invariant.
- **/
+ * This class is used by InvariantFormatTester to store data representing test cases and for
+ * formatting results related to that data. This class is related to tests performed on one
+ * invariant.
+ */
 @SuppressWarnings("nullness")
 class FormatTestCase {
 
   private static final String lineSep = Global.lineSep;
 
   /**
-   * An inner class that represents a particular test on the invariant
-   * represented by a FormatTestCase object. This is used so this code
-   * can easily be extended to incorporating more than one test case
-   * under an invariant heading, such as what is currently done in the
-   * main code with having multiple goal outputs per invariant.
-   **/
+   * An inner class that represents a particular test on the invariant represented by a
+   * FormatTestCase object. This is used so this code can easily be extended to incorporating more
+   * than one test case under an invariant heading, such as what is currently done in the main code
+   * with having multiple goal outputs per invariant.
+   */
   static class SingleOutputTestCase {
 
-    /**
-     * A method that produces the formatting output when invoked.
-     **/
+    /** A method that produces the formatting output when invoked. */
     private Method outputProducer;
 
-    /**
-     * The arguments that must be passed to outputProducer to create the output.
-     **/
-    private Object [] outputProducerArgs;
+    /** The arguments that must be passed to outputProducer to create the output. */
+    private Object[] outputProducerArgs;
 
-    /**
-     * The goal output for this particular test case.
-     **/
+    /** The goal output for this particular test case. */
     private String goalOutput;
 
     /**
-     * The line number in the input file in which the goalOutput should occur in
-     * the output file.
-     **/
+     * The line number in the input file in which the goalOutput should occur in the output file.
+     */
     private int goalLineNumber;
 
-    /**
-     * A cached copy of the result achieved by invoking the output method.
-     **/
+    /** A cached copy of the result achieved by invoking the output method. */
     private /*@MonotonicNonNull*/ String resultCache;
 
-    /**
-     * A string containing the format that this particular test case represented.
-     **/
+    /** A string containing the format that this particular test case represented. */
     private String formatString;
 
     /**
-     * This constructor initializes all of the fields without any
-     * checking for legality (that should be done by the callers).
+     * This constructor initializes all of the fields without any checking for legality (that should
+     * be done by the callers).
      *
      * @param outputProducer the output producing function (should return a String)
-     * @param outputProducerArgs the arguments to be passed to the outputProducer
-     *        method
-     * @param goalOutput the desired output of the outputProducer function (that
-     *        would mean the test was passed
-     * @param goalLineNumber the line number in the input file in which the goal
-     * should occur
+     * @param outputProducerArgs the arguments to be passed to the outputProducer method
+     * @param goalOutput the desired output of the outputProducer function (that would mean the test
+     *     was passed
+     * @param goalLineNumber the line number in the input file in which the goal should occur
      * @param formatString the format that this test case belongs to
-     **/
-    public SingleOutputTestCase(Method outputProducer,
-                                Object[] outputProducerArgs,
-                                String goalOutput,
-                                int goalLineNumber,
-                                String formatString) {
+     */
+    public SingleOutputTestCase(
+        Method outputProducer,
+        Object[] outputProducerArgs,
+        String goalOutput,
+        int goalLineNumber,
+        String formatString) {
       this.outputProducer = outputProducer;
       this.outputProducerArgs = outputProducerArgs;
       this.goalOutput = goalOutput;
@@ -108,25 +91,24 @@ class FormatTestCase {
      *
      * @param inv the Invariant object on which to invoke the function
      * @return a String representing the output
-     **/
+     */
     public String createTestOutput(Invariant inv) {
       try {
-        if (resultCache == null)
-          resultCache = (String)outputProducer.invoke(inv,outputProducerArgs);
-        if (FileIO.new_decl_format)
-          resultCache = VarInfo.old_var_names (resultCache);
+        if (resultCache == null) {
+          resultCache = (String) outputProducer.invoke(inv, outputProducerArgs);
+        }
+        if (FileIO.new_decl_format) resultCache = VarInfo.old_var_names(resultCache);
         return resultCache;
-      }
-      catch (IllegalAccessException e) {
+      } catch (IllegalAccessException e) {
         throw new RuntimeException(e.toString());
-      }
-      catch (InvocationTargetException e) {
-        System.out.println("***" + inv.getClass() + "***" + plume.ArraysMDE.toString(outputProducerArgs));
+      } catch (InvocationTargetException e) {
+        System.out.println(
+            "***" + inv.getClass() + "***" + plume.ArraysMDE.toString(outputProducerArgs));
         System.out.println("^^^" + e.toString());
         System.out.println("^^^" + e.getMessage());
         System.out.println("^^^" + e.getCause());
         e.printStackTrace();
-        throw new RuntimeException ("unexpected exception", e);
+        throw new RuntimeException("unexpected exception", e);
         // throw new RuntimeException(e.toString() + e.getMessage()
         //                           + e.getCause());
       }
@@ -137,18 +119,16 @@ class FormatTestCase {
      *
      * @param inv the Invariant object on which to perform the test
      * @return true if the test is passed, false otherwise
-     **/
+     */
     public boolean performTest(Invariant inv) {
       return createTestOutput(inv).equals(goalOutput);
     }
 
     /**
-     * This function returns the line number that the goal should be listed on
-     * in the commands file.
+     * This function returns the line number that the goal should be listed on in the commands file.
      *
-     * @return the line number that the goal should be listed on
-     *         in the commands file
-     **/
+     * @return the line number that the goal should be listed on in the commands file
+     */
     public int getGoalLineNumber() {
       return goalLineNumber;
     }
@@ -157,94 +137,94 @@ class FormatTestCase {
      * This function returns the format string of which the test case is a part.
      *
      * @return the format string of which the test case is a part
-     **/
+     */
     public String getFormatString() {
       return formatString;
     }
 
     /**
-     * This function creates a String representing the differences between the
-     * goal output and the actual output; empty if there are no differences.
+     * This function creates a String representing the differences between the goal output and the
+     * actual output; empty if there are no differences.
      *
      * @return a String as described above
-     **/
+     */
     public String getDiffString() {
       if (resultCache != null && !resultCache.equals(goalOutput)) {
-        return "Error on line " + goalLineNumber + ":" + lineSep +
-          "Expected result:" + lineSep + goalOutput + lineSep +
-          "Returned result:" + lineSep + resultCache;
+        return "Error on line "
+            + goalLineNumber
+            + ":"
+            + lineSep
+            + "Expected result:"
+            + lineSep
+            + goalOutput
+            + lineSep
+            + "Returned result:"
+            + lineSep
+            + resultCache;
       }
       return "";
     }
   }
   // End of SingleOutputTestCase
 
-  /**
-   * Prefix to each goal line in the file for identitication.
-   **/
+  /** Prefix to each goal line in the file for identitication. */
   private static final String GOAL_PREFIX = "Goal";
 
   /**
-   * A list of all of the test cases (which are SingleOutputTestCase
-   * objects) that are to be performed on the contained Invariant.
-   **/
+   * A list of all of the test cases (which are SingleOutputTestCase objects) that are to be
+   * performed on the contained Invariant.
+   */
   private List<SingleOutputTestCase> testCases;
 
-  /**
-   * The Invariant object to be tested.
-   **/
+  /** The Invariant object to be tested. */
   private Invariant invariantToTest;
 
   /**
-   * This function constructs a FormatTestCase object directly from passed
-   * in objects. It is to be called internally by instantiate to create an
-   * instance of FormatTestCase
+   * This function constructs a FormatTestCase object directly from passed in objects. It is to be
+   * called internally by instantiate to create an instance of FormatTestCase
    *
-   * @param testCases a List of SingleOutputTestCase objects to be performed
-   *        on an Invariant
-   * @param invariantToTest the Invariant on which the tests are to be
-   *        performed
-   **/
+   * @param testCases a List of SingleOutputTestCase objects to be performed on an Invariant
+   * @param invariantToTest the Invariant on which the tests are to be performed
+   */
   private FormatTestCase(List<SingleOutputTestCase> testCases, Invariant invariantToTest) {
     this.testCases = testCases;
     this.invariantToTest = invariantToTest;
   }
 
   /**
-   * This function generates the way a revised input file section for
-   * a given invariant test should look upon being supplemented with
-   * generated goals. The output represents an entire invariant up
-   * until the last goal statement for any test of the invariant since
-   * the test cases do not store what their samples look like in
-   * String format.  Therefore, it is recommended that the only use of
-   * this function be to get output from the invariant tests in the
-   * order they appear in the file.  (Note: The output is done is this
-   * particular way to maintain comments and white space between
-   * Invariants)
+   * This function generates the way a revised input file section for a given invariant test should
+   * look upon being supplemented with generated goals. The output represents an entire invariant up
+   * until the last goal statement for any test of the invariant since the test cases do not store
+   * what their samples look like in String format. Therefore, it is recommended that the only use
+   * of this function be to get output from the invariant tests in the order they appear in the
+   * file. (Note: The output is done is this particular way to maintain comments and white space
+   * between Invariants)
    *
    * @param theInputFile a LineNumberReader object representing the input file
    * @throws IOException if reading operations from the input buffer fail
    * @return a String representing the goal output file object
-   **/
+   */
   public String generateGoalOutput(LineNumberReader theInputFile) throws IOException {
     StringBuffer output = new StringBuffer();
     String currentLineOfText = null;
     int currentLine = theInputFile.getLineNumber();
 
     // System.out.println("Generating goal output");
-    for (int i=0; i<testCases.size(); i++) {
+    for (int i = 0; i < testCases.size(); i++) {
       // System.out.println("Goal output gen: " + i);
       SingleOutputTestCase current = testCases.get(i);
       int currentGoalLineNumber = current.getGoalLineNumber();
-      for (int j=currentLine; j<currentGoalLineNumber; j++) {
+      for (int j = currentLine; j < currentGoalLineNumber; j++) {
         currentLineOfText = theInputFile.readLine();
-        if (parseGoal(currentLineOfText) == null)
-          output.append(currentLineOfText + lineSep);
+        if (parseGoal(currentLineOfText) == null) output.append(currentLineOfText + lineSep);
       }
-      output.append(GOAL_PREFIX + " (" + current.getFormatString() + "): " +
-                    current.createTestOutput(invariantToTest));
-      if (i != testCases.size()-1)
-        output.append(lineSep);
+      output.append(
+          GOAL_PREFIX
+              + " ("
+              + current.getFormatString()
+              + "): "
+              + current.createTestOutput(invariantToTest));
+      if (i != testCases.size() - 1) output.append(lineSep);
       currentLine = currentGoalLineNumber;
     }
 
@@ -255,7 +235,7 @@ class FormatTestCase {
    * Checks to see whether all tests on this invariant are passed.
    *
    * @return true if all the tests on this invariant passed, false otherwise
-   **/
+   */
   public boolean passes() {
     boolean passTest = true;
     boolean currentResult;
@@ -268,65 +248,59 @@ class FormatTestCase {
   }
 
   /**
-   * This function creates a String representing the difference between the test
-   * result and the desired result.
+   * This function creates a String representing the difference between the test result and the
+   * desired result.
    *
-   * @return a String representing the difference between the test
-   * result and the desired result
-   **/
+   * @return a String representing the difference between the test result and the desired result
+   */
   public String getDiffString() {
     StringBuffer result = new StringBuffer();
     String currentDiffString;
 
-    for (int i=0; i<testCases.size(); i++) {
+    for (int i = 0; i < testCases.size(); i++) {
       currentDiffString = testCases.get(i).getDiffString();
       result.append(currentDiffString);
       // interned if the empty string, but use .equals to avoid an
       // Interning Checker warning
-      if (i != testCases.size() && ! currentDiffString.equals(""))
-        result.append(lineSep + lineSep);
+      if (i != testCases.size() && !currentDiffString.equals("")) result.append(lineSep + lineSep);
     }
 
     return result.toString();
   }
 
   /**
-   * This function loads a class from file into the JVM given its
-   * fully-qualified name.
+   * This function loads a class from file into the JVM given its fully-qualified name.
    *
    * @param classInfo the fully-qualified class name
-   * @return a Class object representing the class name if such a class is
-   *         defined, otherwise null
-   **/
+   * @return a Class object representing the class name if such a class is defined, otherwise null
+   */
   private static Class<?> getClass(/*@BinaryName*/ String classInfo) {
     try {
       return ClassLoader.getSystemClassLoader().loadClass(classInfo);
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       throw new RuntimeException(e.toString());
     }
   }
 
   /**
-   * This function takes in a String representing a goal statement
-   * and returns the actual String to be returned by a test.
+   * This function takes in a String representing a goal statement and returns the actual String to
+   * be returned by a test.
    *
-   * @return the actual result String represented by the goal statement or
-   *          null if the String isn't actually a goal statement
-   **/
+   * @return the actual result String represented by the goal statement or null if the String isn't
+   *     actually a goal statement
+   */
   static /*@Nullable*/ String parseGoal(String goalString) {
     if (goalString.startsWith(GOAL_PREFIX)) {
-      return goalString.substring(GOAL_PREFIX.length(),goalString.length());
+      return goalString.substring(GOAL_PREFIX.length(), goalString.length());
     }
     return null;
   }
 
   static /*@Nullable*/ String getFormat(String partialGoalString) {
     try {
-      return partialGoalString.substring(partialGoalString.indexOf('(')+1,
-                                         partialGoalString.indexOf(')'));
-    }
-    catch (IndexOutOfBoundsException e) {
+      return partialGoalString.substring(
+          partialGoalString.indexOf('(') + 1, partialGoalString.indexOf(')'));
+    } catch (IndexOutOfBoundsException e) {
     }
 
     return null;
@@ -334,10 +308,9 @@ class FormatTestCase {
 
   static /*@Nullable*/ String getGoalOutput(String partialGoalString) {
     try {
-      return partialGoalString.substring(partialGoalString.indexOf(':')+2,
-                                         partialGoalString.length());
-    }
-    catch (IndexOutOfBoundsException e) {
+      return partialGoalString.substring(
+          partialGoalString.indexOf(':') + 2, partialGoalString.length());
+    } catch (IndexOutOfBoundsException e) {
     }
 
     return null;
@@ -346,55 +319,54 @@ class FormatTestCase {
   /**
    * This function is an alias for the {@link #getNextRealLine(BufferedReader) getNextRealLine}
    * method.
-   **/
+   */
   static String getNextRealLine(BufferedReader buffer) {
     return InvariantFormatTester.getNextRealLine(buffer);
   }
 
   /**
-   * This function returns a FormatTestCase instance after parsing it
-   * from file or null if the end of the file has been reached.
+   * This function returns a FormatTestCase instance after parsing it from file or null if the end
+   * of the file has been reached.
    *
-   * @param commands a reader object representing the file to be parsed that
-   *        contains data necessary to initialize the new object. The file
-   *        must conform to the format described in
-   *        InvariantFormatTester.Description
-   * @param generateGoals true if goal generation is desired, false if goal testing
-   *        is desired
+   * @param commands a reader object representing the file to be parsed that contains data necessary
+   *     to initialize the new object. The file must conform to the format described in
+   *     InvariantFormatTester.Description
+   * @param generateGoals true if goal generation is desired, false if goal testing is desired
    * @return a new FormatTestCase instance
-   **/
-  public static /*@Nullable*/ FormatTestCase instantiate(LineNumberReader commands, boolean generateGoals) {
+   */
+  public static /*@Nullable*/ FormatTestCase instantiate(
+      LineNumberReader commands, boolean generateGoals) {
     List<SingleOutputTestCase> testCases = new Vector<SingleOutputTestCase>();
 
     // The first line contains the class and its instantiate args
     // each token is separated by blanks.  Each argument to instantiate
     // consists of a type and its value.  For example
     // daikon.inv/binary.twoScalar.NumericInt$divides boolean true
-    String line = getNextRealLine((BufferedReader)commands);
+    String line = getNextRealLine((BufferedReader) commands);
     if (line == null) return null;
-    String[] tokens = line.split ("  *");
+    String[] tokens = line.split("  *");
     @SuppressWarnings("signature") // user input, should be checked
     /*@BinaryName*/ String className = tokens[0];
     int arg_count = (tokens.length - 1) / 2;
-    Class<?>[] arg_types  = new Class<?>[arg_count];
+    Class<?>[] arg_types = new Class<?>[arg_count];
     Object[] arg_vals = new Object[arg_count];
     int arg_index = 0;
-    for (int i = 1; i < tokens.length; i+=2) {
+    for (int i = 1; i < tokens.length; i += 2) {
       String arg_type_name = tokens[i].intern();
-      if (i+1 >= tokens.length)
-        throw new RuntimeException ("No matching arg val for argument type "
-                                    + arg_type_name);
-      String arg_val = tokens[i+1];
+      if (i + 1 >= tokens.length) {
+        throw new RuntimeException("No matching arg val for argument type " + arg_type_name);
+      }
+      String arg_val = tokens[i + 1];
       Object val;
       Class<?> val_type;
       if (arg_type_name == "boolean") { // interned
-        val = Boolean.valueOf (arg_val);
+        val = Boolean.valueOf(arg_val);
         val_type = boolean.class;
       } else if (arg_type_name == "int") { // interned
-        val = Integer.valueOf (arg_val);
+        val = Integer.valueOf(arg_val);
         val_type = int.class;
       } else {
-        throw new RuntimeException ("Unexpected type " + arg_type_name);
+        throw new RuntimeException("Unexpected type " + arg_type_name);
       }
       arg_types[arg_index] = val_type;
       arg_vals[arg_index] = val;
@@ -408,26 +380,22 @@ class FormatTestCase {
 
     try {
       Field f = classToTest.getField("dkconfig_enabled");
-      f.setBoolean (null, true);
-    }
-    catch (Exception e) { // Otherwise do nothing
+      f.setBoolean(null, true);
+    } catch (Exception e) { // Otherwise do nothing
     }
 
     // Instantiate variables to be used as the names in the
     // invariants, variables are labelled a,b,c and so on as they
     // appear
-    String typeString = getNextRealLine((BufferedReader)commands);
+    String typeString = getNextRealLine((BufferedReader) commands);
 
     ProglangType[] types = getTypes(typeString);
-    VarInfo[] vars =
-      getVarInfos(classToTest, types);
-    PptSlice sl = createSlice(vars,
-                            Common.makePptTopLevel("Test:::OBJECT", vars));
+    VarInfo[] vars = getVarInfos(classToTest, types);
+    PptSlice sl = createSlice(vars, Common.makePptTopLevel("Test:::OBJECT", vars));
     assert sl != null;
 
     // Create an actual instance of the class
-    Invariant invariantToTest = instantiateClass(classToTest, sl, arg_types,
-                                                 arg_vals);
+    Invariant invariantToTest = instantiateClass(classToTest, sl, arg_types, arg_vals);
     assert invariantToTest != null : "class " + className;
 
     String goalOutput = "";
@@ -441,13 +409,11 @@ class FormatTestCase {
 
     Iterator<String> formatStrings = null;
 
-
     // If not generating goals get the goal lines from the file
     // If generating goals get the formats from the list of formats
     if (!generateGoals) {
       goalOutput = parseGoal(getNextRealLine(commands));
-      if (goalOutput == null)
-        throw new RuntimeException("Bad format of goal data");
+      if (goalOutput == null) throw new RuntimeException("Bad format of goal data");
     } else {
       formatStrings = InvariantFormatTester.TEST_FORMAT_LIST.iterator();
     }
@@ -477,7 +443,6 @@ class FormatTestCase {
       if (goalOutput != null && !InvariantFormatTester.isWhitespace(goalOutput)) {
         // System.out.println("Using format: " + format);
 
-
         // Update 2-27-2004: For some reason, this test used to
         // attempt to find a format_java() or format_esc(), etc inside
         // the invariant method and only if that method did not exist would
@@ -492,19 +457,18 @@ class FormatTestCase {
         //   outputProducerArgs = null;
         //   }
         //   catch (NoSuchMethodException e) {
-           try {
-            outputProducer =
-              classToTest.getMethod("format_using", new Class<?> [] {OutputFormat.class});
-            OutputFormat output_format = OutputFormat.get(format);
-            if (output_format == null) {
-              throw new RuntimeException("bad output format " + format);
-            }
-            outputProducerArgs = new Object [] { output_format };
+        try {
+          outputProducer =
+              classToTest.getMethod("format_using", new Class<?>[] {OutputFormat.class});
+          OutputFormat output_format = OutputFormat.get(format);
+          if (output_format == null) {
+            throw new RuntimeException("bad output format " + format);
           }
-          catch (NoSuchMethodException e2) {
-            throw new RuntimeException("Could not find format_using method");
-          }
-           //     }
+          outputProducerArgs = new Object[] {output_format};
+        } catch (NoSuchMethodException e2) {
+          throw new RuntimeException("Could not find format_using method");
+        }
+        //     }
 
         // System.out.println("Adding a test case");
 
@@ -514,7 +478,9 @@ class FormatTestCase {
         // System.out.println("Format string: " + format);
 
         // Add a test case for the invariant for the proper format
-        testCases.add(new SingleOutputTestCase(outputProducer, outputProducerArgs, goalOutput, goalLineNumber, format));
+        testCases.add(
+            new SingleOutputTestCase(
+                outputProducer, outputProducerArgs, goalOutput, goalLineNumber, format));
 
         try {
           if (!generateGoals) {
@@ -522,8 +488,7 @@ class FormatTestCase {
             // System.out.println("In goal section, currentLine = " + currentLine);
             goalOutput = parseGoal(currentLine);
           }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
           throw new RuntimeException("Error in reading command file");
         }
       }
@@ -541,10 +506,11 @@ class FormatTestCase {
 
       // If generating goals, goalOutput will have the proper first line
       // Otherwise, currentLine will have the proper first sample line
-      if (generateGoals)
+      if (generateGoals) {
         getSamples(types, commands, samples, generateGoals, goalOutput);
-      else
+      } else {
         getSamples(types, commands, samples, generateGoals, currentLine);
+      }
     }
 
     // Use the add_modified function of the appropriate invariant to
@@ -555,25 +521,22 @@ class FormatTestCase {
   }
 
   /**
-   * This function creates an array of VarInfo objects that can
-   * represent a set of program language types provided by the
-   * caller. Their names carry no meaning except for the type.
+   * This function creates an array of VarInfo objects that can represent a set of program language
+   * types provided by the caller. Their names carry no meaning except for the type.
    *
-   * @param classToTest the invariant class for which the VarInfos
-   *        must be determined
+   * @param classToTest the invariant class for which the VarInfos must be determined
    * @param types the types that the VarInfos must have
-   * @return an array of VarInfo objects that have the types corresponding
-   *         to those in types
-   **/
-  private static VarInfo [] getVarInfos(Class<? extends Invariant> classToTest, ProglangType[] types) {
+   * @return an array of VarInfo objects that have the types corresponding to those in types
+   */
+  private static VarInfo[] getVarInfos(
+      Class<? extends Invariant> classToTest, ProglangType[] types) {
     int numInfos = getArity(classToTest);
 
-    if (numInfos == -1)
-      throw new RuntimeException("Class arity cannot be determined.");
+    if (numInfos == -1) throw new RuntimeException("Class arity cannot be determined.");
 
-    VarInfo[] result = new VarInfo [numInfos];
+    VarInfo[] result = new VarInfo[numInfos];
 
-    for (int i=0; i<numInfos; i++) {
+    for (int i = 0; i < numInfos; i++) {
       result[i] = getVarInfo(types[i], i);
     }
 
@@ -585,35 +548,31 @@ class FormatTestCase {
    *
    * @param classToTest the invariant type in question
    * @return the arity of the invariant if it can be determined, -1 otherwise
-   **/
+   */
   private static int getArity(Class<? extends Invariant> classToTest) {
-    if (UnaryInvariant.class.isAssignableFrom(classToTest))
-      return 1;
-    else if (BinaryInvariant.class.isAssignableFrom(classToTest))
-      return 2;
-    if (ThreeScalar.class.isAssignableFrom(classToTest))
-      return 3;
+    if (UnaryInvariant.class.isAssignableFrom(classToTest)) return 1;
+    if (BinaryInvariant.class.isAssignableFrom(classToTest)) return 2;
+    if (ThreeScalar.class.isAssignableFrom(classToTest)) return 3;
 
     return -1;
   }
 
   /**
-   * This function returns a VarInfo of the given type. The name is
-   * the ith letter of the alphabet. (Produces variables such that i=0
-   * -> name=a, i=1 &rarr; name=b, ...)
+   * This function returns a VarInfo of the given type. The name is the ith letter of the alphabet.
+   * (Produces variables such that i=0 &rarr; name=a, i=1 &rarr; name=b, ...)
    *
    * @param type the desired type that the VarInfo will represent
    * @param i a unique identifier that determines the name to be used
    * @return a VarInfo object that described the type
-   **/
+   */
   private static VarInfo getVarInfo(ProglangType type, int i) {
     assert type != null : "Unexpected null variable type passed to getVarInfo";
 
     String arrayModifier = "";
 
-    if (type == ProglangType.INT_ARRAY ||
-        type == ProglangType.DOUBLE_ARRAY ||
-        type == ProglangType.STRING_ARRAY) { // Is it an array ?
+    if (type == ProglangType.INT_ARRAY
+        || type == ProglangType.DOUBLE_ARRAY
+        || type == ProglangType.STRING_ARRAY) { // Is it an array ?
       arrayModifier = "[]";
     }
 
@@ -625,67 +584,66 @@ class FormatTestCase {
     // - The ProglangType will be specified in the parameters
     // - The comparability will be none
     VarInfo result;
-    String base_name = new String(new char [] {(char)('a' + i)});
+    String base_name = new String(new char[] {(char) ('a' + i)});
     String name = base_name + arrayModifier;
     if (FileIO.new_decl_format) {
       if (arrayModifier != "") { // interned
-        FileIO.VarDefinition vardef
-          = new FileIO.VarDefinition (base_name, VarInfo.VarKind.VARIABLE,
-                                      type.elementType());
-        VarInfo hashcode = new VarInfo (vardef);
-        vardef = new FileIO.VarDefinition (base_name + "[..]",
-                                           VarInfo.VarKind.ARRAY, type);
+        FileIO.VarDefinition vardef =
+            new FileIO.VarDefinition(base_name, VarInfo.VarKind.VARIABLE, type.elementType());
+        VarInfo hashcode = new VarInfo(vardef);
+        vardef = new FileIO.VarDefinition(base_name + "[..]", VarInfo.VarKind.ARRAY, type);
         vardef.arr_dims = 1;
-        result = new VarInfo (vardef);
+        vardef.enclosing_var = base_name;
+        result = new VarInfo(vardef);
         result.enclosing_var = hashcode;
         assert result.enclosing_var.enclosing_var == null;
         // System.out.printf ("Created %s [%s]%n", result, hashcode);
       } else {
-        FileIO.VarDefinition vardef
-          = new FileIO.VarDefinition (name, VarInfo.VarKind.VARIABLE, type);
-        result = new VarInfo (vardef);
+        FileIO.VarDefinition vardef =
+            new FileIO.VarDefinition(name, VarInfo.VarKind.VARIABLE, type);
+        result = new VarInfo(vardef);
         assert result.enclosing_var == null;
         // System.out.printf ("Created %s%n", result);
       }
     } else {
-      result = new VarInfo (name, type, type,
-                            VarComparabilityNone.it, VarInfoAux.getDefault());
+      result = new VarInfo(name, type, type, VarComparabilityNone.it, VarInfoAux.getDefault());
     }
     return result;
   }
 
   /**
-   * This function parses a format string -- a space separated list of
-   * types -- and determines the types of objects to be collected.
+   * This function parses a format string -- a space separated list of types -- and determines the
+   * types of objects to be collected.
    *
    * @param typeNames the type string for an invariant
    * @return an array of ProglangTypes representing the data in typeNames
-   **/
-  private static ProglangType [] getTypes(String typeNames) {
+   */
+  private static ProglangType[] getTypes(String typeNames) {
     StringTokenizer stok = new StringTokenizer(typeNames);
-    ProglangType[] result = new ProglangType [stok.countTokens()];
+    ProglangType[] result = new ProglangType[stok.countTokens()];
 
-    for (int i=0; i<result.length; i++) {
+    for (int i = 0; i < result.length; i++) {
       String typeName = stok.nextToken();
 
       // A way of doing the same thing as below in fewer lines of code
       // Doesn't seem to work...
       // result[i] = ProglangType.parse(typeName);
 
-      if (typeName.equalsIgnoreCase("int"))
+      if (typeName.equalsIgnoreCase("int")) {
         result[i] = ProglangType.INT;
-      else if (typeName.equalsIgnoreCase("double"))
+      } else if (typeName.equalsIgnoreCase("double")) {
         result[i] = ProglangType.DOUBLE;
-      else if (typeName.equalsIgnoreCase("string"))
+      } else if (typeName.equalsIgnoreCase("string")) {
         result[i] = ProglangType.STRING;
-      else if (typeName.equalsIgnoreCase("int_array"))
+      } else if (typeName.equalsIgnoreCase("int_array")) {
         result[i] = ProglangType.INT_ARRAY;
-      else if (typeName.equalsIgnoreCase("double_array"))
+      } else if (typeName.equalsIgnoreCase("double_array")) {
         result[i] = ProglangType.DOUBLE_ARRAY;
-      else if (typeName.equalsIgnoreCase("string_array"))
+      } else if (typeName.equalsIgnoreCase("string_array")) {
         result[i] = ProglangType.STRING_ARRAY;
-      else
+      } else {
         return null;
+      }
 
       assert result[i] != null : "ProglangType unexpectedly parsed to null in getTypes(String)";
     }
@@ -693,10 +651,14 @@ class FormatTestCase {
     return result;
   }
 
-
-  private static void getSamples(ProglangType[] types, LineNumberReader commands, List<Object[]> samples, boolean generateGoals, String firstLine) {
-    String currentLine = (firstLine == null ? InvariantFormatTester.COMMENT_STARTER_STRING :
-                                       firstLine);
+  private static void getSamples(
+      ProglangType[] types,
+      LineNumberReader commands,
+      List<Object[]> samples,
+      boolean generateGoals,
+      String firstLine) {
+    String currentLine =
+        (firstLine == null ? InvariantFormatTester.COMMENT_STARTER_STRING : firstLine);
 
     // System.out.println("firstLine in getSamples: " + firstLine);
     // System.out.println("currentLine line in getSamples: " + currentLine);
@@ -705,8 +667,8 @@ class FormatTestCase {
       // Read until end of file or separator (whitespace line) encountered
       while (currentLine != null && !InvariantFormatTester.isWhitespace(currentLine)) {
         // Skip over goal lines and comments
-        while (InvariantFormatTester.isComment(currentLine) ||
-               (generateGoals && parseGoal(currentLine) != null)) {
+        while (InvariantFormatTester.isComment(currentLine)
+            || (generateGoals && parseGoal(currentLine) != null)) {
           currentLine = commands.readLine();
           // System.out.println("In getSamples early part, currentLine = " + currentLine);
         }
@@ -718,8 +680,8 @@ class FormatTestCase {
         // if current line is not whitespace then we have a valid line (that is, end hasn't been reached
         if (!InvariantFormatTester.isWhitespace(currentLine)) {
           // System.out.println(InvariantFormatTester.isComment(currentLine));
-          Object[] sample = new Object [types.length];
-          for (int i=0; i<types.length; i++) {
+          Object[] sample = new Object[types.length];
+          for (int i = 0; i < types.length; i++) {
             // Parse each line according to a type in the paramTypes array
             // System.out.println("in getSamples right before parse, currentLine = \"" + currentLine + "\"");
             sample[i] = types[i].parse_value(currentLine, commands, "test case");
@@ -729,8 +691,7 @@ class FormatTestCase {
           // System.out.println("Debug: current sample: sample[" + i + "] == " + sample[i]);
         }
       }
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e.toString());
     }
   }
@@ -896,16 +857,17 @@ class FormatTestCase {
   //    }
 
   /**
-   * This function adds the samples in the samples list to the passed
-   * in invariant by use of the appropriate add_modified function
-   * (determined by reflection).
+   * This function adds the samples in the samples list to the passed in invariant by use of the
+   * appropriate add_modified function (determined by reflection).
    *
    * @param inv an invariant to which samples are added
-   * @param samples a list of samples (each entry of type Object []) that
-   *        can be added to the variables involved
-   **/
+   * @param samples a list of samples (each entry of type Object []) that can be added to the
+   *     variables involved
+   */
   private static void populateWithSamples(Invariant inv, List<Object[]> samples) {
-    if (samples == null || samples.size() == 0) return;
+    if (samples == null || samples.size() == 0) {
+      return;
+    }
 
     assert inv != null;
 
@@ -921,9 +883,9 @@ class FormatTestCase {
     for (Object[] currentSample : samples) {
 
       // Last slot is for "count" parameter
-      Object[] params = new Object [sampleSize+1];
+      Object[] params = new Object[sampleSize + 1];
 
-      for (int j=0; j<sampleSize; j++) {
+      for (int j = 0; j < sampleSize; j++) {
         currentClass = currentSample[j].getClass();
 
         // Intern all objects that can be interned because some equality
@@ -935,9 +897,9 @@ class FormatTestCase {
         } else if (currentClass.isArray()) {
           // Intern arrays
           if (currentClass.getComponentType().equals(String.class)) {
-            for (int k=0; k<((String [])(currentSample[j])).length; k++) {
+            for (int k = 0; k < ((String[]) (currentSample[j])).length; k++) {
               // Intern Strings that are inside arrays
-              ((String [])currentSample[j])[k] = Intern.intern(((String [])currentSample[j])[k]);
+              ((String[]) currentSample[j])[k] = Intern.intern(((String[]) currentSample[j])[k]);
             }
           }
           currentSample[j] = Intern.intern(currentSample[j]);
@@ -971,7 +933,7 @@ class FormatTestCase {
       //        }
 
       try {
-        addModified.invoke(inv,params);
+        addModified.invoke(inv, params);
       }
       //        catch (Exception e) {
       //        throw new RuntimeException(e.toString());
@@ -979,9 +941,28 @@ class FormatTestCase {
       catch (InvocationTargetException e) {
         StringWriter target_backtrace = new StringWriter();
         e.getTargetException().printStackTrace(new PrintWriter(target_backtrace));
-        throw new RuntimeException("Error in populating invariant with add_modified (" + addModified.toString() + "applied to " + plume.ArraysMDE.toString(params) + "):" + lineSep + "START TARGETEXCEPTION=" + lineSep + target_backtrace.toString() + lineSep + "END TARGETEXCEPTION" + lineSep + e.toString());
+        throw new RuntimeException(
+            "Error in populating invariant with add_modified ("
+                + addModified.toString()
+                + "applied to "
+                + plume.ArraysMDE.toString(params)
+                + "):"
+                + lineSep
+                + "START TARGETEXCEPTION="
+                + lineSep
+                + target_backtrace.toString()
+                + lineSep
+                + "END TARGETEXCEPTION"
+                + lineSep
+                + e.toString());
       } catch (Exception e) {
-        throw new RuntimeException("Error in populating invariant with add_modified (" + addModified.toString() + "applied to " + plume.ArraysMDE.toString(params) + "): " + e.toString());
+        throw new RuntimeException(
+            "Error in populating invariant with add_modified ("
+                + addModified.toString()
+                + "applied to "
+                + plume.ArraysMDE.toString(params)
+                + "): "
+                + e.toString());
       }
     }
   }
@@ -996,9 +977,10 @@ class FormatTestCase {
     Method[] methods = theClass.getMethods();
 
     Method currentMethod;
-    for (int i=0; i<methods.length; i++) {
+    for (int i = 0; i < methods.length; i++) {
       currentMethod = methods[i];
-      if (currentMethod.getName().lastIndexOf("add_modified") != -1) { // Method should be called add_modified
+      if (currentMethod.getName().lastIndexOf("add_modified")
+          != -1) { // Method should be called add_modified
         return currentMethod;
       }
     }
@@ -1006,77 +988,74 @@ class FormatTestCase {
   }
 
   /**
-   * This function creates an appropriate PptSlice for a given set of
-   * VarInfos and a PptTopLevel.
+   * This function creates an appropriate PptSlice for a given set of VarInfos and a PptTopLevel.
    *
-   * @param vars an array of VarInfo objects for which the slice is
-   *        to be created
+   * @param vars an array of VarInfo objects for which the slice is to be created
    * @param ppt the PptTopLevel object representing the program point
-   * @return a new PptSlice object if the creation of one is possible,
-   *         else throws a RuntimeException
+   * @return a new PptSlice object if the creation of one is possible, else throws a
+   *     RuntimeException
    */
   private static PptSlice createSlice(VarInfo[] vars, PptTopLevel ppt) {
-    if (vars.length == 1)
+    if (vars.length == 1) {
       return new PptSlice1(ppt, vars);
-    else if (vars.length == 2)
+    } else if (vars.length == 2) {
       return new PptSlice2(ppt, vars);
-    else if (vars.length == 3)
+    } else if (vars.length == 3) {
       return new PptSlice3(ppt, vars);
-    else
-      throw new RuntimeException("Improper vars passed to createSlice (length = " + vars.length + ")");
+    } else {
+      throw new RuntimeException(
+          "Improper vars passed to createSlice (length = " + vars.length + ")");
+    }
   }
 
   /**
-   * This function instantiates an invariant class by using the
-   * <type>(PptSlice) constructor.
+   * This function instantiates an invariant class by using the <type>(PptSlice) constructor.
    *
    * @param theClass the invariant class to be instantiated
-   * @param sl the PptSlice representing the variables about
-   *        which an invariant is determined
-   * @return an instance of the class in theClass if one can be constructed,
-   *         else throw a RuntimeException
+   * @param sl the PptSlice representing the variables about which an invariant is determined
+   * @return an instance of the class in theClass if one can be constructed, else throw a
+   *     RuntimeException
    */
   private static Invariant instantiateClass(Class<? extends Invariant> theClass, PptSlice sl) {
     try {
-      Method get_proto = theClass.getMethod ("get_proto", new Class<?>[] {});
-      /*@Prototype*/ Invariant proto = (/*@Prototype*/ Invariant) get_proto.invoke (null, new Object[] {});
-      Invariant inv = proto.instantiate (sl);
+      Method get_proto = theClass.getMethod("get_proto", new Class<?>[] {});
+      /*@Prototype*/ Invariant proto =
+          (/*@Prototype*/ Invariant) get_proto.invoke(null, new Object[] {});
+      Invariant inv = proto.instantiate(sl);
 
-      if (inv == null)
-        throw new RuntimeException ("null inv for " + theClass.getName());
-      return (inv);
-    }
-    catch (Exception e) {
+      if (inv == null) throw new RuntimeException("null inv for " + theClass.getName());
+      return inv;
+    } catch (Exception e) {
       e.printStackTrace(System.out);
-      throw new RuntimeException("Error while instantiating invariant "
-                                 + theClass.getName() + ": " + e.toString());
+      throw new RuntimeException(
+          "Error while instantiating invariant " + theClass.getName() + ": " + e.toString());
     }
   }
 
   /**
-   * This function instantiates an invariant class by using the
-   * static instantiate method with the specified arguments.
+   * This function instantiates an invariant class by using the static instantiate method with the
+   * specified arguments.
    *
-   * @param theClass  - the invariant class to be instantiated
-   * @param arg_types - the types of each argument
-   * @param arg_vals  - the value of each argument
-   *
-   * @return an instance of the class in theClass if one can be constructed,
-   *         else throw a RuntimeException
+   * @param theClass the invariant class to be instantiated
+   * @param arg_types the types of each argument
+   * @param arg_vals the value of each argument
+   * @return an instance of the class in theClass if one can be constructed, else throw a
+   *     RuntimeException
    */
-  private static Invariant instantiateClass(Class<? extends Invariant> theClass, PptSlice slice,
-                                         Class<?>[] arg_types, Object[] arg_vals) {
+  private static Invariant instantiateClass(
+      Class<? extends Invariant> theClass,
+      PptSlice slice,
+      Class<?>[] arg_types,
+      Object[] arg_vals) {
     try {
-      Method get_proto = theClass.getMethod ("get_proto", arg_types);
-      /*@Prototype*/ Invariant proto = (/*@Prototype*/ Invariant) get_proto.invoke (null, arg_vals);
+      Method get_proto = theClass.getMethod("get_proto", arg_types);
+      /*@Prototype*/ Invariant proto = (/*@Prototype*/ Invariant) get_proto.invoke(null, arg_vals);
 
-      return (proto.instantiate (slice));
-    }
-    catch (Exception e) {
+      return (proto.instantiate(slice));
+    } catch (Exception e) {
       e.printStackTrace(System.out);
-      throw new RuntimeException("Error while instantiating invariant "
-                                 + theClass.getName() + ": " + e.toString());
+      throw new RuntimeException(
+          "Error while instantiating invariant " + theClass.getName() + ": " + e.toString());
     }
   }
-
 }

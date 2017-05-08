@@ -1,26 +1,23 @@
 package daikon;
 
-import daikon.inv.OutputFormat;
-import daikon.inv.Invariant;
-import daikon.derive.*;         // see dbc_name_impl(VarInfo v)
-import daikon.derive.unary.*;   // see dbc_name_impl(VarInfo v)
-import daikon.derive.binary.*;  // see dbc_name_impl(VarInfo v)
-import daikon.derive.ternary.*; // see dbc_name_impl(VarInfo v)
 import daikon.chicory.DaikonVariableInfo;
-
-import plume.*;
-
-import java.util.logging.Logger;
-import java.util.logging.Level;
-
-import java.lang.ref.WeakReference;
-import java.io.Serializable;
-import java.io.ObjectInputStream;
+import daikon.derive.*; // see dbc_name_impl(VarInfo v)
+import daikon.derive.binary.*; // see dbc_name_impl(VarInfo v)
+import daikon.derive.ternary.*; // see dbc_name_impl(VarInfo v)
+import daikon.derive.unary.*; // see dbc_name_impl(VarInfo v)
+import daikon.inv.OutputFormat;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
@@ -31,22 +28,17 @@ import org.checkerframework.dataflow.qual.*;
 // If you change this file, also change class daikon.test.VarInfoNameTest.
 
 /**
- * VarInfoName represents the "name" of a variable.
- * Calling it a "name", however, is somewhat misleading.  It can be
- * some expression that includes more than one variable, term, etc.
- * We separate this from the VarInfo itself because clients wish to
- * manipulate names into new expressions independent of the VarInfo
- * that they might be associated with.  VarInfoName's child classes
- * are specific types of names, like applying a function to something.
- * For example, "a" is a name, and "sin(a)" is a name that is the name
- * "a" with the function "sin" applied to it.
- **/
-@SuppressWarnings({"nullness","interning","regex"}) // deprecated file
-public abstract /*@Interned*/ class VarInfoName
-  implements Serializable, Comparable<VarInfoName>
-{
+ * VarInfoName represents the "name" of a variable. Calling it a "name", however, is somewhat
+ * misleading. It can be some expression that includes more than one variable, term, etc. We
+ * separate this from the VarInfo itself because clients wish to manipulate names into new
+ * expressions independent of the VarInfo that they might be associated with. VarInfoName's child
+ * classes are specific types of names, like applying a function to something. For example, "a" is a
+ * name, and "sin(a)" is a name that is the name "a" with the function "sin" applied to it.
+ */
+@SuppressWarnings({"nullness", "interning", "regex"}) // deprecated file
+public abstract /*@Interned*/ class VarInfoName implements Serializable, Comparable<VarInfoName> {
 
-  /** Debugging Logger. **/
+  /** Debugging Logger. */
   public static Logger debug = Logger.getLogger("daikon.VarInfoName");
 
   // We are Serializable, so we specify a version to allow changes to
@@ -55,46 +47,41 @@ public abstract /*@Interned*/ class VarInfoName
   static final long serialVersionUID = 20020614L;
 
   /**
-   * When true, apply orig directly to variables, do not apply
-   * orig to derived variables.  For example, create 'size(orig(a[]))'
-   * rather than 'orig(size(a[]))'
+   * When true, apply orig directly to variables, do not apply orig to derived variables. For
+   * example, create 'size(orig(a[]))' rather than 'orig(size(a[]))'.
    */
   static boolean dkconfig_direct_orig = false;
 
   /**
-   * Given the standard String representation of a variable name (like
-   * what appears in the normal output format), return the
-   * corresponding VarInfoName. This method can't parse all the
-   * strings that the VarInfoName name() method might produce, but it
-   * should be able to handle anything that appears in a decls
-   * file. Specifically, it can only handle a subset of the grammar of
-   * derived variables. For some values of "name",
-   * "name.equals(parse(e.name()))" might throw an exception, but if
-   * it completes normally, the result should be true.
-   **/
+   * Given the standard String representation of a variable name (like what appears in the normal
+   * output format), return the corresponding VarInfoName. This method can't parse all the strings
+   * that the VarInfoName name() method might produce, but it should be able to handle anything that
+   * appears in a decls file. Specifically, it can only handle a subset of the grammar of derived
+   * variables. For some values of "name", "name.equals(parse(e.name()))" might throw an exception,
+   * but if it completes normally, the result should be true.
+   */
   public static VarInfoName parse(String name) {
 
     // Remove the array indication from the new decl format
-    name = name.replace ("[..]", "[]");
+    name = name.replace("[..]", "[]");
 
     // orig(x)
     if (name.startsWith("orig(")) {
       // throw new Error("orig() variables shouldn't appear in .decls files");
-      assert name.endsWith (")") : name;
+      assert name.endsWith(")") : name;
       return parse(name.substring(5, name.length() - 1)).applyPrestate();
     }
 
     // x.class
     if (name.endsWith(DaikonVariableInfo.class_suffix)) {
-      return parse(name.substring(0,
-        name.length()-DaikonVariableInfo.class_suffix.length())).applyTypeOf();
+      return parse(name.substring(0, name.length() - DaikonVariableInfo.class_suffix.length()))
+          .applyTypeOf();
     }
 
     // a quoted string
     if (name.startsWith("\"") && name.endsWith("\"")) {
-      String content = name.substring(1, name.length()-1);
-      if (content.equals(UtilMDE.escapeNonJava
-                         (UtilMDE.unescapeNonJava(content)))) {
+      String content = name.substring(1, name.length() - 1);
+      if (content.equals(UtilMDE.escapeNonJava(UtilMDE.unescapeNonJava(content)))) {
         return (new Simple(name)).intern();
       }
     }
@@ -106,11 +93,11 @@ public abstract /*@Interned*/ class VarInfoName
       int arrow = name.lastIndexOf("->");
       if (dot >= 0 && dot > arrow) {
         String first = name.substring(0, dot);
-        String field = name.substring(dot+1);
+        String field = name.substring(dot + 1);
         return parse(first).applyField(field);
       } else if (arrow >= 0 && arrow > dot) {
         String first = name.substring(0, arrow);
-        String field = name.substring(arrow+2);
+        String field = name.substring(arrow + 2);
         return parse(first).applyField(field);
       } else {
         return (new Simple(name)).intern();
@@ -119,7 +106,7 @@ public abstract /*@Interned*/ class VarInfoName
 
     // a[]
     if (name.endsWith("[]")) {
-      return parse(name.substring(0, name.length()-2)).applyElements();
+      return parse(name.substring(0, name.length() - 2)).applyElements();
     }
 
     // foo[bar] -- IOA input only (pre-derived)
@@ -143,11 +130,11 @@ public abstract /*@Interned*/ class VarInfoName
       int arrow = name.lastIndexOf("->");
       if (dot >= brackets && dot > arrow) {
         String first = name.substring(0, dot);
-        String field = name.substring(dot+1);
+        String field = name.substring(dot + 1);
         return parse(first).applyField(field);
       } else if (arrow >= brackets && arrow > dot) {
         String first = name.substring(0, arrow);
-        String field = name.substring(arrow+2);
+        String field = name.substring(arrow + 2);
         return parse(first).applyField(field);
       }
     }
@@ -155,35 +142,34 @@ public abstract /*@Interned*/ class VarInfoName
     // A.B, where A is complex: foo(x).y, x[7].y, etc.
     int dot = name.lastIndexOf('.');
     int arrow = name.lastIndexOf("->");
-    if (dot>=0 && dot >arrow) {
+    if (dot >= 0 && dot > arrow) {
       String first = name.substring(0, dot);
-      String field = name.substring(dot+1);
+      String field = name.substring(dot + 1);
       return parse(first).applyField(field);
     }
 
     // A->B, where A is complex: foo(x)->y, x[7]->y, etc.
-    if (arrow>=0 && arrow > dot) {
+    if (arrow >= 0 && arrow > dot) {
       String first = name.substring(0, arrow);
-      String field = name.substring(arrow+2);
+      String field = name.substring(arrow + 2);
       return parse(first).applyField(field);
     }
 
     // New decl format permits arbitrary uninterpreted strings as names
-    if (FileIO.new_decl_format)
+    if (FileIO.new_decl_format) {
       return (new Simple(name)).intern();
-    else
+    } else {
       throw new UnsupportedOperationException("parse error: '" + name + "'");
-
+    }
   }
 
   /**
-   * Return the String representation of this name in the default
-   * output format.
-   * @return the string representation (interned) of this name, in the
-   * default output format
-   **/
+   * Return the String representation of this name in the default output format.
+   *
+   * @return the string representation (interned) of this name, in the default output format
+   */
   /*@Pure*/
-  public /*@Interned*/ String name() {
+  public /*@Interned*/ String name(/*>>>@GuardSatisfied VarInfoName this*/) {
     if (name_cached == null) {
       try {
         name_cached = name_impl().intern();
@@ -194,21 +180,20 @@ public abstract /*@Interned*/ class VarInfoName
     }
     return name_cached;
   }
+
   private /*@Interned*/ String name_cached = null; // interned
 
   /**
-   * Returns the String representation of this name in the default output
-   * format.  Result is not interned; the client (name()) does so, then
-   * caches the interned value.
+   * Returns the String representation of this name in the default output format. Result is not
+   * interned; the client (name()) does so, then caches the interned value.
    */
-  protected abstract String name_impl();
+  protected abstract String name_impl(/*>>>@GuardSatisfied VarInfoName this*/);
 
   /**
-   * Return the String representation of this name in the esc style
-   * output format.
-   * @return the string representation (interned) of this name, in the
-   * esc style output format
-   **/
+   * Return the String representation of this name in the esc style output format.
+   *
+   * @return the string representation (interned) of this name, in the esc style output format
+   */
   public /*@Interned*/ String esc_name() {
     if (esc_name_cached == null) {
       try {
@@ -221,27 +206,27 @@ public abstract /*@Interned*/ class VarInfoName
     // System.out.println("esc_name = " + esc_name_cached + " for " + name() + " of class " + this.getClass().getName());
     return esc_name_cached;
   }
+
   private /*@Interned*/ String esc_name_cached = null; // interned
 
-
   /**
-   * Returns the String representation of this name in the ESC style
-   * output format.  Cached by esc_name()
+   * Returns the String representation of this name in the ESC style output format. Cached by {@link
+   * #esc_name()}.
    */
   protected abstract String esc_name_impl();
 
   /**
-   * @return the string representation (interned) of this name, in the
-   * Simplify tool output format in the pre-state context.
-   **/
+   * @return the string representation (interned) of this name, in the Simplify tool output format
+   *     in the pre-state context
+   */
   public /*@Interned*/ String simplify_name() {
     return simplify_name(false);
   }
 
   /**
-   * @return the string representation (interned) of this name, in the
-   * Simplify tool output format, in the given pre/post-state context.
-   **/
+   * @return the string representation (interned) of this name, in the Simplify tool output format,
+   *     in the given pre/post-state context.
+   */
   protected /*@Interned*/ String simplify_name(boolean prestate) {
     int which = prestate ? 0 : 1;
     if (simplify_name_cached[which] == null) {
@@ -254,22 +239,21 @@ public abstract /*@Interned*/ class VarInfoName
     }
     return simplify_name_cached[which];
   }
-  private /*@Interned*/ String[] simplify_name_cached
-    = new /*@Interned*/ String[2]; // each interned
+
+  // each element is interned
+  private /*@Interned*/ String[] simplify_name_cached = new /*@Interned*/ String[2];
 
   /**
-   * Returns the String representation of this name in the simplify
-   * output format in either prestate or poststate context
+   * Returns the String representation of this name in the simplify output format in either prestate
+   * or poststate context.
    */
   protected abstract String simplify_name_impl(boolean prestate);
 
   /**
-   * Return the String representation of this name in the java style
-   * output format.
+   * Return the String representation of this name in the java style output format.
    *
-   * @return the string representation (interned) of this name, in the
-   * java style output format
-   **/
+   * @return the string representation (interned) of this name, in the java style output format
+   */
   public /*@Interned*/ String java_name(VarInfo v) {
     if (java_name_cached == null) {
       try {
@@ -281,18 +265,16 @@ public abstract /*@Interned*/ class VarInfoName
     }
     return java_name_cached;
   }
+
   private /*@Interned*/ String java_name_cached = null; // interned
 
   /**
-   * Return the String representation of this name in java format.
-   * Cached and interned by java_name()
+   * Return the String representation of this name in java format. Cached and interned by {@link
+   * #java_name}.
    */
   protected abstract String java_name_impl(VarInfo v);
 
-  /**
-   * Return the String representation of this name in the JML style output
-   * format
-   */
+  /** Return the String representation of this name in the JML style output format. */
   public /*@Interned*/ String jml_name(VarInfo v) {
     if (jml_name_cached == null) {
       try {
@@ -305,13 +287,10 @@ public abstract /*@Interned*/ class VarInfoName
     // System.out.println("jml_name = " + jml_name_cached + " for " + name() + " of class " + this.getClass().getName());
     return jml_name_cached;
   }
-  private /*@Interned*/ String jml_name_cached = null; // interned
-  /**
-   * Returns the name in JML style output format.  Cached and interned by
-   * jml_name()
-   */
-  protected abstract String jml_name_impl(VarInfo v);
 
+  private /*@Interned*/ String jml_name_cached = null; // interned
+  /** Returns the name in JML style output format. Cached and interned by {@link #jml_name}. */
+  protected abstract String jml_name_impl(VarInfo v);
 
   // For DBC, Java and JML formats, the formatting methods take as
   // argument the VarInfo related to the VarInfoName in question. This
@@ -327,22 +306,16 @@ public abstract /*@Interned*/ class VarInfoName
   public static boolean testCall = false;
 
   /**
-   * Return the String representation of this name in the dbc style
-   * output format.
+   * Return the String representation of this name in the dbc style output format.
    *
-   * @param var the VarInfo which goes along with this VarInfoName.
-   *            Used to determine the type of the variable.
-   *
-   *        If var is null, the only repercussion is that if `this' is an
-   *        "orig(x)" expression, it will be formatted in jml-style,
-   *        something like "\old(x)".
-   *
-   *        If var is not null and `this' is an "orig(x)" expressions, it
-   *        will be formatted in Jtest's DBC style, as "$pre(<em>type</em>, x)".
-   *
-   * @return the string representation (interned) of this name, in the
-   * dbc style output format.
-   **/
+   * @param var the VarInfo which goes along with this VarInfoName. Used to determine the type of
+   *     the variable.
+   *     <p>If var is null, the only repercussion is that if `this' is an "orig(x)" expression, it
+   *     will be formatted in jml-style, something like "\old(x)".
+   *     <p>If var is not null and `this' is an "orig(x)" expressions, it will be formatted in
+   *     Jtest's DBC style, as "$pre(<em>type</em>, x)".
+   * @return the string representation (interned) of this name, in the dbc style output format
+   */
   public /*@Interned*/ String dbc_name(VarInfo var) {
     if (dbc_name_cached == null) {
       try {
@@ -357,15 +330,12 @@ public abstract /*@Interned*/ class VarInfoName
 
   private /*@Interned*/ String dbc_name_cached = null; // interned
   /**
-   * Return the name in the DBC style output format.  If v is null, uses
-   * JML style instead.  Cached and interned by dbc_name()
+   * Return the name in the DBC style output format. If v is null, uses JML style instead. Cached
+   * and interned by {@link #dbc_name}.
    */
   protected abstract String dbc_name_impl(VarInfo v);
 
-  /**
-   * Return the String representation of this name using only letters,
-   * numbers, and underscores.
-   */
+  /** Return the String representation of this name using only letters, numbers, and underscores. */
   public /*@Interned*/ String identifier_name() {
     if (identifier_name_cached == null) {
       try {
@@ -378,17 +348,16 @@ public abstract /*@Interned*/ class VarInfoName
     // System.out.println("identifier_name = " + identifier_name_cached + " for " + name() + " of class " + this.getClass().getName());
     return identifier_name_cached;
   }
+
   private /*@Interned*/ String identifier_name_cached = null; // interned
 
   /**
-   * Returns the name using only letters, numbers, and underscores.  Cached
-   * and interned by identifier_name()
+   * Returns the name using only letters, numbers, and underscores. Cached and interned by {@link
+   * #identifier_name()}.
    */
   protected abstract String identifier_name_impl();
 
-  /**
-   * @return name of this in the specified format
-   **/
+  /** @return name of this in the specified format */
   public String name_using(OutputFormat format, VarInfo vi) {
 
     if (format == OutputFormat.DAIKON) return name();
@@ -397,28 +366,29 @@ public abstract /*@Interned*/ class VarInfoName
     if (format == OutputFormat.JAVA) return java_name(vi);
     if (format == OutputFormat.JML) return jml_name(vi);
     if (format == OutputFormat.DBCJAVA) return dbc_name(vi);
-    throw new UnsupportedOperationException
-      ("Unknown format requested: " + format);
+    throw new UnsupportedOperationException("Unknown format requested: " + format);
   }
 
-  /** @return the name, in a debugging format **/
-  public String repr() {
+  /** @return the name, in a debugging format */
+  public String repr(/*>>>@GuardSatisfied VarInfoName this*/) {
     // AAD: Used to be interned for space reasons, but removed during
     // profiling when it was determined that the interns are unique
     // anyway.
     if (repr_cached == null) {
-      repr_cached = repr_impl();//.intern();
+      repr_cached = repr_impl(); //.intern();
     }
     return repr_cached;
   }
+
   private String repr_cached = null;
 
-  /** return the name in a verbose debugging format.  Cached by repr **/
-  protected abstract String repr_impl();
+  /** Return the name in a verbose debugging format. Cached by repr. */
+  protected abstract String repr_impl(/*>>>@GuardSatisfied VarInfoName this*/);
 
   // It would be nice if a generalized form of the mechanics of
   // interning were abstracted out somewhere.
-  private static final WeakHashMap<VarInfoName,WeakReference<VarInfoName>> internTable = new WeakHashMap<VarInfoName,WeakReference<VarInfoName>>();
+  private static final WeakHashMap<VarInfoName, WeakReference<VarInfoName>> internTable =
+      new WeakHashMap<VarInfoName, WeakReference<VarInfoName>>();
   // This does not make any guarantee that the components of the
   // VarInfoName are themselves interned.  Should it?  (I suspect so...)
   public VarInfoName intern() {
@@ -434,7 +404,6 @@ public abstract /*@Interned*/ class VarInfoName
     }
   }
 
-
   // ============================================================
   // Constants
 
@@ -442,35 +411,29 @@ public abstract /*@Interned*/ class VarInfoName
   public static final VarInfoName THIS = parse("this");
   public static final VarInfoName ORIG_THIS = parse("this").applyPrestate();
 
-
   // ============================================================
   // Observers
 
-  /**
-   * @return true when this is "0", "-1", "1", etc.
-   **/
-  /*@Pure*/ public boolean isLiteralConstant() {
+  /** @return true when this is "0", "-1", "1", etc. */
+  /*@Pure*/
+  public boolean isLiteralConstant() {
     return false;
   }
 
-  /**
-   * @return the nodes of this, as given by an inorder traversal.
-   **/
+  /** @return the nodes of this, as given by an inorder traversal */
   public Collection<VarInfoName> inOrderTraversal(/*>>> @Interned VarInfoName this*/) {
     return Collections.unmodifiableCollection(new InorderFlattener(this).nodes());
   }
 
   /**
-   * @return true iff the given node can be found in this.  If the
-   * node has children, the whole subtree must match.
-   **/
+   * @return true iff the given node can be found in this. If the node has children, the whole
+   *     subtree must match.
+   */
   public boolean hasNode(VarInfoName node) {
     return inOrderTraversal().contains(node);
   }
 
-  /**
-   * @return true iff a node of the given type exists in this
-   **/
+  /** @return true iff a node of the given type exists in this */
   public boolean hasNodeOfType(Class<?> type) {
     for (VarInfoName vin : inOrderTraversal()) {
       if (type.equals(vin.getClass())) {
@@ -480,50 +443,43 @@ public abstract /*@Interned*/ class VarInfoName
     return false;
   }
 
-  /**
-   * @return true iff a TypeOf node exists in this
-   **/
+  /** @return true iff a TypeOf node exists in this */
   public boolean hasTypeOf() {
     return hasNodeOfType(VarInfoName.TypeOf.class);
   }
 
   /**
-   * Returns whether or not this name refers to the 'this' variable
-   * of a class.  True for both normal and prestate versions of the
-   * variable
+   * Returns whether or not this name refers to the 'this' variable of a class. True for both normal
+   * and prestate versions of the variable.
    */
-  /*@Pure*/ public boolean isThis() {
+  /*@Pure*/
+  public boolean isThis() {
     if (name() == "this") { // interned
-      return (true);
+      return true;
     }
-    if (this instanceof VarInfoName.Prestate &&
-        ((VarInfoName.Prestate) this).term.name() == "this") { //interned
-      return (true);
+    if (this instanceof VarInfoName.Prestate
+        && ((VarInfoName.Prestate) this).term.name() == "this") { //interned
+      return true;
     }
 
-    return (false);
+    return false;
   }
 
   /**
-   * @return true if the given node is in a prestate context within
-   * this tree; the node must be a member of this tree.
-   **/
+   * @return true if the given node is in a prestate context within this tree; the node must be a
+   *     member of this tree
+   */
   public boolean inPrestateContext(/*>>> @Interned VarInfoName this,*/ VarInfoName node) {
     return (new NodeFinder(this, node)).inPre();
   }
 
-  /**
-   * @return true if every variable in the name is an orig(...)
-   * variable.
-   **/
-  /*@Pure*/ public boolean isAllPrestate(/*>>> @Interned VarInfoName this*/) {
+  /** @return true if every variable in the name is an orig(...) variable. */
+  /*@Pure*/
+  public boolean isAllPrestate(/*>>> @Interned VarInfoName this*/) {
     return new IsAllPrestateVisitor(this).result();
   }
 
-  /**
-   * @return true if this VarInfoName contains a simple variable whose
-   * name is NAME.
-   **/
+  /** @return true if this VarInfoName contains a simple variable whose name is NAME */
   public boolean includesSimpleName(/*>>> @Interned VarInfoName this,*/ String name) {
     return new SimpleNamesVisitor(this).simples().contains(name);
   }
@@ -531,24 +487,20 @@ public abstract /*@Interned*/ class VarInfoName
   // ============================================================
   // Special producers, or other helpers
 
-  /**
-   * Replace the first instance of node by replacement, in the data
-   * structure rooted at this.
-   **/
-  public VarInfoName replace(/*>>> @Interned VarInfoName this,*/ VarInfoName node, VarInfoName replacement) {
-    if (node == replacement)    // "interned": equality optimization pattern
-      return this;
+  /** Replace the first instance of node by replacement, in the data structure rooted at this. */
+  public VarInfoName replace(
+      /*>>> @Interned VarInfoName this,*/ VarInfoName node, VarInfoName replacement) {
+    if (node == replacement) // "interned": equality optimization pattern
+    return this;
     Replacer r = new Replacer(node, replacement);
     return r.replace(this).intern();
   }
 
-  /**
-   * Replace all instances of node by replacement, in the data structure
-   * rooted at this.
-   **/
-  public VarInfoName replaceAll(/*>>> @Interned VarInfoName this,*/ VarInfoName node, VarInfoName replacement) {
-    if (node == replacement)    // "interned": equality optimization pattern
-      return this;
+  /** Replace all instances of node by replacement, in the data structure rooted at this. */
+  public VarInfoName replaceAll(
+      /*>>> @Interned VarInfoName this,*/ VarInfoName node, VarInfoName replacement) {
+    if (node == replacement) // "interned": equality optimization pattern
+    return this;
 
     // assert ! replacement.hasNode(node); // no infinite loop
 
@@ -568,25 +520,32 @@ public abstract /*@Interned*/ class VarInfoName
   // The usual Object methods
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public boolean equals (/*@Nullable*/ Object o) {
+  /*@Pure*/
+  public boolean equals(
+      /*>>>@GuardSatisfied VarInfoName this,*/
+      /*@GuardSatisfied*/ /*@Nullable*/ Object o) {
     return (o instanceof VarInfoName) && equals((VarInfoName) o);
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public boolean equals (/*>>> @Interned VarInfoName this,*/ VarInfoName other) {
-    return ((other == this)     // "interned": equality optimization pattern
-            || ((other != null)
-                && (this.repr().equals(other.repr()))));
+  /*@Pure*/
+  public boolean equals(
+      /*>>>@GuardSatisfied @Interned VarInfoName this,*/
+      /*@GuardSatisfied*/ VarInfoName other) {
+    return ((other == this) // "interned": equality optimization pattern
+        || ((other != null) && (this.repr().equals(other.repr()))));
   }
 
   // This should be safe even in the absence of caching, because "repr()"
   // returns a new string each time, but it is equal() to any other
   // returned string, so their hashCode()s should be the same.
-  /*@Pure*/ public int hashCode() {
+  /*@Pure*/
+  public int hashCode(/*>>>@GuardSatisfied VarInfoName this*/) {
     return repr().hashCode();
   }
 
-  /*@Pure*/ public int compareTo(VarInfoName other) {
+  /*@Pure*/
+  public int compareTo(/*>>>@GuardSatisfied VarInfoName this,*/ VarInfoName other) {
     int nameCmp = name().compareTo(other.name());
     if (nameCmp != 0) return nameCmp;
     int reprCmp = repr().compareTo(other.repr());
@@ -596,39 +555,28 @@ public abstract /*@Interned*/ class VarInfoName
   // This is a debugging method, not intended for ordinary output.
   // Code producing output should usually call name() rather than
   // calling toString (perhaps implicitly).
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied VarInfoName this*/) {
     return repr();
   }
 
-
-
   // Interning is lost when an object is serialized and deserialized.
   // Manually re-intern any interned fields upon deserialization.
-  private void readObject(ObjectInputStream in)
-    throws IOException, ClassNotFoundException
-  {
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
-    if (name_cached != null)
-      name_cached = name_cached.intern();
-    if (esc_name_cached != null)
-      esc_name_cached = esc_name_cached.intern();
-    if (simplify_name_cached[0] != null)
-      simplify_name_cached[0] = simplify_name_cached[0].intern();
-    if (simplify_name_cached[1] != null)
-      simplify_name_cached[1] = simplify_name_cached[1].intern();
-    if (java_name_cached != null)
-      java_name_cached = java_name_cached.intern();
-    if (jml_name_cached != null)
-      jml_name_cached = jml_name_cached.intern();
-    if (dbc_name_cached != null)
-     dbc_name_cached = dbc_name_cached.intern();
+    if (name_cached != null) name_cached = name_cached.intern();
+    if (esc_name_cached != null) esc_name_cached = esc_name_cached.intern();
+    if (simplify_name_cached[0] != null) simplify_name_cached[0] = simplify_name_cached[0].intern();
+    if (simplify_name_cached[1] != null) simplify_name_cached[1] = simplify_name_cached[1].intern();
+    if (java_name_cached != null) java_name_cached = java_name_cached.intern();
+    if (jml_name_cached != null) jml_name_cached = jml_name_cached.intern();
+    if (dbc_name_cached != null) dbc_name_cached = dbc_name_cached.intern();
   }
-
 
   // ============================================================
   // Static inner classes that form the expression langugage
 
-  /** A simple identifier like "a", etc. **/
+  /** A simple identifier like "a", etc. */
   public static /*@Interned*/ class Simple extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -636,11 +584,13 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public final String name;
+
     public Simple(String name) {
       assert name != null;
       this.name = name;
     }
-    /*@Pure*/ public boolean isLiteralConstant() {
+    /*@Pure*/
+    public boolean isLiteralConstant() {
       try {
         Integer.parseInt(name);
         return true;
@@ -648,12 +598,15 @@ public abstract /*@Interned*/ class VarInfoName
         return false;
       }
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Simple this*/) {
       return name;
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Simple this*/) {
       return name;
     }
+
     protected String esc_name_impl() {
       return "return".equals(name) ? "\\result" : name;
     }
@@ -671,19 +624,22 @@ public abstract /*@Interned*/ class VarInfoName
     // execution of Daikon.
     protected static String simplify_name_impl(String s, boolean prestate) {
       if (s.startsWith("~") && s.endsWith("~")) {
-        s = s.substring(1, s.length()-2) + ":closure";
+        s = s.substring(1, s.length() - 2) + ":closure";
       }
       if (prestate) {
         s = "__orig__" + s;
       }
       return "|" + s + "|";
     }
+
     protected String java_name_impl(VarInfo v) {
       return "return".equals(name) ? "\\result" : name;
     }
+
     protected String jml_name_impl(VarInfo v) {
       return "return".equals(name) ? "\\result" : name;
     }
+
     protected String dbc_name_impl(VarInfo v) {
       if (name.equals("return")) {
         return "$result";
@@ -691,31 +647,27 @@ public abstract /*@Interned*/ class VarInfoName
         return name;
       }
     }
+
     protected String identifier_name_impl() {
-      if (name.equals("return"))
+      if (name.equals("return")) {
         return "Daikon_return";
-      else if (name.equals("this"))
+      } else if (name.equals("this")) {
         return "Daikon_this";
-      else {
+      } else {
         StringBuffer buf = new StringBuffer();
         for (int i = 0; i < name.length(); i++) {
           char c = name.charAt(i);
-          if (Character.isLetterOrDigit(c))
-            buf.append(c);
-          else if (c == '_')
-            buf.append("__");
-          else if (c == '$')
-            buf.append("_dollar_");
-          else if (c == ':')
-            buf.append("_colon_");
-          else if (c == '*')
-            buf.append("star_");
-          else
-            throw new Error("Unexpected character in VarInfoName$Simple");
+          if (Character.isLetterOrDigit(c)) buf.append(c);
+          else if (c == '_') buf.append("__");
+          else if (c == '$') buf.append("_dollar_");
+          else if (c == ':') buf.append("_colon_");
+          else if (c == '*') buf.append("star_");
+          else throw new Error("Unexpected character in VarInfoName$Simple");
         }
         return buf.toString();
       }
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitSimple(this);
     }
@@ -724,29 +676,38 @@ public abstract /*@Interned*/ class VarInfoName
   /**
    * @return true iff applySize will not throw an exception
    * @see #applySize
-   **/
-  /*@Pure*/ public boolean isApplySizeSafe() {
+   */
+  /*@Pure*/
+  public boolean isApplySizeSafe() {
     return (new ElementsFinder(this)).elems() != null;
   }
 
   /**
-   * Returns a name for the size of this (this object should be a
-   * sequence).  Form is like "size(a[])" or "a.length".
-   **/
+   * Returns a name for the size of this (this object should be a sequence). Form is like
+   * "size(a[])" or "a.length".
+   */
   public VarInfoName applySize(/*>>> @Interned VarInfoName this*/) {
     // The simple approach:
     //   return (new SizeOf((Elements) this)).intern();
     // is wrong because this might be "orig(a[])".
     if (dkconfig_direct_orig) {
-      return new SizeOf (this).intern();
+      return new SizeOf(this).intern();
     } else {
       Elements elems = (new ElementsFinder(this)).elems();
       if (elems == null) {
         throw new Error(
-       "applySize should have elements to use in " + name() + ";" + Global.lineSep
-         + "that is, " + name() + " does not appear to be a sequence/collection." + Global.lineSep
-         + "Perhaps its name should be suffixed by \"[]\"?" + Global.lineSep
-         + " this.class = " + getClass().getName());
+            "applySize should have elements to use in "
+                + name()
+                + ";"
+                + Global.lineSep
+                + "that is, "
+                + name()
+                + " does not appear to be a sequence/collection."
+                + Global.lineSep
+                + "Perhaps its name should be suffixed by \"[]\"?"
+                + Global.lineSep
+                + " this.class = "
+                + getClass().getName());
       }
 
       // If this is orig, replace the elems with sizeof, leaving orig
@@ -756,44 +717,43 @@ public abstract /*@Interned*/ class VarInfoName
       // for variables such as a[].b.c (returns size(a[])) or
       // a[].getClass().getName() (returns size(a[]))
       if (this instanceof Prestate) {
-        VarInfoName size = (new SizeOf (elems)).intern();
-        return (new Prestate (size)).intern();
+        VarInfoName size = (new SizeOf(elems)).intern();
+        return (new Prestate(size)).intern();
         // Replacer r = new Replacer(elems, (new SizeOf(elems)).intern());
         // return r.replace(this).intern();
       } else {
-        return (new SizeOf (elems)).intern();
+        return (new SizeOf(elems)).intern();
       }
-
     }
   }
 
   /**
-   * If this is a slice, (potentially in pre-state), return its lower
-   * and upper bounds, which can be subtracted to get one less than
-   * its size.
+   * If this is a slice, (potentially in pre-state), return its lower and upper bounds, which can be
+   * subtracted to get one less than its size.
    */
   public /*@Interned*/ VarInfoName[] getSliceBounds(/*>>> @Interned VarInfoName this*/) {
     VarInfoName vin = this;
     boolean inPrestate = false;
     if (vin instanceof Prestate) {
       inPrestate = true;
-      vin = ((Prestate)vin).term;
+      vin = ((Prestate) vin).term;
     }
     while (vin instanceof Field) {
-      vin = ((Field)vin).term;
+      vin = ((Field) vin).term;
     }
-    if (!(vin instanceof Slice))
-      return null;
-    Slice slice = (Slice)vin;
+    if (!(vin instanceof Slice)) return null;
+    Slice slice = (Slice) vin;
     /*@Interned*/ VarInfoName[] ret = new /*@Interned*/ VarInfoName[2];
-    if (slice.i != null)
+    if (slice.i != null) {
       ret[0] = slice.i;
-    else
+    } else {
       ret[0] = ZERO;
-    if (slice.j != null)
+    }
+    if (slice.j != null) {
       ret[1] = slice.j;
-    else
+    } else {
       ret[1] = slice.sequence.applySize().applyAdd(-1);
+    }
     if (inPrestate) {
       ret[0] = ret[0].applyPrestate();
       ret[1] = ret[1].applyPrestate();
@@ -801,10 +761,7 @@ public abstract /*@Interned*/ class VarInfoName
     return ret;
   }
 
-  /**
-   * The size of a contained sequence; form is like "size(sequence)"
-   * or "sequence.length".
-   **/
+  /** The size of a contained sequence; form is like "size(sequence)" or "sequence.length". */
   public static /*@Interned*/ class SizeOf extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -812,14 +769,17 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public final VarInfoName sequence;
+
     public SizeOf(VarInfoName sequence) {
       assert sequence != null;
       this.sequence = sequence;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied SizeOf this*/) {
       return "SizeOf[" + sequence.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied SizeOf this*/) {
       return "size(" + sequence.name() + ")";
 
       // I'm not sure how to get this right; seems to require info about
@@ -838,57 +798,66 @@ public abstract /*@Interned*/ class VarInfoName
       // }
     }
 
-    /** Returns the hashcode that is the base of the array **/
-    /*@Pure*/ public VarInfoName get_term() {
-      if (sequence instanceof Elements)
+    /** Returns the hashcode that is the base of the array */
+    /*@Pure*/
+    public VarInfoName get_term() {
+      if (sequence instanceof Elements) {
         return ((Elements) sequence).term;
-      else if (sequence instanceof Prestate) {
+      } else if (sequence instanceof Prestate) {
         VarInfoName term = ((Prestate) sequence).term;
-        return ((Elements)term).term;
+        return ((Elements) term).term;
       }
-      throw new RuntimeException ("unexpected term in sizeof " + this);
+      throw new RuntimeException("unexpected term in sizeof " + this);
     }
 
     protected String esc_name_impl() {
       return get_term().esc_name() + ".length";
     }
+
     protected String simplify_name_impl(boolean prestate) {
       return "(arrayLength " + get_term().simplify_name(prestate) + ")";
     }
+
     protected String java_name_impl(VarInfo v) {
       return java_family_impl(OutputFormat.JAVA, v);
     }
+
     protected String jml_name_impl(VarInfo v) {
       return java_family_impl(OutputFormat.JML, v);
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return java_family_impl(OutputFormat.DBCJAVA, v);
     }
+
     protected String java_family_impl(OutputFormat format, VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       assert v != null;
       assert v.isDerived();
       Derivation derived = v.derived;
       assert derived instanceof SequenceLength;
-      VarInfo seqVarInfo = ((SequenceLength)derived).base;
+      VarInfo seqVarInfo = ((SequenceLength) derived).base;
       String prefix = get_term().name_using(format, seqVarInfo);
       return "daikon.Quant.size(" + prefix + ")";
-//       if (seqVarInfo.type.pseudoDimensions() > seqVarInfo.type.dimensions()) {
-//         if (prefix.startsWith("daikon.Quant.collect")) {
-//           // Quant collect methods returns an array
-//           return prefix  + ".length";
-//         } else {
-//           // It's a Collection
-//           return prefix  + ".size()";
-//         }
-//       } else {
-//         // It's an array
-//         return prefix + ".length";
-//       }
+      //       if (seqVarInfo.type.pseudoDimensions() > seqVarInfo.type.dimensions()) {
+      //         if (prefix.startsWith("daikon.Quant.collect")) {
+      //           // Quant collect methods returns an array
+      //           return prefix  + ".length";
+      //         } else {
+      //           // It's a Collection
+      //           return prefix  + ".size()";
+      //         }
+      //       } else {
+      //         // It's an array
+      //         return prefix + ".length";
+      //       }
     }
+
     protected String identifier_name_impl() {
       return "size_of" + sequence.identifier_name() + "___";
     }
@@ -898,37 +867,35 @@ public abstract /*@Interned*/ class VarInfoName
     }
   }
 
-  /**
-   * Returns a name for a unary function applied to this object.
-   * The result is like "sum(this)".
-   **/
+  /** Returns a name for a unary function applied to this object. The result is like "sum(this)". */
   public VarInfoName applyFunction(/*>>> @Interned VarInfoName this,*/ String function) {
     return (new FunctionOf(function, this)).intern();
   }
 
   /**
-   * Returns a name for a function applied to more than one argument.
-   * The result is like "sum(var1, var2)".
+   * Returns a name for a function applied to more than one argument. The result is like "sum(var1,
+   * var2)".
+   *
    * @param function the name of the function
-   * @param vars The arguments to the function, of type VarInfoName
-   **/
+   * @param vars the arguments to the function, of type VarInfoName
+   */
   public static VarInfoName applyFunctionOfN(String function, List<VarInfoName> vars) {
     return (new FunctionOfN(function, vars)).intern();
   }
 
   /**
-   * Returns a name for a function of more than one argument.
-   * The result is like "sum(var1, var2)".
+   * Returns a name for a function of more than one argument. The result is like "sum(var1, var2)".
+   *
    * @param function the name of the function
-   * @param vars The arguments to the function
-   **/
+   * @param vars the arguments to the function
+   */
   public static VarInfoName applyFunctionOfN(String function, /*@Interned*/ VarInfoName[] vars) {
     // This causes an odd error with the Interned checker:
     // return applyFunctionOfN(function, Arrays.</*@Interned*/ VarInfoName>asList(vars));
     return applyFunctionOfN(function, Arrays.asList(vars));
   }
 
-  /** A function over a term, like "sum(argument)". **/
+  /** A function over a term, like "sum(argument)". */
   public static /*@Interned*/ class FunctionOf extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -937,58 +904,75 @@ public abstract /*@Interned*/ class VarInfoName
 
     public final String function;
     public final VarInfoName argument;
+
     public FunctionOf(String function, VarInfoName argument) {
       assert function != null;
       assert argument != null;
       this.function = function;
       this.argument = argument;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied FunctionOf this*/) {
       return "FunctionOf{" + function + "}[" + argument.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied FunctionOf this*/) {
       return function + "(" + argument.name() + ")";
     }
+
     protected String esc_name_impl() {
-      return "(warning: format_esc() needs to be implemented: " +
-        function + " on " + argument.repr() + ")";
+      return "(warning: format_esc() needs to be implemented: "
+          + function
+          + " on "
+          + argument.repr()
+          + ")";
     }
+
     protected String simplify_name_impl(boolean prestate) {
-      return "(warning: format_simplify() needs to be implemented: " +
-        function + " on " + argument.repr() + ")";
+      return "(warning: format_simplify() needs to be implemented: "
+          + function
+          + " on "
+          + argument.repr()
+          + ")";
     }
+
     protected String java_name_impl(VarInfo v) {
       return java_family_name_impl(OutputFormat.JAVA, v);
     }
+
     protected String jml_name_impl(VarInfo v) {
       return java_family_name_impl(OutputFormat.JML, v);
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return java_family_name_impl(OutputFormat.DBCJAVA, v);
     }
+
     protected String java_family_name_impl(OutputFormat format, VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       assert v != null;
       assert v.isDerived();
       Derivation derived = v.derived;
       assert derived instanceof UnaryDerivation;
-      VarInfo argVarInfo = ((UnaryDerivation)derived).base;
+      VarInfo argVarInfo = ((UnaryDerivation) derived).base;
       return "daikon.Quant." + function + "(" + argument.name_using(format, argVarInfo) + ")";
     }
 
     protected String identifier_name_impl() {
       return function + "_of_" + argument.identifier_name() + "___";
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitFunctionOf(this);
     }
   }
 
-
-  /** A function of multiple parameters. **/
+  /** A function of multiple parameters. */
   public static /*@Interned*/ class FunctionOfN extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1000,9 +984,10 @@ public abstract /*@Interned*/ class VarInfoName
 
     /**
      * Construct a new function of multiple arguments.
+     *
      * @param function the name of the function
      * @param args the arguments to the function, of type VarInfoName
-     **/
+     */
     public FunctionOfN(String function, List<VarInfoName> args) {
       assert function != null;
       assert args != null;
@@ -1010,30 +995,40 @@ public abstract /*@Interned*/ class VarInfoName
       this.function = function;
     }
 
-    private List<String> elts_repr() {
+    private List<String> elts_repr(/*>>>@GuardSatisfied FunctionOfN this*/) {
       List<String> elts = new ArrayList<String>(args.size());
       for (VarInfoName vin : args) {
         elts.add(vin.repr());
       }
       return elts;
     }
-    private String elts_repr_commas() {
+
+    private String elts_repr_commas(/*>>>@GuardSatisfied FunctionOfN this*/) {
       return UtilMDE.join(elts_repr(), ", ");
     }
 
-    protected String repr_impl() {
+    protected String repr_impl(/*>>>@GuardSatisfied FunctionOfN this*/) {
       return "FunctionOfN{" + function + "}[" + elts_repr_commas() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied FunctionOfN this*/) {
       return function + "(" + elts_repr_commas() + ")";
     }
+
     protected String esc_name_impl() {
-      return "(warning: format_esc() needs to be implemented: " +
-        function + " on " + elts_repr_commas() + ")";
+      return "(warning: format_esc() needs to be implemented: "
+          + function
+          + " on "
+          + elts_repr_commas()
+          + ")";
     }
+
     protected String simplify_name_impl(boolean prestate) {
-      return "(warning: format_simplify() needs to be implemented: " +
-        function + " on " + elts_repr_commas() + ")";
+      return "(warning: format_simplify() needs to be implemented: "
+          + function
+          + " on "
+          + elts_repr_commas()
+          + ")";
     }
 
     protected String java_name_impl(VarInfo v) {
@@ -1053,7 +1048,9 @@ public abstract /*@Interned*/ class VarInfoName
     protected String java_family_name_impl(OutputFormat format, VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       assert v != null;
       assert v.isDerived();
@@ -1061,46 +1058,45 @@ public abstract /*@Interned*/ class VarInfoName
       assert derived instanceof BinaryDerivation;
       //|| derived instanceof TernaryDerivation);
       assert args.size() == 2;
-      VarInfo arg1VarInfo = ((BinaryDerivation)derived).base1;
-      VarInfo arg2VarInfo = ((BinaryDerivation)derived).base2;
-      return "daikon.Quant." + function + "("
-        + args.get(0).name_using(format, arg1VarInfo)  + ", "
-        + args.get(1).name_using(format, arg2VarInfo)  + ")";
+      VarInfo arg1VarInfo = ((BinaryDerivation) derived).base1;
+      VarInfo arg2VarInfo = ((BinaryDerivation) derived).base2;
+      return "daikon.Quant."
+          + function
+          + "("
+          + args.get(0).name_using(format, arg1VarInfo)
+          + ", "
+          + args.get(1).name_using(format, arg2VarInfo)
+          + ")";
     }
 
     protected String identifier_name_impl() {
       List<String> elts = new ArrayList<String>(args.size());
       for (VarInfoName vin : args) {
-        elts.add (vin.identifier_name());
+        elts.add(vin.identifier_name());
       }
       return function + "_of_" + UtilMDE.join(elts, "_comma_") + "___";
     }
 
-    /**
-     * Shortcut getter to avoid repeated type casting.
-     **/
-    public VarInfoName getArg (int n) {
+    /** Shortcut getter to avoid repeated type casting. */
+    public VarInfoName getArg(int n) {
       return args.get(n);
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitFunctionOfN(this);
     }
-
   }
 
-  /**
-   * Returns a name for the intersection of with another sequence, like
-   * "intersect(a[], b[])".
-   **/
+  /** Returns a name for the intersection of with another sequence, like "intersect(a[], b[])". */
   public VarInfoName applyIntersection(/*>>> @Interned VarInfoName this,*/ VarInfoName seq2) {
     assert seq2 != null;
     return (new Intersection(this, seq2)).intern();
   }
 
   /**
-   * Intersection of two sequences.  Extends FunctionOfN, and the
-   * only change is that it does special formatting for IOA.
-   **/
+   * Intersection of two sequences. Extends FunctionOfN, and the only change is that it does special
+   * formatting for IOA.
+   */
   public static /*@Interned*/ class Intersection extends FunctionOfN {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1108,24 +1104,20 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public Intersection(VarInfoName seq1, VarInfoName seq2) {
-      super ("intersection", Arrays.asList(seq1, seq2));
+      super("intersection", Arrays.asList(seq1, seq2));
     }
-
   }
 
-  /**
-   * Returns a name for the union of this with another sequence, like
-   * "union(a[], b[])".
-   **/
+  /** Returns a name for the union of this with another sequence, like "union(a[], b[])". */
   public VarInfoName applyUnion(/*>>> @Interned VarInfoName this,*/ VarInfoName seq2) {
     assert seq2 != null;
     return (new Union(this, seq2)).intern();
   }
 
   /**
-   * Union of two sequences.  Extends FunctionOfN, and the
-   * only change is that it does special formatting for IOA.
-   **/
+   * Union of two sequences. Extends FunctionOfN, and the only change is that it does special
+   * formatting for IOA.
+   */
   public static /*@Interned*/ class Union extends FunctionOfN {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1133,22 +1125,16 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public Union(VarInfoName seq1, VarInfoName seq2) {
-      super ("intersection", Arrays.asList(seq1, seq2));
+      super("intersection", Arrays.asList(seq1, seq2));
     }
-
   }
 
-
-
-  /**
-   * Returns a 'getter' operation for some field of this name, like
-   * a.foo if this is a.
-   **/
+  /** Returns a 'getter' operation for some field of this name, like a.foo if this is a. */
   public VarInfoName applyField(/*>>> @Interned VarInfoName this,*/ String field) {
     return (new Field(this, field)).intern();
   }
 
-  /** A 'getter' operation for some field, like a.foo. **/
+  /** A 'getter' operation for some field, like a.foo. */
   public static /*@Interned*/ class Field extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1157,31 +1143,42 @@ public abstract /*@Interned*/ class VarInfoName
 
     public final VarInfoName term;
     public final String field;
+
     public Field(VarInfoName term, String field) {
       assert term != null;
       assert field != null;
       this.term = term;
       this.field = field;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Field this*/) {
       return "Field{" + field + "}[" + term.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Field this*/) {
       return term.name() + "." + field;
     }
+
     protected String esc_name_impl() {
       return term.esc_name() + "." + field;
     }
+
     protected String simplify_name_impl(boolean prestate) {
-      return "(select " + Simple.simplify_name_impl(field, false) + " "
-        + term.simplify_name(prestate) + ")";
+      return "(select "
+          + Simple.simplify_name_impl(field, false)
+          + " "
+          + term.simplify_name(prestate)
+          + ")";
     }
+
     protected String java_name_impl(VarInfo v) {
       return java_family_name(OutputFormat.JAVA, v);
     }
+
     protected String jml_name_impl(VarInfo v) {
       return java_family_name(OutputFormat.JML, v);
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return java_family_name(OutputFormat.DBCJAVA, v);
     }
@@ -1200,7 +1197,9 @@ public abstract /*@Interned*/ class VarInfoName
     protected String java_family_name(OutputFormat format, VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       if (term.name().indexOf("..") != -1) {
         // We cannot translate arr[i..].x because this translates into
@@ -1209,16 +1208,19 @@ public abstract /*@Interned*/ class VarInfoName
         //
         // but slice() returns an array of Objects, so an error will
         // occur when method collect() tries to query for field "x".
-        return "(warning: " + format + " format cannot express a field applied to a slice:"
-          + " [repr=" + repr() + "])";
+        return "(warning: "
+            + format
+            + " format cannot express a field applied to a slice:"
+            + " [repr="
+            + repr()
+            + "])";
       }
 
       boolean hasBrackets = (term.name().indexOf("[]") != -1);
 
       if (format == OutputFormat.JAVA) {
-        assert ! hasBrackets || v.type.dimensions() > 0
-        : "hasBrackets:" + hasBrackets
-                          + ", dimensions:" + v.type.dimensions() + ", v:" + v;
+        assert !hasBrackets || v.type.dimensions() > 0
+            : "hasBrackets:" + hasBrackets + ", dimensions:" + v.type.dimensions() + ", v:" + v;
       }
 
       if (!hasBrackets && format != OutputFormat.JAVA) {
@@ -1233,7 +1235,6 @@ public abstract /*@Interned*/ class VarInfoName
         }
         return term_name + "." + java_field(field);
       }
-
 
       // Case 2: An array collection
 
@@ -1250,8 +1251,12 @@ public abstract /*@Interned*/ class VarInfoName
       // mess for object x.
 
       if (field.equals("toString")) {
-        return "(warning: " + format + " format cannot express a slice with String objects:"
-          + " obtained by toString():  [repr=" + repr() + "])";
+        return "(warning: "
+            + format
+            + " format cannot express a slice with String objects:"
+            + " obtained by toString():  [repr="
+            + repr()
+            + "])";
       }
 
       String term_name_no_brackets = term.name().replaceAll("\\[\\]", "") + "." + field;
@@ -1264,7 +1269,6 @@ public abstract /*@Interned*/ class VarInfoName
         packageName = "";
       }
 
-
       String fields = null;
 
       String[] splits = null;
@@ -1272,8 +1276,8 @@ public abstract /*@Interned*/ class VarInfoName
       String packageNamePrefix = null;
       //if (isStatic) {
       if (term_name_no_brackets.startsWith(packageName + ".")) {
-//           throw new Error("packageName=" + packageName + ", term_name_no_brackets=" + term_name_no_brackets);
-//         }
+        //           throw new Error("packageName=" + packageName + ", term_name_no_brackets=" + term_name_no_brackets);
+        //         }
         // Before splitting, remove the package name.
         packageNamePrefix = (packageName.equals("") ? "" : packageName + ".");
         isStatic = true;
@@ -1297,41 +1301,61 @@ public abstract /*@Interned*/ class VarInfoName
       }
 
       fields = "";
-      for (int j = 1 ; j < splits.length ; j++) {
-        if (j != 1) { fields += "."; }
+      for (int j = 1; j < splits.length; j++) {
+        if (j != 1) {
+          fields += ".";
+        }
         fields += splits[j];
       }
 
-      String collectType =  (v.type.baseIsPrimitive() ? v.type.base() : "Object");
+      String collectType = (v.type.baseIsPrimitive() ? v.type.base() : "Object");
 
       if (format == OutputFormat.JAVA) {
         return
-          // On one line to enable searches for "collect.*_field".
-          "daikon.Quant.collect" + collectType + (!v.is_array() ? "_field" : "")
-          + "(" + packageNamePrefix + object + ", " + "\"" + fields + "\"" + ")";
+        // On one line to enable searches for "collect.*_field".
+        "daikon.Quant.collect"
+            + collectType
+            + (!v.is_array() ? "_field" : "")
+            + "("
+            + packageNamePrefix
+            + object
+            + ", "
+            + "\""
+            + fields
+            + "\""
+            + ")";
       } else {
-        return
-          "daikon.Quant.collect" + collectType + "(" + packageNamePrefix + object + ", " + "\"" + fields + "\"" + ")";
+        return "daikon.Quant.collect"
+            + collectType
+            + "("
+            + packageNamePrefix
+            + object
+            + ", "
+            + "\""
+            + fields
+            + "\""
+            + ")";
       }
     }
 
     protected String identifier_name_impl() {
       return term.identifier_name() + "_dot_" + field;
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitField(this);
     }
   }
 
   /**
-   * Returns a name for the type of this object; form is like
-   * "this.getClass().getName()" or "\typeof(this)".
-   **/
+   * Returns a name for the type of this object; form is like "this.getClass().getName()" or
+   * "\typeof(this)".
+   */
   public VarInfoName applyTypeOf(/*>>> @Interned VarInfoName this*/) {
     return (new TypeOf(this)).intern();
   }
 
-  /** The type of the term, like "term.getClass().getName()" or "\typeof(term)". **/
+  /** The type of the term, like "term.getClass().getName()" or "\typeof(term)". */
   public static /*@Interned*/ class TypeOf extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1339,24 +1363,30 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public final VarInfoName term;
+
     public TypeOf(VarInfoName term) {
       assert term != null;
       this.term = term;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied TypeOf this*/) {
       return "TypeOf[" + term.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied TypeOf this*/) {
       return term.name() + DaikonVariableInfo.class_suffix;
     }
+
     protected String esc_name_impl() {
       return "\\typeof(" + term.esc_name() + ")";
     }
+
     protected String simplify_name_impl(boolean prestate) {
       return "(typeof " + term.simplify_name(prestate) + ")";
     }
 
-    /*@SideEffectFree*/ protected String javaFamilyFormat(String varname, boolean isArray) {
+    /*@SideEffectFree*/
+    protected String javaFamilyFormat(String varname, boolean isArray) {
       if (isArray) {
         return "daikon.Quant.typeArray(" + varname + ")";
       } else {
@@ -1365,43 +1395,52 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     protected String java_name_impl(VarInfo v) {
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
       return javaFamilyFormat(term.java_name(v), v.type.isArray());
     }
 
     protected String jml_name_impl(VarInfo v) {
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
       return javaFamilyFormat(term.jml_name(v), v.type.isArray());
     }
+
     protected String dbc_name_impl(VarInfo v) {
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
       return javaFamilyFormat(term.dbc_name(v), v.type.isArray());
     }
+
     protected String identifier_name_impl() {
       return "type_of_" + term.identifier_name() + "___";
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitTypeOf(this);
     }
   }
 
   /**
-   * Returns a name for a the prestate value of this object; form is
-   * like "orig(this)" or "\old(this)".
-   **/
+   * Returns a name for a the prestate value of this object; form is like "orig(this)" or
+   * "\old(this)".
+   */
   public VarInfoName applyPrestate(/*>>> @Interned VarInfoName this*/) {
     if (this instanceof Poststate) {
-      return ((Poststate)this).term;
-    } else if ((this instanceof Add) && ((Add)this).term instanceof Poststate) {
-      Add a = (Add)this;
-      Poststate p = (Poststate)a.term;
+      return ((Poststate) this).term;
+    } else if ((this instanceof Add) && ((Add) this).term instanceof Poststate) {
+      Add a = (Add) this;
+      Poststate p = (Poststate) a.term;
       return p.term.applyAdd(a.amount);
     } else {
       return (new Prestate(this)).intern();
     }
   }
 
-  /** The prestate value of a term, like "orig(term)" or "\old(term)". **/
+  /** The prestate value of a term, like "orig(term)" or "\old(term)". */
   public static /*@Interned*/ class Prestate extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1409,35 +1448,45 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public final VarInfoName term;
+
     public Prestate(VarInfoName term) {
       assert term != null;
       this.term = term;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Prestate this*/) {
       return "Prestate[" + term.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Prestate this*/) {
       return "orig(" + term.name() + ")";
     }
+
     protected String esc_name_impl() {
       return "\\old(" + term.esc_name() + ")";
     }
+
     protected String simplify_name_impl(boolean prestate) {
       return term.simplify_name(true);
     }
+
     protected String java_name_impl(VarInfo v) {
       if (PrintInvariants.dkconfig_replace_prestate) {
         return PrintInvariants.addPrestateExpression(term.java_name(v));
       }
       return "\\old(" + term.java_name(v) + ")";
     }
+
     protected String jml_name_impl(VarInfo v) {
       return "\\old(" + term.jml_name(v) + ")";
     }
+
     protected String dbc_name_impl(VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       String brackets = "";
       assert v != null;
@@ -1449,12 +1498,16 @@ public abstract /*@Interned*/ class VarInfoName
           && (v.type.base().equals("java.lang.Object"))) {
         preType = "java.lang.Object";
       }
-      for (int i = 0 ; i < v.type.dimensions(); i++) { brackets += "[]"; }
+      for (int i = 0; i < v.type.dimensions(); i++) {
+        brackets += "[]";
+      }
       return "$pre(" + preType + brackets + ", " + term.dbc_name(v) + ")";
     }
+
     protected String identifier_name_impl() {
       return "orig_of_" + term.identifier_name() + "___";
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitPrestate(this);
     }
@@ -1476,17 +1529,17 @@ public abstract /*@Interned*/ class VarInfoName
   //        + s.substring(rparenpos+1);
 
   /**
-   * Returns a name for a the poststate value of this object; form is
-   * like "new(this)" or "\new(this)".
-   **/
+   * Returns a name for a the poststate value of this object; form is like "new(this)" or
+   * "\new(this)".
+   */
   public VarInfoName applyPoststate(/*>>> @Interned VarInfoName this*/) {
     return (new Poststate(this)).intern();
   }
 
   /**
-   * The poststate value of a term, like "new(term)".  Only used
-   * within prestate, so like "orig(this.myArray[new(index)]".
-   **/
+   * The poststate value of a term, like "new(term)". Only used within prestate, so like
+   * "orig(this.myArray[new(index)]".
+   */
   public static /*@Interned*/ class Poststate extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1494,46 +1547,52 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public final VarInfoName term;
+
     public Poststate(VarInfoName term) {
       assert term != null;
       this.term = term;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Poststate this*/) {
       return "Poststate[" + term.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Poststate this*/) {
       return "post(" + term.name() + ")";
     }
+
     protected String esc_name_impl() {
       return "\\new(" + term.esc_name() + ")";
     }
+
     protected String simplify_name_impl(boolean prestate) {
       return term.simplify_name(false);
     }
+
     protected String java_name_impl(VarInfo v) {
       return "\\post(" + term.java_name(v) + ")";
     }
+
     protected String jml_name_impl(VarInfo v) {
       return "\\new(" + term.jml_name(v) + ")";
       // return "(warning: JML format cannot express a Poststate"
       //  + " [repr=" + repr() + "])";
     }
+
     protected String dbc_name_impl(VarInfo v) {
-      return "(warning: DBC format cannot express a Poststate"
-        + " [repr=" + repr() + "])";
+      return "(warning: DBC format cannot express a Poststate" + " [repr=" + repr() + "])";
     }
+
     protected String identifier_name_impl() {
       return "post_of_" + term.identifier_name() + "___";
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitPoststate(this);
     }
   }
 
-  /**
-   * Returns a name for the this term plus a constant, like "this-1"
-   * or "this+1".
-   **/
+  /** Returns a name for the this term plus a constant, like "this-1" or "this+1". */
   public VarInfoName applyAdd(/*>>> @Interned VarInfoName this,*/ int amount) {
     if (amount == 0) {
       return this;
@@ -1542,7 +1601,7 @@ public abstract /*@Interned*/ class VarInfoName
     }
   }
 
-  /** An integer amount more or less than some other value, like "x+2". **/
+  /** An integer amount more or less than some other value, like "x+2". */
   public static /*@Interned*/ class Add extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1551,43 +1610,55 @@ public abstract /*@Interned*/ class VarInfoName
 
     public final VarInfoName term;
     public final int amount;
+
     public Add(VarInfoName term, int amount) {
       assert term != null;
       this.term = term;
       this.amount = amount;
     }
-    private String amount() {
+
+    private String amount(/*>>>@GuardSatisfied Add this*/) {
       return (amount < 0) ? String.valueOf(amount) : "+" + amount;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Add this*/) {
       return "Add{" + amount() + "}[" + term.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Add this*/) {
       return term.name() + amount();
     }
+
     protected String esc_name_impl() {
       return term.esc_name() + amount();
     }
+
     protected String simplify_name_impl(boolean prestate) {
-      return (amount < 0) ?
-        "(- " + term.simplify_name(prestate) + " " + (-amount) + ")" :
-        "(+ " + term.simplify_name(prestate) + " " + amount + ")";
+      return (amount < 0)
+          ? "(- " + term.simplify_name(prestate) + " " + (-amount) + ")"
+          : "(+ " + term.simplify_name(prestate) + " " + amount + ")";
     }
+
     protected String java_name_impl(VarInfo v) {
       return term.java_name(v) + amount();
     }
+
     protected String jml_name_impl(VarInfo v) {
       return term.jml_name(v) + amount();
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return term.dbc_name(v) + amount();
     }
+
     protected String identifier_name_impl() {
-      if (amount >= 0)
+      if (amount >= 0) {
         return term.identifier_name() + "_plus" + amount;
-      else
+      } else {
         return term.identifier_name() + "_minus" + (-amount);
+      }
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitAdd(this);
     }
@@ -1598,25 +1669,25 @@ public abstract /*@Interned*/ class VarInfoName
     }
   }
 
-  /** Returns a name for the decrement of this term, like "this-1". **/
+  /** Returns a name for the decrement of this term, like "this-1". */
   public VarInfoName applyDecrement(/*>>> @Interned VarInfoName this*/) {
     return applyAdd(-1);
   }
 
-  /** Returns a name for the increment of this term, like "this+1". **/
+  /** Returns a name for the increment of this term, like "this+1". */
   public VarInfoName applyIncrement(/*>>> @Interned VarInfoName this*/) {
     return applyAdd(+1);
   }
 
   /**
-   * Returns a name for the elements of a container (as opposed to the
-   * identity of the container) like "this[]" or "(elements this)".
-   **/
+   * Returns a name for the elements of a container (as opposed to the identity of the container)
+   * like "this[]" or "(elements this)".
+   */
   public VarInfoName applyElements(/*>>> @Interned VarInfoName this*/) {
     return (new Elements(this)).intern();
   }
 
-  /** The elements of a container, like "term[]". **/
+  /** The elements of a container, like "term[]". */
   public static /*@Interned*/ class Elements extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1624,44 +1695,57 @@ public abstract /*@Interned*/ class VarInfoName
     static final long serialVersionUID = 20020130L;
 
     public final VarInfoName term;
+
     public Elements(VarInfoName term) {
       assert term != null;
       this.term = term;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Elements this*/) {
       return "Elements[" + term.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Elements this*/) {
       return name_impl("");
     }
-    protected String name_impl(String index) {
+
+    protected String name_impl(/*>>>@GuardSatisfied Elements this,*/ String index) {
       return term.name() + "[" + index + "]";
     }
+
     protected String esc_name_impl() {
-      throw new UnsupportedOperationException("ESC cannot format an unquantified sequence of elements" +
-                                              " [repr=" + repr() + "]");
+      throw new UnsupportedOperationException(
+          "ESC cannot format an unquantified sequence of elements" + " [repr=" + repr() + "]");
     }
+
     protected String esc_name_impl(String index) {
       return term.esc_name() + "[" + index + "]";
     }
+
     protected String simplify_name_impl(boolean prestate) {
       return "(select elems " + term.simplify_name(prestate) + ")";
     }
+
     protected String java_name_impl(VarInfo v) {
       return term.java_name(v);
     }
+
     protected String java_name_impl(String index, VarInfo v) {
       return java_family_impl(OutputFormat.JAVA, v, index);
     }
+
     protected String jml_name_impl(VarInfo v) {
       return term.jml_name(v);
     }
+
     protected String jml_name_impl(String index, VarInfo v) {
       return java_family_impl(OutputFormat.JML, v, index);
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return term.dbc_name(v);
     }
+
     protected String dbc_name_impl(String index, VarInfo v) {
       return java_family_impl(OutputFormat.DBCJAVA, v, index);
     }
@@ -1671,52 +1755,58 @@ public abstract /*@Interned*/ class VarInfoName
       // If the collection goes through daikon.Quant.collect___, then
       // it will be returned as an array no matter what.
       String formatted = term.name_using(format, v);
-      String collectType =  (v.type.baseIsPrimitive() ? v.type.base() : "Object");
+      String collectType = (v.type.baseIsPrimitive() ? v.type.base() : "Object");
       return "daikon.Quant.getElement_" + collectType + "(" + formatted + ", " + index + ")";
-//       // XXX temporary fix: sometimes long is passed as index (plume.StopWatch).
-//       // I can't find where the VarInfo for "index" is found. Wherever that is,
-//       // we should check if its type is long, and do the casting only for that
-//       // case.
-//       if (formatted.startsWith("daikon.Quant.collect")) {
-//         return formatted + "[(int)" + index + "]";
-//       } else {
-//         if (v.type.pseudoDimensions() > v.type.dimensions()) {
-//           // it's a collection
-//           return formatted + ".get((int)" + index + ")";
-//         } else {
-//           // it's an array
-//           return formatted + "[(int)" + index + "]";
-//         }
-//       }
+      //       // XXX temporary fix: sometimes long is passed as index (plume.StopWatch).
+      //       // I can't find where the VarInfo for "index" is found. Wherever that is,
+      //       // we should check if its type is long, and do the casting only for that
+      //       // case.
+      //       if (formatted.startsWith("daikon.Quant.collect")) {
+      //         return formatted + "[(int)" + index + "]";
+      //       } else {
+      //         if (v.type.pseudoDimensions() > v.type.dimensions()) {
+      //           // it's a collection
+      //           return formatted + ".get((int)" + index + ")";
+      //         } else {
+      //           // it's an array
+      //           return formatted + "[(int)" + index + "]";
+      //         }
+      //       }
     }
 
     protected String identifier_name_impl(String index) {
-      if (index.equals(""))
+      if (index.equals("")) {
         return term.identifier_name() + "_elems";
-      else
+      } else {
         return term.identifier_name() + "_in_" + index + "_dex_";
+      }
     }
+
     protected String identifier_name_impl() {
       return identifier_name_impl("");
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitElements(this);
     }
+
     public VarInfoName getLowerBound() {
       return ZERO;
     }
+
     public VarInfoName getUpperBound() {
       return applySize().applyDecrement();
     }
+
     public VarInfoName getSubscript(VarInfoName index) {
       return applySubscript(index);
     }
   }
 
   /**
-   * Caller is subscripting an orig(a[]) array.  Take the requested
-   * index and make it useful in that context.
-   **/
+   * Caller is subscripting an orig(a[]) array. Take the requested index and make it useful in that
+   * context.
+   */
   static VarInfoName indexToPrestate(VarInfoName index) {
     // 1 orig(a[]) . orig(index) -> orig(a[index])
     // 2 orig(a[]) . index       -> orig(a[post(index)])
@@ -1727,20 +1817,17 @@ public abstract /*@Interned*/ class VarInfoName
       if (add.term instanceof Prestate) {
         index = ((Prestate) add.term).term.applyAdd(add.amount); // #1
       } else {
-        index = index.applyPoststate();  // #2
+        index = index.applyPoststate(); // #2
       }
     } else if (index.isLiteralConstant()) {
       // we don't want orig(a[post(0)]), so leave index alone
     } else {
-      index = index.applyPoststate();  // #2
+      index = index.applyPoststate(); // #2
     }
     return index;
   }
 
-  /**
-   * Returns a name for an element selected from a sequence, like
-   * "this[i]".
-   **/
+  /** Returns a name for an element selected from a sequence, like "this[i]". */
   public VarInfoName applySubscript(/*>>> @Interned VarInfoName this,*/ VarInfoName index) {
     assert index != null;
     ElementsFinder finder = new ElementsFinder(this);
@@ -1769,7 +1856,7 @@ public abstract /*@Interned*/ class VarInfoName
     return sequence.applySize().applyAdd(i);
   }
 
-  /** An element from a sequence, like "sequence[index]". **/
+  /** An element from a sequence, like "sequence[index]". */
   public static /*@Interned*/ class Subscript extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1778,47 +1865,61 @@ public abstract /*@Interned*/ class VarInfoName
 
     public final Elements sequence;
     public final VarInfoName index;
+
     public Subscript(Elements sequence, VarInfoName index) {
       assert sequence != null;
       assert index != null;
       this.sequence = sequence;
       this.index = index;
     }
-    protected String repr_impl() {
+
+    protected String repr_impl(/*>>>@GuardSatisfied Subscript this*/) {
       return "Subscript{" + index.repr() + "}[" + sequence.repr() + "]";
     }
-    protected String name_impl() {
+
+    protected String name_impl(/*>>>@GuardSatisfied Subscript this*/) {
       return sequence.name_impl(index.name());
     }
+
     protected String esc_name_impl() {
       return sequence.esc_name_impl(indexExplicit(sequence, index).esc_name());
     }
+
     protected String simplify_name_impl(boolean prestate) {
-      return "(select " + sequence.simplify_name(prestate) + " " +
-        indexExplicit(sequence, index).simplify_name(prestate) + ")";
+      return "(select "
+          + sequence.simplify_name(prestate)
+          + " "
+          + indexExplicit(sequence, index).simplify_name(prestate)
+          + ")";
     }
+
     protected String java_name_impl(VarInfo v) {
       return java_family_impl(OutputFormat.JAVA, v);
     }
+
     protected String jml_name_impl(VarInfo v) {
       return java_family_impl(OutputFormat.JML, v);
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return java_family_impl(OutputFormat.DBCJAVA, v);
     }
+
     protected String java_family_impl(OutputFormat format, VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       assert v != null;
       assert v.isDerived();
       Derivation derived = v.derived;
-      assert derived instanceof  SequenceScalarSubscript
-                        || derived instanceof  SequenceStringSubscript
-                        || derived instanceof  SequenceFloatSubscript;
-      VarInfo indexVarInfo = ((BinaryDerivation)derived).base2;
-      VarInfo seqVarInfo = ((BinaryDerivation)derived).base1;
+      assert derived instanceof SequenceScalarSubscript
+          || derived instanceof SequenceStringSubscript
+          || derived instanceof SequenceFloatSubscript;
+      VarInfo indexVarInfo = ((BinaryDerivation) derived).base2;
+      VarInfo seqVarInfo = ((BinaryDerivation) derived).base1;
       if (format == OutputFormat.JAVA) {
         return sequence.java_name_impl(index.java_name_impl(indexVarInfo), seqVarInfo);
       } else if (format == OutputFormat.JML) {
@@ -1827,21 +1928,23 @@ public abstract /*@Interned*/ class VarInfoName
         return sequence.dbc_name_impl(index.dbc_name_impl(indexVarInfo), seqVarInfo);
       }
     }
+
     protected String identifier_name_impl() {
       return sequence.identifier_name_impl(index.identifier_name());
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitSubscript(this);
     }
   }
 
-
   /**
-   * Returns a name for a slice of element selected from a sequence,
-   * like "this[i..j]".  If an endpoint is null, it means "from the
-   * start" or "to the end".
-   **/
-  public VarInfoName applySlice(/*>>> @Interned VarInfoName this,*/ /*@Nullable*/ VarInfoName i, /*@Nullable*/ VarInfoName j) {
+   * Returns a name for a slice of element selected from a sequence, like "this[i..j]". If an
+   * endpoint is null, it means "from the start" or "to the end".
+   */
+  public VarInfoName applySlice(
+      /*>>> @Interned VarInfoName this,*/
+      /*@Nullable*/ VarInfoName i, /*@Nullable*/ VarInfoName j) {
     // a[] -> a[index..]
     // orig(a[]) -> orig(a[post(index)..])
     ElementsFinder finder = new ElementsFinder(this);
@@ -1859,7 +1962,7 @@ public abstract /*@Interned*/ class VarInfoName
     return r.replace(this).intern();
   }
 
-  /** A slice of elements from a sequence, like "sequence[i..j]". **/
+  /** A slice of elements from a sequence, like "sequence[i..j]". */
   public static /*@Interned*/ class Slice extends VarInfoName {
     // We are Serializable, so we specify a version to allow changes to
     // method signatures without breaking serialization.  If you add or
@@ -1868,6 +1971,7 @@ public abstract /*@Interned*/ class VarInfoName
 
     public final Elements sequence;
     public final VarInfoName i, j;
+
     public Slice(Elements sequence, VarInfoName i, VarInfoName j) {
       assert sequence != null;
       assert (i != null) || (j != null);
@@ -1875,34 +1979,43 @@ public abstract /*@Interned*/ class VarInfoName
       this.i = i;
       this.j = j;
     }
-    protected String repr_impl() {
-      return "Slice{" +
-        ((i == null) ? "" : i.repr()) + "," +
-        ((j == null) ? "" : j.repr()) + "}[" +
-        sequence.repr() + "]";
+
+    protected String repr_impl(/*>>>@GuardSatisfied Slice this*/) {
+      return "Slice{"
+          + ((i == null) ? "" : i.repr())
+          + ","
+          + ((j == null) ? "" : j.repr())
+          + "}["
+          + sequence.repr()
+          + "]";
     }
-    protected String name_impl() {
-      return sequence.name_impl("" +
-                                ((i == null) ? "0" : i.name()) +
-                                ".." +
-                                ((j == null) ? ""  : j.name())
-                                );
+
+    protected String name_impl(/*>>>@GuardSatisfied Slice this*/) {
+      return sequence.name_impl(
+          "" + ((i == null) ? "0" : i.name()) + ".." + ((j == null) ? "" : j.name()));
     }
+
     protected String esc_name_impl() {
       // return the default implementation for now.
       // return name_impl();
-      throw new UnsupportedOperationException("ESC cannot format an unquantified slice of elements");
+      throw new UnsupportedOperationException(
+          "ESC cannot format an unquantified slice of elements");
     }
+
     protected String simplify_name_impl(boolean prestate) {
       System.out.println(" seq: " + sequence + " " + i + " " + j);
-      throw new UnsupportedOperationException("Simplify cannot format an unquantified slice of elements");
+      throw new UnsupportedOperationException(
+          "Simplify cannot format an unquantified slice of elements");
     }
+
     protected String java_name_impl(VarInfo v) {
       return slice_helper(OutputFormat.JAVA, v);
     }
+
     protected String jml_name_impl(VarInfo v) {
       return slice_helper(OutputFormat.JML, v);
     }
+
     protected String dbc_name_impl(VarInfo v) {
       return slice_helper(OutputFormat.DBCJAVA, v);
     }
@@ -1911,142 +2024,159 @@ public abstract /*@Interned*/ class VarInfoName
     protected String slice_helper(OutputFormat format, VarInfo v) {
 
       // See declaration of testCall for explanation of this flag.
-      if (testCall) { return "no format when testCall."; }
+      if (testCall) {
+        return "no format when testCall.";
+      }
 
       assert v != null;
       assert v.isDerived();
       Derivation derived = v.derived;
-      assert derived instanceof SequenceSubsequence ||
-                        derived instanceof SequenceScalarArbitrarySubsequence ||
-                        derived instanceof SequenceFloatArbitrarySubsequence ||
-                        derived instanceof SequenceStringArbitrarySubsequence;
+      assert derived instanceof SequenceSubsequence
+          || derived instanceof SequenceScalarArbitrarySubsequence
+          || derived instanceof SequenceFloatArbitrarySubsequence
+          || derived instanceof SequenceStringArbitrarySubsequence;
       if (derived instanceof SequenceSubsequence) {
         assert i == null || j == null;
         if (i == null) { // sequence[0..j]
           assert j != null;
-          return
-            "daikon.Quant.slice("
-            + sequence.name_using(format, ((SequenceSubsequence)derived).seqvar())
-            + ", 0, "
-            + j.name_using(format, ((SequenceSubsequence)derived).sclvar())
-            + ")";
+          return "daikon.Quant.slice("
+              + sequence.name_using(format, ((SequenceSubsequence) derived).seqvar())
+              + ", 0, "
+              + j.name_using(format, ((SequenceSubsequence) derived).sclvar())
+              + ")";
         } else {
-          VarInfo seqVarInfo = ((SequenceSubsequence)derived).seqvar();
+          VarInfo seqVarInfo = ((SequenceSubsequence) derived).seqvar();
           String lastIdxString = null;
           String prefix = sequence.name_using(format, seqVarInfo);
           lastIdxString = "daikon.Quant.size(" + prefix + ")";
-//           if (seqVarInfo.type.pseudoDimensions() > seqVarInfo.type.dimensions()) {
-//             if (prefix.startsWith("daikon.Quant.collect")) {
-//               // Quant collect methods returns an array
-//               lastIdxString = prefix + ".length-1";
-//             } else {
-//               // it's a collection
-//               lastIdxString = prefix + ".size()-1";
-//             }
-//           } else {
-//             // it's an array
-//             lastIdxString = prefix + ".length-1";
-//           }
-          return
-            "daikon.Quant.slice("
-            + sequence.name_using(format, ((SequenceSubsequence)derived).seqvar())
-            + ", " + i.name_using(format, ((SequenceSubsequence)derived).sclvar())
-            + ", " + lastIdxString
-            + ")";
+          //           if (seqVarInfo.type.pseudoDimensions() > seqVarInfo.type.dimensions()) {
+          //             if (prefix.startsWith("daikon.Quant.collect")) {
+          //               // Quant collect methods returns an array
+          //               lastIdxString = prefix + ".length-1";
+          //             } else {
+          //               // it's a collection
+          //               lastIdxString = prefix + ".size()-1";
+          //             }
+          //           } else {
+          //             // it's an array
+          //             lastIdxString = prefix + ".length-1";
+          //           }
+          return "daikon.Quant.slice("
+              + sequence.name_using(format, ((SequenceSubsequence) derived).seqvar())
+              + ", "
+              + i.name_using(format, ((SequenceSubsequence) derived).sclvar())
+              + ", "
+              + lastIdxString
+              + ")";
         }
       } else {
         assert i != null && j != null;
         if (derived instanceof SequenceScalarArbitrarySubsequence) {
-          SequenceScalarArbitrarySubsequence derived2 = (SequenceScalarArbitrarySubsequence)derived;
-          return
-            "daikon.Quant.slice("
-            + sequence.name_using(format, derived2.seqvar())
-            + ", " + i.name_using(format, derived2.startvar())
-            + ", " + j.name_using(format, derived2.endvar())
-            + ")";
+          SequenceScalarArbitrarySubsequence derived2 =
+              (SequenceScalarArbitrarySubsequence) derived;
+          return "daikon.Quant.slice("
+              + sequence.name_using(format, derived2.seqvar())
+              + ", "
+              + i.name_using(format, derived2.startvar())
+              + ", "
+              + j.name_using(format, derived2.endvar())
+              + ")";
         } else if (derived instanceof SequenceFloatArbitrarySubsequence) {
-          SequenceFloatArbitrarySubsequence derived2 = (SequenceFloatArbitrarySubsequence)derived;
-          return
-            "daikon.Quant.slice("
-            + sequence.name_using(format, derived2.seqvar())
-            + ", " + i.name_using(format, derived2.startvar())
-            + ", " + j.name_using(format, derived2.endvar())
-            + ")";
+          SequenceFloatArbitrarySubsequence derived2 = (SequenceFloatArbitrarySubsequence) derived;
+          return "daikon.Quant.slice("
+              + sequence.name_using(format, derived2.seqvar())
+              + ", "
+              + i.name_using(format, derived2.startvar())
+              + ", "
+              + j.name_using(format, derived2.endvar())
+              + ")";
         } else {
-          SequenceStringArbitrarySubsequence derived2 = (SequenceStringArbitrarySubsequence)derived;
-          return
-            "daikon.Quant.slice("
-            + sequence.name_using(format, derived2.seqvar())
-            + ", " + i.name_using(format, derived2.startvar())
-            + ", " + j.name_using(format, derived2.endvar())
-            + ")";
+          SequenceStringArbitrarySubsequence derived2 =
+              (SequenceStringArbitrarySubsequence) derived;
+          return "daikon.Quant.slice("
+              + sequence.name_using(format, derived2.seqvar())
+              + ", "
+              + i.name_using(format, derived2.startvar())
+              + ", "
+              + j.name_using(format, derived2.endvar())
+              + ")";
         }
       }
     }
 
-
     protected String identifier_name_impl() {
       String start = (i == null) ? "0" : i.identifier_name();
-      String end   = (j == null) ? ""  : j.identifier_name();
+      String end = (j == null) ? "" : j.identifier_name();
       return sequence.identifier_name_impl(start + "_to_" + end);
     }
+
     public <T> T accept(Visitor<T> v) {
       return v.visitSlice(this);
     }
+
     public VarInfoName getLowerBound() {
       return (i != null) ? i : ZERO;
     }
+
     public VarInfoName getUpperBound() {
       return (j != null) ? j : sequence.getUpperBound();
     }
+
     public VarInfoName getSubscript(VarInfoName index) {
       return sequence.getSubscript(index);
     }
   }
 
-
-  /** Accept the actions of a visitor. **/
+  /** Accept the actions of a visitor. */
   public abstract <T> T accept(Visitor<T> v);
 
-  /** Visitor framework for processing of VarInfoNames. **/
+  /** Visitor framework for processing of VarInfoNames. */
   public static interface Visitor<T> {
     public T visitSimple(Simple o);
+
     public T visitSizeOf(SizeOf o);
+
     public T visitFunctionOf(FunctionOf o);
+
     public T visitFunctionOfN(FunctionOfN o);
+
     public T visitField(Field o);
+
     public T visitTypeOf(TypeOf o);
+
     public T visitPrestate(Prestate o);
+
     public T visitPoststate(Poststate o);
+
     public T visitAdd(Add o);
+
     public T visitElements(Elements o);
+
     public T visitSubscript(Subscript o);
+
     public T visitSlice(Slice o);
   }
 
   /**
-   * Traverse the tree elements that have exactly one branch (so the
-   * traversal order doesn't matter).  Visitors need to implement
-   * methods for traversing elements (e.g. FunctionOfN) with more
-   * than one branch.
-   **/
-  public abstract static class AbstractVisitor<T>
-    implements Visitor<T>
-  {
+   * Traverse the tree elements that have exactly one branch (so the traversal order doesn't
+   * matter). Visitors need to implement methods for traversing elements (e.g. FunctionOfN) with
+   * more than one branch.
+   */
+  public abstract static class AbstractVisitor<T> implements Visitor<T> {
     public T visitSimple(Simple o) {
       // nothing to do; leaf node
       return null;
     }
+
     public T visitSizeOf(SizeOf o) {
       return o.sequence.accept(this);
     }
+
     public T visitFunctionOf(FunctionOf o) {
       return o.argument.accept(this);
     }
 
-    /**
-     * By default, return effect on first argument, but traverse all, backwards.
-     **/
+    /** By default, return effect on first argument, but traverse all, backwards. */
     public T visitFunctionOfN(FunctionOfN o) {
       T retval = null;
       for (ListIterator<VarInfoName> i = o.args.listIterator(o.args.size()); i.hasPrevious(); ) {
@@ -2059,18 +2189,23 @@ public abstract /*@Interned*/ class VarInfoName
     public T visitField(Field o) {
       return o.term.accept(this);
     }
+
     public T visitTypeOf(TypeOf o) {
       return o.term.accept(this);
     }
+
     public T visitPrestate(Prestate o) {
       return o.term.accept(this);
     }
+
     public T visitPoststate(Poststate o) {
       return o.term.accept(this);
     }
+
     public T visitAdd(Add o) {
       return o.term.accept(this);
     }
+
     public T visitElements(Elements o) {
       return o.term.accept(this);
     }
@@ -2082,18 +2217,17 @@ public abstract /*@Interned*/ class VarInfoName
   }
 
   /**
-   * Use to report whether a node is in a pre- or post-state context.
-   * Throws an assertion error if a given goal isn't present.
-   **/
+   * Use to report whether a node is in a pre- or post-state context. Throws an assertion error if a
+   * given goal isn't present.
+   */
   @SuppressWarnings("interning") // equality checking pattern, etc.
-  public static class NodeFinder
-    extends AbstractVisitor<VarInfoName>
-  {
+  public static class NodeFinder extends AbstractVisitor<VarInfoName> {
     /**
      * Creates a new NodeFinder.
+     *
      * @param root the root of the tree to search
      * @param goal the goal to find
-     **/
+     */
     public NodeFinder(VarInfoName root, VarInfoName goal) {
       this.goal = goal;
       assert root.accept(this) != null;
@@ -2101,6 +2235,7 @@ public abstract /*@Interned*/ class VarInfoName
     // state and accessors
     private final VarInfoName goal;
     private boolean pre;
+
     public boolean inPre() {
       return pre;
     }
@@ -2108,46 +2243,59 @@ public abstract /*@Interned*/ class VarInfoName
     public VarInfoName visitSimple(Simple o) {
       return (o == goal) ? goal : null;
     }
+
     public VarInfoName visitSizeOf(SizeOf o) {
       return (o == goal) ? goal : super.visitSizeOf(o);
     }
+
     public VarInfoName visitFunctionOf(FunctionOf o) {
       return (o == goal) ? goal : super.visitFunctionOf(o);
     }
+
     public VarInfoName visitFunctionOfN(FunctionOfN o) {
       VarInfoName retval = null;
       for (VarInfoName vin : o.args) {
         retval = vin.accept(this);
-        if (retval != null) return retval;
+        if (retval != null) {
+          return retval;
+        }
       }
       return retval;
     }
+
     public VarInfoName visitField(Field o) {
       return (o == goal) ? goal : super.visitField(o);
     }
+
     public VarInfoName visitTypeOf(TypeOf o) {
       return (o == goal) ? goal : super.visitTypeOf(o);
     }
+
     public VarInfoName visitPrestate(Prestate o) {
       pre = true;
       return super.visitPrestate(o);
     }
+
     public VarInfoName visitPoststate(Poststate o) {
       pre = false;
       return super.visitPoststate(o);
     }
+
     public VarInfoName visitAdd(Add o) {
       return (o == goal) ? goal : super.visitAdd(o);
     }
+
     public VarInfoName visitElements(Elements o) {
       return (o == goal) ? goal : super.visitElements(o);
     }
+
     public VarInfoName visitSubscript(Subscript o) {
       if (o == goal) return goal;
       if (o.sequence.accept(this) != null) return goal;
       if (o.index.accept(this) != null) return goal;
       return null;
     }
+
     public VarInfoName visitSlice(Slice o) {
       if (o == goal) return goal;
       if (o.sequence.accept(this) != null) return goal;
@@ -2158,45 +2306,35 @@ public abstract /*@Interned*/ class VarInfoName
   }
 
   /**
-   * Finds if a given VarInfoName is contained in a set of nodes
-   * in the VarInfoName tree using == comparison.  Recurse through
-   * everything except fields, so in x.a, we don't look at a.
-   **/
+   * Finds if a given VarInfoName is contained in a set of nodes in the VarInfoName tree using ==
+   * comparison. Recurse through everything except fields, so in x.a, we don't look at a.
+   */
   @SuppressWarnings("interning") // equality checking pattern, etc.
-  public static class Finder
-    extends AbstractVisitor<VarInfoName>
-  {
+  public static class Finder extends AbstractVisitor<VarInfoName> {
     // state and accessors
     private final Set<VarInfoName> goals;
 
-
     /**
-     * Creates a new Finder.  Uses equals() to find.
-     * @param argGoals The goals to find
-     **/
+     * Creates a new Finder. Uses equals() to find.
+     *
+     * @param argGoals the goals to find
+     */
     public Finder(Set<VarInfoName> argGoals) {
       goals = new HashSet<VarInfoName>();
       for (VarInfoName name : argGoals) {
-        this.goals.add (name.intern());
+        this.goals.add(name.intern());
       }
     }
 
-
-    /**
-     * Returns true iff some part of root is contained in this.goals.
-     **/
+    /** Returns true iff some part of root is contained in this.goals. */
     /*@EnsuresNonNullIf(result=true, expression="getPart(#1")*/
-    public boolean contains (VarInfoName root) {
+    public boolean contains(VarInfoName root) {
       VarInfoName o = getPart(root);
       return (o != null);
     }
 
-
-    /**
-     * Returns the part of root that is contained in this.goals, or
-     * null if not found.
-     **/
-    public /*@Nullable*/ VarInfoName getPart (VarInfoName root) {
+    /** Returns the part of root that is contained in this.goals, or null if not found. */
+    public /*@Nullable*/ VarInfoName getPart(VarInfoName root) {
       VarInfoName o = root.intern().accept(this);
       return o;
     }
@@ -2205,12 +2343,15 @@ public abstract /*@Interned*/ class VarInfoName
     public VarInfoName visitSimple(Simple o) {
       return (goals.contains(o)) ? o : null;
     }
+
     public VarInfoName visitSizeOf(SizeOf o) {
       return (goals.contains(o)) ? o : o.sequence.intern().accept(this);
     }
+
     public VarInfoName visitFunctionOf(FunctionOf o) {
       return (goals.contains(o)) ? o : super.visitFunctionOf(o);
     }
+
     public VarInfoName visitFunctionOfN(FunctionOfN o) {
       VarInfoName result = null;
       if (goals.contains(o)) return o;
@@ -2220,26 +2361,33 @@ public abstract /*@Interned*/ class VarInfoName
       }
       return result;
     }
+
     public VarInfoName visitField(Field o) {
       return (goals.contains(o)) ? o : super.visitField(o);
     }
+
     public VarInfoName visitTypeOf(TypeOf o) {
       return (goals.contains(o)) ? o : super.visitTypeOf(o);
     }
+
     public VarInfoName visitPrestate(Prestate o) {
       if (goals.contains(o)) return o;
       return super.visitPrestate(o);
     }
+
     public VarInfoName visitPoststate(Poststate o) {
       if (goals.contains(o)) return o;
       return super.visitPoststate(o);
     }
+
     public VarInfoName visitAdd(Add o) {
       return (goals.contains(o)) ? o : super.visitAdd(o);
     }
+
     public VarInfoName visitElements(Elements o) {
       return (goals.contains(o)) ? o : super.visitElements(o);
     }
+
     public VarInfoName visitSubscript(Subscript o) {
       if (goals.contains(o)) return o;
       VarInfoName temp = o.sequence.accept(this);
@@ -2248,17 +2396,22 @@ public abstract /*@Interned*/ class VarInfoName
       if (temp != null) return temp;
       return null;
     }
+
     public VarInfoName visitSlice(Slice o) {
       if (goals.contains(o)) return o;
       VarInfoName temp = o.sequence.accept(this);
       if (temp != null) return temp;
       if (o.i != null) {
         temp = o.i.accept(this);
-        if (temp != null) return temp;
+        if (temp != null) {
+          return temp;
+        }
       }
       if (o.j != null) {
         temp = o.j.accept(this);
-        if (temp != null) return temp;
+        if (temp != null) {
+          return temp;
+        }
       }
       return null;
     }
@@ -2267,9 +2420,7 @@ public abstract /*@Interned*/ class VarInfoName
   // An abstract base class for visitors that compute some predicate
   // of a conjunctive nature (true only if true on all subparts),
   // returning Boolean.FALSE or Boolean.TRUE.
-  public abstract static class BooleanAndVisitor
-    extends AbstractVisitor<Boolean>
-  {
+  public abstract static class BooleanAndVisitor extends AbstractVisitor<Boolean> {
     private boolean result;
 
     public BooleanAndVisitor(VarInfoName name) {
@@ -2282,12 +2433,12 @@ public abstract /*@Interned*/ class VarInfoName
 
     public Boolean visitFunctionOfN(FunctionOfN o) {
       Boolean retval = null;
-      for (ListIterator<VarInfoName> i = o.args.listIterator(o.args.size());
-           i.hasPrevious(); ) {
+      for (ListIterator<VarInfoName> i = o.args.listIterator(o.args.size()); i.hasPrevious(); ) {
         VarInfoName vin = i.previous();
         retval = vin.accept(this);
-        if (retval != null)
+        if (retval != null) {
           return null;
+        }
       }
       return retval;
     }
@@ -2304,42 +2455,47 @@ public abstract /*@Interned*/ class VarInfoName
       if (temp == null) return temp;
       if (o.i != null) {
         temp = o.i.accept(this);
-        if (temp == null) return temp;
+        if (temp == null) {
+          return temp;
+        }
       }
       if (o.j != null) {
         temp = o.j.accept(this);
-        if (temp == null) return temp;
+        if (temp == null) {
+          return temp;
+        }
       }
       return temp;
     }
   }
 
-  public static class IsAllPrestateVisitor
-    extends BooleanAndVisitor
-  {
+  public static class IsAllPrestateVisitor extends BooleanAndVisitor {
 
-    public IsAllPrestateVisitor(VarInfoName vin) { super(vin); }
+    public IsAllPrestateVisitor(VarInfoName vin) {
+      super(vin);
+    }
 
     public Boolean visitSimple(Simple o) {
       // Any var not inside an orig() isn't prestate
       return null;
     }
+
     public Boolean visitPrestate(Prestate o) {
       // orig(...) is all prestate unless it contains post(...)
-      return (new IsAllNonPoststateVisitor(o).result())
-        ? Boolean.TRUE : null;
+      return (new IsAllNonPoststateVisitor(o).result()) ? Boolean.TRUE : null;
     }
   }
 
-  public static class IsAllNonPoststateVisitor
-    extends BooleanAndVisitor
-  {
-    public IsAllNonPoststateVisitor(VarInfoName vin) { super(vin); }
+  public static class IsAllNonPoststateVisitor extends BooleanAndVisitor {
+    public IsAllNonPoststateVisitor(VarInfoName vin) {
+      super(vin);
+    }
 
     public Boolean visitSimple(Simple o) {
       // Any var not inside a post() isn't poststate
       return Boolean.TRUE;
     }
+
     public Boolean visitPoststate(Poststate o) {
       // If we see a post(...), we aren't all poststate.
       return null;
@@ -2347,14 +2503,12 @@ public abstract /*@Interned*/ class VarInfoName
   }
 
   /**
-   * Use to traverse a tree, find the first (elements ...) node, and
-   * report whether it's in pre or post-state.
-   **/
+   * Use to traverse a tree, find the first (elements ...) node, and report whether it's in pre or
+   * post-state.
+   */
   @SuppressWarnings("interning") // equality checking pattern, etc.
-  public static class ElementsFinder
-    extends AbstractVisitor<Elements>
-  {
-    public ElementsFinder (VarInfoName name) {
+  public static class ElementsFinder extends AbstractVisitor<Elements> {
+    public ElementsFinder(VarInfoName name) {
       elems = name.accept(this);
     }
 
@@ -2365,6 +2519,7 @@ public abstract /*@Interned*/ class VarInfoName
     public boolean inPre() {
       return pre;
     }
+
     public Elements elems() {
       return elems;
     }
@@ -2374,47 +2529,58 @@ public abstract /*@Interned*/ class VarInfoName
       Elements retval = null;
       for (VarInfoName vin : o.args) {
         retval = vin.accept(this);
-        if (retval != null) return retval;
+        if (retval != null) {
+          return retval;
+        }
       }
       return retval;
     }
+
     public Elements visitPrestate(Prestate o) {
       pre = true;
       return super.visitPrestate(o);
     }
+
     public Elements visitPoststate(Poststate o) {
       pre = false;
       return super.visitPoststate(o);
     }
+
     public Elements visitElements(Elements o) {
       return o;
     }
+
     public Elements visitSubscript(Subscript o) {
       // skip the subscripted sequence
       Elements tmp = o.sequence.term.accept(this);
-      if (tmp == null) { tmp = o.index.accept(this); }
+      if (tmp == null) {
+        tmp = o.index.accept(this);
+      }
       return tmp;
     }
+
     public Elements visitSlice(Slice o) {
       // skip the sliced sequence
       Elements tmp = o.sequence.term.accept(this);
-      if (tmp == null && o.i != null) { tmp = o.i.accept(this); }
-      if (tmp == null && o.j != null) { tmp = o.j.accept(this); }
+      if (tmp == null && o.i != null) {
+        tmp = o.i.accept(this);
+      }
+      if (tmp == null && o.j != null) {
+        tmp = o.j.accept(this);
+      }
       return tmp;
     }
   }
 
   /**
-   * A Replacer is a Visitor that makes a copy of a tree, but
-   * replaces some node (and its children) with another.
-   * The result is *not* interned; the client must do that if desired.
-   **/
+   * A Replacer is a Visitor that makes a copy of a tree, but replaces some node (and its children)
+   * with another. The result is *not* interned; the client must do that if desired.
+   */
   @SuppressWarnings("interning") // equality checking pattern, etc.
-  public static class Replacer
-    extends AbstractVisitor<VarInfoName>
-  {
+  public static class Replacer extends AbstractVisitor<VarInfoName> {
     private final VarInfoName old;
     private final VarInfoName _new;
+
     public Replacer(VarInfoName old, VarInfoName _new) {
       this.old = old;
       this._new = _new;
@@ -2427,14 +2593,15 @@ public abstract /*@Interned*/ class VarInfoName
     public VarInfoName visitSimple(Simple o) {
       return (o == old) ? _new : o;
     }
+
     public VarInfoName visitSizeOf(SizeOf o) {
-      return (o == old) ? _new :
-        super.visitSizeOf(o).applySize();
+      return (o == old) ? _new : super.visitSizeOf(o).applySize();
     }
+
     public VarInfoName visitFunctionOf(FunctionOf o) {
-      return (o == old) ? _new :
-        super.visitFunctionOf(o).applyFunction(o.function);
+      return (o == old) ? _new : super.visitFunctionOf(o).applyFunction(o.function);
     }
+
     public VarInfoName visitFunctionOfN(FunctionOfN o) {
       // If o is getting replaced, then just replace it
       // otherwise, create a new function and check if arguments get replaced
@@ -2442,56 +2609,55 @@ public abstract /*@Interned*/ class VarInfoName
       ArrayList<VarInfoName> newArgs = new ArrayList<VarInfoName>();
       for (VarInfoName vin : o.args) {
         VarInfoName retval = vin.accept(this);
-        newArgs.add (retval);
+        newArgs.add(retval);
       }
       return VarInfoName.applyFunctionOfN(o.function, newArgs);
     }
+
     public VarInfoName visitField(Field o) {
-      return (o == old) ? _new :
-        super.visitField(o).applyField(o.field);
+      return (o == old) ? _new : super.visitField(o).applyField(o.field);
     }
+
     public VarInfoName visitTypeOf(TypeOf o) {
-      return (o == old) ? _new :
-        super.visitTypeOf(o).applyTypeOf();
+      return (o == old) ? _new : super.visitTypeOf(o).applyTypeOf();
     }
+
     public VarInfoName visitPrestate(Prestate o) {
-      return (o == old) ? _new :
-        super.visitPrestate(o).applyPrestate();
+      return (o == old) ? _new : super.visitPrestate(o).applyPrestate();
     }
+
     public VarInfoName visitPoststate(Poststate o) {
-      return (o == old) ? _new :
-        super.visitPoststate(o).applyPoststate();
+      return (o == old) ? _new : super.visitPoststate(o).applyPoststate();
     }
+
     public VarInfoName visitAdd(Add o) {
-      return (o == old) ? _new :
-        super.visitAdd(o).applyAdd(o.amount);
+      return (o == old) ? _new : super.visitAdd(o).applyAdd(o.amount);
     }
+
     public VarInfoName visitElements(Elements o) {
-      return (o == old) ? _new :
-        super.visitElements(o).applyElements();
+      return (o == old) ? _new : super.visitElements(o).applyElements();
     }
+
     public VarInfoName visitSubscript(Subscript o) {
-      return (o == old) ? _new :
-        o.sequence.accept(this).
-        applySubscript(o.index.accept(this));
+      return (o == old) ? _new : o.sequence.accept(this).applySubscript(o.index.accept(this));
     }
+
     public VarInfoName visitSlice(Slice o) {
-      return (o == old) ? _new :
-        o.sequence.accept(this).
-        applySlice((o.i == null) ? null : o.i.accept(this),
-                   (o.j == null) ? null : o.j.accept(this));
+      return (o == old)
+          ? _new
+          : o.sequence
+              .accept(this)
+              .applySlice(
+                  (o.i == null) ? null : o.i.accept(this), (o.j == null) ? null : o.j.accept(this));
     }
   }
 
   /**
-   * Replace pre states by normal variables, and normal variables by
-   * post states.  We should do this for all variables except for
-   * variables derived from return.  This piggybacks on replacer but
-   * the actual replacement is done elsewhere.
-   **/
-  public static class PostPreConverter
-    extends Replacer
-  {
+   * Replace pre states by normal variables, and normal variables by post states. We should do this
+   * for all variables except for variables derived from return. This piggybacks on replacer but the
+   * actual replacement is done elsewhere.
+   */
+  public static class PostPreConverter extends Replacer {
 
     public PostPreConverter() {
       super(null, null);
@@ -2505,20 +2671,15 @@ public abstract /*@Interned*/ class VarInfoName
     public VarInfoName visitPrestate(Prestate o) {
       return o.term;
     }
-
   }
 
-
-  public static class NoReturnValue { }
+  public static class NoReturnValue {}
 
   /**
-   * Use to collect all elements in a tree into an inorder-traversal
-   * list.  Result includes the root element.
-   * All methods return null; to obtain the result, call nodes().
-   **/
-  public static class InorderFlattener
-    extends AbstractVisitor<NoReturnValue>
-  {
+   * Use to collect all elements in a tree into an inorder-traversal list. Result includes the root
+   * element. All methods return null; to obtain the result, call nodes().
+   */
+  public static class InorderFlattener extends AbstractVisitor<NoReturnValue> {
     public InorderFlattener(VarInfoName root) {
       root.accept(this);
     }
@@ -2526,7 +2687,7 @@ public abstract /*@Interned*/ class VarInfoName
     // state and accessors
     private final List<VarInfoName> result = new ArrayList<VarInfoName>();
 
-    /** Method returning the actual results (the nodes in order). **/
+    /** Method returning the actual results (the nodes in order). */
     public List<VarInfoName> nodes() {
       return Collections.unmodifiableList(result);
     }
@@ -2536,51 +2697,62 @@ public abstract /*@Interned*/ class VarInfoName
       result.add(o);
       return super.visitSimple(o);
     }
+
     public NoReturnValue visitSizeOf(SizeOf o) {
       result.add(o);
       return super.visitSizeOf(o);
     }
+
     public NoReturnValue visitFunctionOf(FunctionOf o) {
       result.add(o);
       return super.visitFunctionOf(o);
     }
+
     public NoReturnValue visitFunctionOfN(FunctionOfN o) {
-      result.add (o);
+      result.add(o);
       for (VarInfoName vin : o.args) {
         NoReturnValue retval = vin.accept(this);
       }
       return null;
     }
+
     public NoReturnValue visitField(Field o) {
       result.add(o);
       return super.visitField(o);
     }
+
     public NoReturnValue visitTypeOf(TypeOf o) {
       result.add(o);
       return super.visitTypeOf(o);
     }
+
     public NoReturnValue visitPrestate(Prestate o) {
       result.add(o);
       return super.visitPrestate(o);
     }
+
     public NoReturnValue visitPoststate(Poststate o) {
       result.add(o);
       return super.visitPoststate(o);
     }
+
     public NoReturnValue visitAdd(Add o) {
       result.add(o);
       return super.visitAdd(o);
     }
+
     public NoReturnValue visitElements(Elements o) {
       result.add(o);
       return super.visitElements(o);
     }
+
     public NoReturnValue visitSubscript(Subscript o) {
       result.add(o);
       o.sequence.accept(this);
       o.index.accept(this);
       return null;
     }
+
     public NoReturnValue visitSlice(Slice o) {
       result.add(o);
       o.sequence.accept(this);
@@ -2593,23 +2765,20 @@ public abstract /*@Interned*/ class VarInfoName
   // ============================================================
   // Quantification for formatting in ESC or Simplify
 
-  public static class SimpleNamesVisitor
-    extends AbstractVisitor<NoReturnValue>
-  {
+  public static class SimpleNamesVisitor extends AbstractVisitor<NoReturnValue> {
     public SimpleNamesVisitor(VarInfoName root) {
       assert root != null;
       simples = new HashSet<String>();
       root.accept(this);
     }
 
-    /** @see #simples() **/
+    /** @see #simples() */
     private Set<String> simples;
 
     /**
-     * @return Collection of simple identifiers used in this
-     * expression, as Strings. (Used, for instance, to check for
-     * conflict with a quantifier variable name).
-     **/
+     * @return collection of simple identifiers used in this expression, as Strings. (Used, for
+     *     instance, to check for conflict with a quantifier variable name).
+     */
     public Set<String> simples() {
       return Collections.unmodifiableSet(simples);
     }
@@ -2619,36 +2788,42 @@ public abstract /*@Interned*/ class VarInfoName
       simples.add(o.name);
       return super.visitSimple(o);
     }
+
     public NoReturnValue visitElements(Elements o) {
       return super.visitElements(o);
     }
+
     public NoReturnValue visitFunctionOf(FunctionOf o) {
       simples.add(o.function);
       return super.visitFunctionOf(o);
     }
+
     public NoReturnValue visitFunctionOfN(FunctionOfN o) {
       simples.add(o.function);
       return super.visitFunctionOfN(o);
     }
+
     public NoReturnValue visitSubscript(Subscript o) {
       o.sequence.accept(this);
       return o.index.accept(this);
     }
+
     public NoReturnValue visitSlice(Slice o) {
-      if (o.i != null) { o.i.accept(this); }
-      if (o.j != null) { o.j.accept(this); }
+      if (o.i != null) {
+        o.i.accept(this);
+      }
+      if (o.j != null) {
+        o.j.accept(this);
+      }
       return o.sequence.accept(this);
     }
   }
 
-
   /**
-   * A quantifier visitor can be used to search a tree and return all
-   * unquantified sequences (e.g. a[] or a[i..j]).
-   **/
-  public static class QuantifierVisitor
-    extends AbstractVisitor<NoReturnValue>
-  {
+   * A quantifier visitor can be used to search a tree and return all unquantified sequences (e.g.
+   * a[] or a[i..j]).
+   */
+  public static class QuantifierVisitor extends AbstractVisitor<NoReturnValue> {
     public QuantifierVisitor(VarInfoName root) {
       assert root != null;
       unquant = new HashSet<VarInfoName>();
@@ -2656,14 +2831,13 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     // state and accessors
-    /** @see #unquants() **/
-    private Set<VarInfoName>/*actually <Elements || Slice>*/ unquant;
+    /** @see #unquants() */
+    private Set<VarInfoName> /*actually <Elements || Slice>*/ unquant;
 
     /**
-     * @return Collection of the nodes under the root that need
-     * quantification.  Each node represents an array; in particular,
-     * the values are either of type Elements or Slice.
-     **/
+     * @return collection of the nodes under the root that need quantification. Each node represents
+     *     an array; in particular, the values are either of type Elements or Slice.
+     */
     // Here are some inputs and the corresponding output sets:
     //  terms[index].elts[num]   ==> { }
     //  terms[index].elts[]      ==> { terms[index].elts[] }
@@ -2673,7 +2847,7 @@ public abstract /*@Interned*/ class VarInfoName
     //  ary[][]                  ==> { ary[], ary[][] }
     public Set<VarInfoName> unquants() {
       if (QuantHelper.debug.isLoggable(Level.FINE)) {
-        QuantHelper.debug.fine ("unquants: " + unquant);
+        QuantHelper.debug.fine("unquants: " + unquant);
       }
       return Collections.unmodifiableSet(unquant);
     }
@@ -2682,6 +2856,7 @@ public abstract /*@Interned*/ class VarInfoName
     public NoReturnValue visitSimple(Simple o) {
       return super.visitSimple(o);
     }
+
     public NoReturnValue visitElements(Elements o) {
       unquant.add(o);
       return super.visitElements(o);
@@ -2693,32 +2868,38 @@ public abstract /*@Interned*/ class VarInfoName
       // We only use one of them because we don't want double quantifiers
     }
     /**
-     * We do *not* want to pull out array members of FunctionOfN
-     * because a FunctionOfN creates a black-box array with respect to
-     * quantification.  (Also, otherwise, there may be two or more
-     * arrays that are returned, making the quantification engine
-     * think it's working with 2-d arrays.)
-     **/
+     * We do *not* want to pull out array members of FunctionOfN because a FunctionOfN creates a
+     * black-box array with respect to quantification. (Also, otherwise, there may be two or more
+     * arrays that are returned, making the quantification engine think it's working with 2-d
+     * arrays.)
+     */
     public NoReturnValue visitFunctionOfN(FunctionOfN o) {
       return null;
       // return o.args.get(0).accept(this); // Return value doesn't matter
       // We only use one of them because we don't want double quantifiers
     }
+
     public NoReturnValue visitSizeOf(SizeOf o) {
       // don't visit the sequence; we aren't using the elements of it,
       // just the length, so we don't want to include it in the results
       return o.get_term().accept(this);
     }
+
     public NoReturnValue visitSubscript(Subscript o) {
       o.index.accept(this);
       // don't visit the sequence; it is fixed with an exact
       // subscript, so we don't want to include it in the results
       return o.sequence.term.accept(this);
     }
+
     public NoReturnValue visitSlice(Slice o) {
       unquant.add(o);
-      if (o.i != null) { o.i.accept(this); }
-      if (o.j != null) { o.j.accept(this); }
+      if (o.i != null) {
+        o.i.accept(this);
+      }
+      if (o.j != null) {
+        o.j.accept(this);
+      }
       // don't visit the sequence; we will replace the slice with the
       // subscript, so we want to leave the elements alone
       return o.sequence.term.accept(this);
@@ -2729,25 +2910,20 @@ public abstract /*@Interned*/ class VarInfoName
   // Quantification for formatting in ESC or Simplify:  QuantHelper
 
   /**
-   * Helper for writing parts of quantification expressions.
-   * Formatting methods in invariants call the formatting methods in
-   * this class to get commonly-used parts, like how universal
+   * Helper for writing parts of quantification expressions. Formatting methods in invariants call
+   * the formatting methods in this class to get commonly-used parts, like how universal
    * quanitifiers look in the different formatting schemes.
-   **/
+   */
   public static class QuantHelper {
 
-    /**
-     * Debug tracer
-     **/
+    /** Debug tracer. */
     public static final Logger debug = Logger.getLogger("daikon.inv.Invariant.print.QuantHelper");
 
     /**
-     * A FreeVar is very much like a Simple, except that it doesn't
-     * care if it's in prestate or poststate for simplify formatting.
-     **/
-    public static class FreeVar
-      extends Simple
-    {
+     * A FreeVar is very much like a Simple, except that it doesn't care if it's in prestate or
+     * poststate for simplify formatting.
+     */
+    public static class FreeVar extends Simple {
       // We are Serializable, so we specify a version to allow changes to
       // method signatures without breaking serialization.  If you add or
       // remove fields, you should change this number to the current date.
@@ -2756,9 +2932,11 @@ public abstract /*@Interned*/ class VarInfoName
       public FreeVar(String name) {
         super(name);
       }
-      protected String repr_impl() {
+
+      protected String repr_impl(/*>>>@GuardSatisfied FreeVar this*/) {
         return "Free[" + super.repr_impl() + "]";
       }
+
       protected String jml_name_impl(VarInfo v) {
         return super.jml_name_impl(v);
       }
@@ -2772,19 +2950,16 @@ public abstract /*@Interned*/ class VarInfoName
 
     // <root, needy, index> -> <root', lower, upper>
     /**
-     * Replaces a needy (unquantified term) with its subscripted
-     * equivalent, using the given index variable.
+     * Replaces a needy (unquantified term) with its subscripted equivalent, using the given index
+     * variable.
      *
-     * @param root the root of the expression to be modified.
-     * Substitution occurs only in the subtree reachable from root.
-     * @param needy the term to be subscripted (must be of type Elements or
-     * Slice)
+     * @param root the root of the expression to be modified. Substitution occurs only in the
+     *     subtree reachable from root.
+     * @param needy the term to be subscripted (must be of type Elements or Slice)
      * @param index the variable to place in the subscript
-     *
-     * @return a 3-element array consisting of the new root, the lower
-     * bound for the index (inclusive), and the upper bound for the
-     * index (inclusive), in that order.
-     **/
+     * @return a 3-element array consisting of the new root, the lower bound for the index
+     *     (inclusive), and the upper bound for the index (inclusive), in that order
+     */
     public static VarInfoName[] replace(VarInfoName root, VarInfoName needy, VarInfoName index) {
       assert root != null;
       assert needy != null;
@@ -2836,17 +3011,15 @@ public abstract /*@Interned*/ class VarInfoName
       assert lower != null;
       assert upper != null;
 
-      return new VarInfoName[] { root_prime, lower, upper };
+      return new VarInfoName[] {root_prime, lower, upper};
     }
 
     /**
-     * Assuming that root is a sequence, return a VarInfoName
-     * representing the (index_base+index_off)-th element of that
-     * sequence. index_base may be null, to represent 0.
-     **/
-    public static VarInfoName selectNth(VarInfoName root,
-                                        /*@Nullable*/ VarInfoName index_base,
-                                        int index_off) {
+     * Assuming that root is a sequence, return a VarInfoName representing the
+     * (index_base+index_off)-th element of that sequence. index_base may be null, to represent 0.
+     */
+    public static VarInfoName selectNth(
+        VarInfoName root, /*@Nullable*/ VarInfoName index_base, int index_off) {
       QuantifierVisitor qv = new QuantifierVisitor(root);
       List<VarInfoName> unquants = new ArrayList<VarInfoName>(qv.unquants());
       if (unquants.size() == 0) {
@@ -2856,8 +3029,7 @@ public abstract /*@Interned*/ class VarInfoName
         VarInfoName index_vin;
         if (index_base != null) {
           index_vin = index_base;
-          if (index_off != 0)
-            index_vin = index_vin.applyAdd(index_off);
+          if (index_off != 0) index_vin = index_vin.applyAdd(index_off);
         } else {
           index_vin = new Simple(index_off + "");
         }
@@ -2865,20 +3037,17 @@ public abstract /*@Interned*/ class VarInfoName
         /*@Interned*/ VarInfoName[] replace_result = replace(root, to_replace, index_vin);
         return replace_result[0];
       } else {
-        throw new Error("Can't handle multi-dim array in " +
-                        "VarInfoName.QuantHelper.select_nth()");
+        throw new Error(
+            "Can't handle multi-dim array in " + "VarInfoName.QuantHelper.select_nth()");
       }
     }
 
     /**
-     * Assuming that root is a sequence, return a VarInfoName
-     * representing the (index_base+index_off)-th element of that
-     * sequence. index_base may be null, to represent 0.
-     **/
-    public static VarInfoName selectNth(VarInfoName root,
-                                        String index_base,
-                                        boolean free,
-                                        int index_off) {
+     * Assuming that root is a sequence, return a VarInfoName representing the
+     * (index_base+index_off)-th element of that sequence. index_base may be null, to represent 0.
+     */
+    public static VarInfoName selectNth(
+        VarInfoName root, String index_base, boolean free, int index_off) {
       QuantifierVisitor qv = new QuantifierVisitor(root);
       List<VarInfoName> unquants = new ArrayList<VarInfoName>(qv.unquants());
       if (unquants.size() == 0) {
@@ -2887,12 +3056,12 @@ public abstract /*@Interned*/ class VarInfoName
       } else if (unquants.size() == 1) {
         VarInfoName index_vin;
         if (index_base != null) {
-          if (index_off != 0)
-            index_base += "+" + index_off;
-          if (free)
-            index_vin = new FreeVar (index_base);
-          else
-            index_vin = VarInfoName.parse (index_base);
+          if (index_off != 0) index_base += "+" + index_off;
+          if (free) {
+            index_vin = new FreeVar(index_base);
+          } else {
+            index_vin = VarInfoName.parse(index_base);
+          }
           // if (index_base.contains ("a"))
           //  System.out.printf ("selectNth: '%s' '%s'%n", index_base,
           //                     index_vin);
@@ -2906,8 +3075,8 @@ public abstract /*@Interned*/ class VarInfoName
         //                      root, to_replace, index_vin);
         return replace_result[0];
       } else {
-        throw new Error("Can't handle multi-dim array in " +
-                        "VarInfoName.QuantHelper.select_nth()");
+        throw new Error(
+            "Can't handle multi-dim array in " + "VarInfoName.QuantHelper.select_nth()");
       }
     }
 
@@ -2921,37 +3090,33 @@ public abstract /*@Interned*/ class VarInfoName
       return name;
     }
 
-    /**
-     * Return a fresh variable name that doesn't appear in the given
-     * variable names.
-     **/
+    /** Return a fresh variable name that doesn't appear in the given variable names. */
     public static VarInfoName getFreeIndex(VarInfoName... vins) {
       Set<String> simples = new HashSet<String>();
-      for (VarInfoName vin : vins)
-        simples.addAll (new SimpleNamesVisitor (vin).simples());
+      for (VarInfoName vin : vins) {
+        simples.addAll(new SimpleNamesVisitor(vin).simples());
+      }
       return new FreeVar(freshDistinctFrom(simples));
     }
 
-    /**
-     * Record type for return value of the quantify method below.
-     **/
+    /** Record type for return value of the quantify method below. */
     public static class QuantifyReturn {
       public /*@Interned*/ VarInfoName[] root_primes;
-      public Vector</*@Interned*/ VarInfoName[]> bound_vars; // each element is VarInfoName[3] = <variable, lower, upper>
+      public Vector</*@Interned*/ VarInfoName[]>
+          bound_vars; // each element is VarInfoName[3] = <variable, lower, upper>
     }
 
     // <root*> -> <root'*, <index, lower, upper>*>
     // (The lengths of root* and root'* are the same; not sure about <i,l,u>*.)
     /**
-     * Given a list of roots, changes all Elements and Slice terms to
-     * Subscripts by inserting a new free variable; also return bounds
-     * for the new variables.
-     **/
+     * Given a list of roots, changes all Elements and Slice terms to Subscripts by inserting a new
+     * free variable; also return bounds for the new variables.
+     */
     public static QuantifyReturn quantify(VarInfoName[] roots) {
       assert roots != null;
 
       if (QuantHelper.debug.isLoggable(Level.FINE)) {
-        QuantHelper.debug.fine ("roots: " + Arrays.asList(roots));
+        QuantHelper.debug.fine("roots: " + Arrays.asList(roots));
       }
 
       // create empty result
@@ -2964,9 +3129,9 @@ public abstract /*@Interned*/ class VarInfoName
 
       // build helper for each roots; collect identifiers
       QuantifierVisitor[] helper = new QuantifierVisitor[roots.length];
-      for (int i=0; i < roots.length; i++) {
+      for (int i = 0; i < roots.length; i++) {
         if (QuantHelper.debug.isLoggable(Level.FINE)) {
-          QuantHelper.debug.fine ("Calling quanthelper on: " + new Integer(i) + " " + roots[i]);
+          QuantHelper.debug.fine("Calling quanthelper on: " + new Integer(i) + " " + roots[i]);
         }
 
         helper[i] = new QuantifierVisitor(roots[i]);
@@ -2976,15 +3141,15 @@ public abstract /*@Interned*/ class VarInfoName
       // choose names for the indices that don't conflict, and then
       // replace the right stuff in the term
       char tmp = 'i';
-      for (int i=0; i < roots.length; i++) {
+      for (int i = 0; i < roots.length; i++) {
         List<VarInfoName> uq = new ArrayList<VarInfoName>(helper[i].unquants());
         if (uq.size() == 0) {
           // nothing needs quantification
           result.root_primes[i] = roots[i];
         } else {
           if (QuantHelper.debug.isLoggable(Level.FINE)) {
-            QuantHelper.debug.fine ("root: " + roots[i]);
-            QuantHelper.debug.fine ("uq_elts: " + uq.toString());
+            QuantHelper.debug.fine("root: " + roots[i]);
+            QuantHelper.debug.fine("uq_elts: " + uq.toString());
           }
 
           // We assume that the input was one unquantified sequence
@@ -3002,7 +3167,7 @@ public abstract /*@Interned*/ class VarInfoName
           VarInfoName idx = (new FreeVar(idx_name)).intern();
 
           if (QuantHelper.debug.isLoggable(Level.FINE)) {
-            QuantHelper.debug.fine ("idx: " + idx);
+            QuantHelper.debug.fine("idx: " + idx);
           }
 
           // call replace and unpack results
@@ -3012,7 +3177,7 @@ public abstract /*@Interned*/ class VarInfoName
           VarInfoName upper = replace_result[2];
 
           result.root_primes[i] = root_prime;
-          result.bound_vars.add(new VarInfoName[] { idx, lower, upper });
+          result.bound_vars.add(new VarInfoName[] {idx, lower, upper});
         }
       }
 
@@ -3021,15 +3186,15 @@ public abstract /*@Interned*/ class VarInfoName
 
     // <root*> -> <string string* string>
     /**
-     * Given a list of roots, return a String array where the first
-     * element is a ESC-style quantification over newly-introduced
-     * bound variables, the last element is a closer, and the other
-     * elements are esc-named strings for the provided roots (with
-     * sequences subscripted by one of the new bound variables).
-     **/
+     * Given a list of roots, return a String array where the first element is a ESC-style
+     * quantification over newly-introduced bound variables, the last element is a closer, and the
+     * other elements are esc-named strings for the provided roots (with sequences subscripted by
+     * one of the new bound variables).
+     */
     public static String[] format_esc(VarInfoName[] roots) {
       return format_esc(roots, false);
     }
+
     public static String[] format_esc(VarInfoName[] roots, boolean elementwise) {
       // The call to format_esc is now handled by the combined formatter format_java_style
       return format_java_style(roots, elementwise, true, OutputFormat.ESCJAVA);
@@ -3037,21 +3202,20 @@ public abstract /*@Interned*/ class VarInfoName
 
     // <root*> -> <string string*>
     /**
-     * Given a list of roots, return a String array where the first
-     * element is a JML-style quantification over newly-introduced
-     * bound variables, the last element is a closer, and the other
-     * elements are jml-named strings for the provided roots (with
-     * sequenced subscripted by one of the new bound variables).
-     **/
-//     public static String[] format_jml(VarInfoName[] roots) {
-//       return format_jml(roots, false);
-//     }
-//     public static String[] format_jml(VarInfoName[] roots, boolean elementwise) {
-//       return format_jml(roots, elementwise, true);
-//     }
-//     public static String[] format_jml(VarInfoName[] roots, boolean elementwise, boolean forall) {
-//       return format_java_style(roots, elementwise, forall, OutputFormat.JML);
-//     }
+     * Given a list of roots, return a String array where the first element is a JML-style
+     * quantification over newly-introduced bound variables, the last element is a closer, and the
+     * other elements are jml-named strings for the provided roots (with sequenced subscripted by
+     * one of the new bound variables).
+     */
+    //     public static String[] format_jml(VarInfoName[] roots) {
+    //       return format_jml(roots, false);
+    //     }
+    //     public static String[] format_jml(VarInfoName[] roots, boolean elementwise) {
+    //       return format_jml(roots, elementwise, true);
+    //     }
+    //     public static String[] format_jml(VarInfoName[] roots, boolean elementwise, boolean forall) {
+    //       return format_java_style(roots, elementwise, forall, OutputFormat.JML);
+    //     }
 
     /* CP: Quantification for DBC: We would like quantified expression
      * to always return a boolean value, and in the previous
@@ -3193,26 +3357,25 @@ public abstract /*@Interned*/ class VarInfoName
     //       return result;
     //     }
 
-
     //////////////////////////
 
     public static String[] simplifyNameAndBounds(VarInfoName name) {
       String[] results = new String[3];
       boolean preState = false;
       if (name instanceof Prestate) {
-        Prestate wrapped = (Prestate)name;
+        Prestate wrapped = (Prestate) name;
         name = wrapped.term;
         preState = true;
       }
       if (name instanceof Elements) {
-        Elements sequence = (Elements)name;
+        Elements sequence = (Elements) name;
         VarInfoName array = sequence.term;
         results[0] = array.simplify_name(preState);
         results[1] = sequence.getLowerBound().simplify_name(preState);
         results[2] = sequence.getUpperBound().simplify_name(preState);
         return results;
       } else if (name instanceof Slice) {
-        Slice slice = (Slice)name;
+        Slice slice = (Slice) name;
         VarInfoName array = slice.sequence.term;
         results[0] = array.simplify_name(preState);
         results[1] = slice.getLowerBound().simplify_name(preState);
@@ -3230,50 +3393,45 @@ public abstract /*@Interned*/ class VarInfoName
 
     // <root*> -> <string string*>
     /**
-     * Given a list of roots, return a String array where the first
-     * element is a simplify-style quantification over
-     * newly-introduced bound variables, the last element is a closer,
-     * and the other elements are simplify-named strings for the
-     * provided roots (with sequences subscripted by one of the new
-     * bound variables).
+     * Given a list of roots, return a String array where the first element is a simplify-style
+     * quantification over newly-introduced bound variables, the last element is a closer, and the
+     * other elements are simplify-named strings for the provided roots (with sequences subscripted
+     * by one of the new bound variables).
      *
-     * If elementwise is true, include the additional contraint that
-     * the indices (there must be exactly two in this case) refer to
-     * corresponding positions. If adjacent is true, include the
-     * additional constraint that the second index be one more than
-     * the first. If distinct is true, include the constraint that the
-     * two indices are different. If includeIndex is true, return
-     * additional strings, after the roots but before the closer, with
-     * the names of the index variables.
-     **/
+     * <p>If elementwise is true, include the additional contraint that the indices (there must be
+     * exactly two in this case) refer to corresponding positions. If adjacent is true, include the
+     * additional constraint that the second index be one more than the first. If distinct is true,
+     * include the constraint that the two indices are different. If includeIndex is true, return
+     * additional strings, after the roots but before the closer, with the names of the index
+     * variables.
+     */
     // XXX This argument list is starting to get out of hand. -smcc
     public static String[] format_simplify(VarInfoName[] roots) {
       return format_simplify(roots, false, false, false, false);
     }
-    public static String[] format_simplify(VarInfoName[] roots,
-                                           boolean eltwise) {
+
+    public static String[] format_simplify(VarInfoName[] roots, boolean eltwise) {
       return format_simplify(roots, eltwise, false, false, false);
     }
-    public static String[] format_simplify(VarInfoName[] roots,
-                                           boolean eltwise,
-                                           boolean adjacent) {
+
+    public static String[] format_simplify(VarInfoName[] roots, boolean eltwise, boolean adjacent) {
       return format_simplify(roots, eltwise, adjacent, false, false);
     }
-    public static String[] format_simplify(VarInfoName[] roots,
-                                           boolean eltwise,
-                                           boolean adjacent,
-                                           boolean distinct) {
+
+    public static String[] format_simplify(
+        VarInfoName[] roots, boolean eltwise, boolean adjacent, boolean distinct) {
       return format_simplify(roots, eltwise, adjacent, distinct, false);
     }
-    public static String[] format_simplify(VarInfoName[] roots,
-                                           boolean elementwise,
-                                           boolean adjacent,
-                                           boolean distinct,
-                                           boolean includeIndex) {
+
+    public static String[] format_simplify(
+        VarInfoName[] roots,
+        boolean elementwise,
+        boolean adjacent,
+        boolean distinct,
+        boolean includeIndex) {
       assert roots != null;
 
-      if (adjacent || distinct)
-        assert roots.length == 2;
+      if (adjacent || distinct) assert roots.length == 2;
 
       QuantifyReturn qret = quantify(roots);
 
@@ -3286,7 +3444,7 @@ public abstract /*@Interned*/ class VarInfoName
         // "(AND (<= ai i) (<= i bi) (<= aj j) (<= j bj) ...)"
         // if elementwise, also insert "(EQ (- i ai) (- j aj)) ..."
         conditions = new StringBuffer();
-        for (int i=0; i < qret.bound_vars.size(); i++) {
+        for (int i = 0; i < qret.bound_vars.size(); i++) {
           VarInfoName[] boundv = qret.bound_vars.get(i);
           VarInfoName idx = boundv[0], low = boundv[1], high = boundv[2];
           if (i != 0) {
@@ -3294,44 +3452,45 @@ public abstract /*@Interned*/ class VarInfoName
             conditions.append(" ");
           }
           int_list.append(idx.simplify_name());
-          conditions.append( "(<= " + low.simplify_name() + " " + idx.simplify_name() + ")");
+          conditions.append("(<= " + low.simplify_name() + " " + idx.simplify_name() + ")");
           conditions.append(" (<= " + idx.simplify_name() + " " + high.simplify_name() + ")");
           if (elementwise && (i >= 1)) {
-            VarInfoName[] _boundv = qret.bound_vars.get(i-1);
+            VarInfoName[] _boundv = qret.bound_vars.get(i - 1);
             VarInfoName _idx = _boundv[0], _low = _boundv[1];
             if (_low.simplify_name().equals(low.simplify_name())) {
-              conditions.append(" (EQ " + _idx.simplify_name() + " "
-                                + idx.simplify_name() + ")");
+              conditions.append(" (EQ " + _idx.simplify_name() + " " + idx.simplify_name() + ")");
             } else {
-              conditions.append(" (EQ (- " + _idx.simplify_name() + " " + _low.simplify_name() + ")");
-              conditions.append(    " (- " + idx.simplify_name() + " " + low.simplify_name() + "))");
+              conditions.append(
+                  " (EQ (- " + _idx.simplify_name() + " " + _low.simplify_name() + ")");
+              conditions.append(" (- " + idx.simplify_name() + " " + low.simplify_name() + "))");
             }
           }
           if (i == 1 && (adjacent || distinct)) {
-            VarInfoName[] _boundv = qret.bound_vars.get(i-1);
+            VarInfoName[] _boundv = qret.bound_vars.get(i - 1);
             VarInfoName prev_idx = _boundv[0];
-            if (adjacent)
-              conditions.append(" (EQ (+ " + prev_idx.simplify_name() + " 1) "
-                                + idx.simplify_name() + ")");
-            if (distinct)
-              conditions.append(" (NEQ " + prev_idx.simplify_name() + " "
-                                + idx.simplify_name() + ")");
+            if (adjacent) {
+              conditions.append(
+                  " (EQ (+ " + prev_idx.simplify_name() + " 1) " + idx.simplify_name() + ")");
+            }
+            if (distinct) {
+              conditions.append(
+                  " (NEQ " + prev_idx.simplify_name() + " " + idx.simplify_name() + ")");
+            }
           }
         }
       }
-      result[0] = "(FORALL (" + int_list + ") " +
-        "(IMPLIES (AND " + conditions + ") ";
+      result[0] = "(FORALL (" + int_list + ") " + "(IMPLIES (AND " + conditions + ") ";
 
       // stringify the terms
-      for (int i=0; i < qret.root_primes.length; i++) {
-        result[i+1] = qret.root_primes[i].simplify_name();
+      for (int i = 0; i < qret.root_primes.length; i++) {
+        result[i + 1] = qret.root_primes[i].simplify_name();
       }
 
       // stringify the indices, if requested
       // note that the index should be relative to the slice, not relative
       // to the original array (we used to get this wrong)
       if (includeIndex) {
-        for (int i=0; i < qret.root_primes.length; i++) {
+        for (int i = 0; i < qret.root_primes.length; i++) {
           VarInfoName[] boundv = qret.bound_vars.get(i);
           VarInfoName idx_var = boundv[0];
           String idx_var_name = idx_var.simplify_name();
@@ -3341,7 +3500,7 @@ public abstract /*@Interned*/ class VarInfoName
         }
       }
 
-      result[result.length-1] = "))"; // close IMPLIES, FORALL
+      result[result.length - 1] = "))"; // close IMPLIES, FORALL
 
       return result;
     }
@@ -3355,30 +3514,29 @@ public abstract /*@Interned*/ class VarInfoName
 
     // <root*> -> <string string* string>
     /**
-     * Given a list of roots, return a String array where the first
-     * element is a Java-style quantification over newly-introduced
-     * bound variables, the last element is a closer, and the other
-     * elements are java-named strings for the provided roots (with
-     * sequences subscripted by one of the new bound variables).
-     **/
-//     public static String[] format_java(VarInfoName[] roots) {
-//       return format_java(roots, false);
-//     }
-//     public static String[] format_java(VarInfoName[] roots, boolean elementwise) {
-//       return format_java_style(roots, false, true, OutputFormat.JAVA);
-//     }
+     * Given a list of roots, return a String array where the first element is a Java-style
+     * quantification over newly-introduced bound variables, the last element is a closer, and the
+     * other elements are java-named strings for the provided roots (with sequences subscripted by
+     * one of the new bound variables).
+     */
+    //     public static String[] format_java(VarInfoName[] roots) {
+    //       return format_java(roots, false);
+    //     }
+    //     public static String[] format_java(VarInfoName[] roots, boolean elementwise) {
+    //       return format_java_style(roots, false, true, OutputFormat.JAVA);
+    //     }
 
     // This set of functions quantifies in the same manner to the ESC quantification, except that
     // JML names are used instead of ESC names, and minor formatting changes are incorporated
-//     public static String[] format_jml(QuantifyReturn qret) {
-//       return format_java_style(qret, false, true, OutputFormat.JML);
-//     }
-//     public static String[] format_jml(QuantifyReturn qret, boolean elementwise) {
-//       return format_java_style(qret, elementwise, true, OutputFormat.JML);
-//     }
-//     public static String[] format_jml(QuantifyReturn qret, boolean elementwise, boolean forall) {
-//       return format_java_style(qret, elementwise, forall, OutputFormat.JML);
-//     }
+    //     public static String[] format_jml(QuantifyReturn qret) {
+    //       return format_java_style(qret, false, true, OutputFormat.JML);
+    //     }
+    //     public static String[] format_jml(QuantifyReturn qret, boolean elementwise) {
+    //       return format_java_style(qret, elementwise, true, OutputFormat.JML);
+    //     }
+    //     public static String[] format_jml(QuantifyReturn qret, boolean elementwise, boolean forall) {
+    //       return format_java_style(qret, elementwise, forall, OutputFormat.JML);
+    //     }
 
     // This set of functions assists in quantification for all of the java style
     // output formats, that is, Java, ESC, and JML. It does the actual work behind
@@ -3391,10 +3549,14 @@ public abstract /*@Interned*/ class VarInfoName
     protected static String[] format_java_style(VarInfoName[] roots, OutputFormat format) {
       return format_java_style(roots, false, true, format);
     }
-    protected static String[] format_java_style(VarInfoName[] roots, boolean elementwise, OutputFormat format) {
+
+    protected static String[] format_java_style(
+        VarInfoName[] roots, boolean elementwise, OutputFormat format) {
       return format_java_style(roots, elementwise, true, format);
     }
-    protected static String[] format_java_style(VarInfoName[] roots, boolean elementwise, boolean forall, OutputFormat format) {
+
+    protected static String[] format_java_style(
+        VarInfoName[] roots, boolean elementwise, boolean forall, OutputFormat format) {
       assert roots != null;
 
       QuantifyReturn qret = quantify(roots);
@@ -3406,12 +3568,16 @@ public abstract /*@Interned*/ class VarInfoName
     protected static String[] format_java_style(QuantifyReturn qret, OutputFormat format) {
       return format_java_style(qret, false, true, format);
     }
-    protected static String[] format_java_style(QuantifyReturn qret, boolean elementwise, OutputFormat format) {
+
+    protected static String[] format_java_style(
+        QuantifyReturn qret, boolean elementwise, OutputFormat format) {
       return format_java_style(qret, elementwise, true, format);
     }
-    protected static String[] format_java_style(QuantifyReturn qret, boolean elementwise, boolean forall, OutputFormat format) {
+
+    protected static String[] format_java_style(
+        QuantifyReturn qret, boolean elementwise, boolean forall, OutputFormat format) {
       // build the "\forall ..." predicate
-      String[] result = new String[qret.root_primes.length+2];
+      String[] result = new String[qret.root_primes.length + 2];
       StringBuffer int_list, conditions, closing;
       {
         // "i, j, ..."
@@ -3420,7 +3586,7 @@ public abstract /*@Interned*/ class VarInfoName
         // if elementwise, also do "(i-ai) == (b-bi) && ..."
         conditions = new StringBuffer();
         closing = new StringBuffer();
-        for (int i=0; i < qret.bound_vars.size(); i++) {
+        for (int i = 0; i < qret.bound_vars.size(); i++) {
           VarInfoName[] boundv = qret.bound_vars.get(i);
           VarInfoName idx = boundv[0], low = boundv[1], high = boundv[2];
           if (i != 0) {
@@ -3433,31 +3599,37 @@ public abstract /*@Interned*/ class VarInfoName
           conditions.append(quant_execution_condition(low, idx, high, format));
 
           if (elementwise && (i >= 1)) {
-            VarInfoName[] _boundv = qret.bound_vars.get(i-1);
+            VarInfoName[] _boundv = qret.bound_vars.get(i - 1);
             VarInfoName _idx = _boundv[0], _low = _boundv[1];
-            if (format == OutputFormat.JAVA)
-               conditions.append(" || ");
-            else
-               conditions.append(" && ");
+            if (format == OutputFormat.JAVA) {
+              conditions.append(" || ");
+            } else {
+              conditions.append(" && ");
+            }
 
             conditions.append(quant_element_conditions(_idx, _low, idx, low, format));
           }
         }
       }
 
-      if (forall)
-         result[0] = quant_format_forall(format);
-      else
-         result[0] = quant_format_exists(format);
+      if (forall) {
+        result[0] = quant_format_forall(format);
+      } else {
+        result[0] = quant_format_exists(format);
+      }
 
-      result[0] += (int_list + quant_separator1(format) +
-                    conditions + quant_separator2(format) +
-                    closing + quant_step_terminator(format));
-      result[result.length-1] = ")";
+      result[0] +=
+          (int_list
+              + quant_separator1(format)
+              + conditions
+              + quant_separator2(format)
+              + closing
+              + quant_step_terminator(format));
+      result[result.length - 1] = ")";
 
       // stringify the terms
-      for (int i=0; i < qret.root_primes.length; i++) {
-        result[i+1] = qret.root_primes[i].name_using(format, null);
+      for (int i = 0; i < qret.root_primes.length; i++) {
+        result[i + 1] = qret.root_primes[i].name_using(format, null);
       }
 
       return result;
@@ -3466,9 +3638,8 @@ public abstract /*@Interned*/ class VarInfoName
     // This set of functions are helper functions to the quantification function.
 
     /**
-     * This function creates a string that represents how to increment
-     * the variables involved in quantification. Since the increment
-     * is not stated explicitly in the JML and ESC formats this
+     * This function creates a string that represents how to increment the variables involved in
+     * quantification. Since the increment is not stated explicitly in the JML and ESC formats this
      * function merely returns an empty string for those formats.
      */
     protected static String quant_increment(VarInfoName idx, int i, OutputFormat format) {
@@ -3484,12 +3655,10 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     /**
-     * This function returns a string that represents the initial
-     * condition for the index variable.
+     * This function returns a string that represents the initial condition for the index variable.
      */
-    protected static String quant_var_initial_state(VarInfoName idx,
-                                                    VarInfoName low,
-                                                    OutputFormat format) {
+    protected static String quant_var_initial_state(
+        VarInfoName idx, VarInfoName low, OutputFormat format) {
       if (format == OutputFormat.JAVA) {
         return idx.esc_name() + " == " + low.esc_name();
       } else {
@@ -3498,30 +3667,30 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     /**
-     * This function returns a string that represents the execution
-     * condition for the quantification.
+     * This function returns a string that represents the execution condition for the
+     * quantification.
      */
-    protected static String quant_execution_condition(VarInfoName low,
-                                                      VarInfoName idx,
-                                                      VarInfoName high,
-                                                      OutputFormat format) {
+    protected static String quant_execution_condition(
+        VarInfoName low, VarInfoName idx, VarInfoName high, OutputFormat format) {
       if (format == OutputFormat.JAVA) {
         return idx.esc_name() + " <= " + high.esc_name();
       } else {
-        return low.name_using(format, null) + " <= " + idx.name_using(format, null) + " && " +
-          idx.name_using(format, null) + " <= " + high.name_using(format, null);
+        return low.name_using(format, null)
+            + " <= "
+            + idx.name_using(format, null)
+            + " && "
+            + idx.name_using(format, null)
+            + " <= "
+            + high.name_using(format, null);
       }
     }
 
     /**
-     * This function returns a string representing the extra
-     * conditions necessary if the quantification is element-wise.
+     * This function returns a string representing the extra conditions necessary if the
+     * quantification is element-wise.
      */
-    protected static String quant_element_conditions(VarInfoName _idx,
-                                                     VarInfoName _low,
-                                                     VarInfoName idx,
-                                                     VarInfoName low,
-                                                     OutputFormat format) {
+    protected static String quant_element_conditions(
+        VarInfoName _idx, VarInfoName _low, VarInfoName idx, VarInfoName low, OutputFormat format) {
       StringBuffer conditions = new StringBuffer();
 
       if (ZERO.equals(_low)) {
@@ -3548,8 +3717,8 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     /**
-     * This function returns a string representing how to format a
-     * forall statement in a given output mode.
+     * This function returns a string representing how to format a forall statement in a given
+     * output mode.
      */
     protected static String quant_format_forall(OutputFormat format) {
       if (format == OutputFormat.JAVA) {
@@ -3560,17 +3729,16 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     /**
-     * This function returns a string representing how to format an
-     * exists statement in a given output mode.
+     * This function returns a string representing how to format an exists statement in a given
+     * output mode.
      */
     protected static String quant_format_exists(OutputFormat format) {
       return "(\\exists int ";
     }
 
     /**
-     * This function returns a string representing how to format the
-     * first seperation in the quantification, that is, the one
-     * between the intial condition and the execution condition.
+     * This function returns a string representing how to format the first seperation in the
+     * quantification, that is, the one between the intial condition and the execution condition.
      */
     protected static String quant_separator1(OutputFormat format) {
       if (format == OutputFormat.JML) {
@@ -3581,9 +3749,8 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     /**
-     * This function returns a string representing how to format the
-     * second seperation in the quantification, that is, the one
-     * between the execution condition and the assertion.
+     * This function returns a string representing how to format the second seperation in the
+     * quantification, that is, the one between the execution condition and the assertion.
      */
     protected static String quant_separator2(OutputFormat format) {
       if (format == OutputFormat.ESCJAVA) {
@@ -3594,8 +3761,8 @@ public abstract /*@Interned*/ class VarInfoName
     }
 
     /**
-     * This function returns a string representing how to format the final seperation in
-     * the quantification, that is, the one between the assertion and any closing symbols.
+     * This function returns a string representing how to format the final seperation in the
+     * quantification, that is, the one between the assertion and any closing symbols.
      */
     protected static String quant_step_terminator(OutputFormat format) {
       if (format == OutputFormat.JAVA) {
@@ -3603,7 +3770,6 @@ public abstract /*@Interned*/ class VarInfoName
       }
       return "";
     }
-
   } // QuantHelper
 
   // Special JML capability, since JML cannot format a sequence of elements,
@@ -3611,48 +3777,39 @@ public abstract /*@Interned*/ class VarInfoName
   // a. This function provides the appropriate name for these circumstances.
   public VarInfoName JMLElementCorrector() {
     if (this instanceof Elements) {
-      return ((Elements)this).term;
+      return ((Elements) this).term;
     } else if (this instanceof Slice) {
-      return ((Slice)this).sequence.term;
+      return ((Slice) this).sequence.term;
     } else if (this instanceof Prestate) {
-      return ((Prestate)this).term.JMLElementCorrector().applyPrestate();
+      return ((Prestate) this).term.JMLElementCorrector().applyPrestate();
     } else if (this instanceof Poststate) {
-      return ((Poststate)this).term.JMLElementCorrector().applyPoststate();
+      return ((Poststate) this).term.JMLElementCorrector().applyPoststate();
     }
     return this;
   }
 
-
   // ============================================================
   // Transformation framework
 
-  /**
-   * Specifies a function that performs a transformation on VarInfoNames.
-   **/
-  public interface Transformer
-  {
+  /** Specifies a function that performs a transformation on VarInfoNames. */
+  public interface Transformer {
     /** Perform a transformation on the argument. */
     public VarInfoName transform(VarInfoName v);
   }
 
-  /**
-   * A pass-through transformer.
-   **/
-  public static final Transformer IDENTITY_TRANSFORMER
-    = new Transformer() {
+  /** A pass-through transformer. */
+  public static final Transformer IDENTITY_TRANSFORMER =
+      new Transformer() {
         public VarInfoName transform(VarInfoName v) {
           return v;
         }
       };
 
-
-  /**
-   * Compare VarInfoNames alphabetically.
-   **/
+  /** Compare VarInfoNames alphabetically. */
   public static class LexicalComparator implements Comparator<VarInfoName> {
-    /*@Pure*/ public int compare(VarInfoName name1, VarInfoName name2) {
+    /*@Pure*/
+    public int compare(VarInfoName name1, VarInfoName name2) {
       return name1.compareTo(name2);
     }
   }
-
 }

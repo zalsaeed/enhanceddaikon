@@ -17,6 +17,7 @@ import plume.*;
 import java.util.*;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.checker.signature.qual.*;
 import org.checkerframework.dataflow.qual.*;
@@ -30,7 +31,7 @@ import typequals.*;
  * this file).  The subclass must provide the methods instantiate(),
  * check(), and format(). Symmetric functions should define
  * is_symmetric() to return true.
- **/
+ */
 public abstract class PairwiseString extends TwoSequenceString {
 
   // We are Serializable, so we specify a version to allow changes to
@@ -57,18 +58,19 @@ public abstract class PairwiseString extends TwoSequenceString {
     ProglangType type1 = vis[0].file_rep_type;
     ProglangType type2 = vis[1].file_rep_type;
     if (!type1.baseIsString() || !type2.baseIsString()) {
-      return (false);
+      return false;
     }
 
-    return (true);
-  }
-
-  /*@Pure*/ public boolean isExact() {
     return true;
   }
 
-  public String repr() {
-    return UtilMDE.unqualified_name (getClass()) + ": " + format() +
+  /*@Pure*/
+  public boolean isExact() {
+    return true;
+  }
+
+  public String repr(/*>>>@GuardSatisfied PairwiseString this*/) {
+    return getClass().getSimpleName() + ": " + format() +
       (swap ? " [swapped]" : " [unswapped]");
   }
 
@@ -79,11 +81,13 @@ public abstract class PairwiseString extends TwoSequenceString {
    * get_format_str().  Instances of %varN% are replaced by the variable
    * name in the specified format.
    */
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied PairwiseString this,*/ OutputFormat format) {
 
-    if (ppt == null)
+    if (ppt == null) {
       return (String.format ("proto ppt [class %s] format %s", getClass(),
                              get_format_str (format)));
+    }
     String fmt_str = get_format_str (format);
     String v1 = null;
     String v2 = null;
@@ -116,10 +120,12 @@ public abstract class PairwiseString extends TwoSequenceString {
       } else if (format == OutputFormat.DAIKON) {
         fmt_str += " (elementwise)";
       }
-      if (v1 == null)
+      if (v1 == null) {
         v1 = var1().name_using(format);
-      if (v2 == null)
+      }
+      if (v2 == null) {
         v2 = var2().name_using(format);
+      }
 
     // Note that we do not use String.replaceAll here, because that's
     // inseparable from the regex library, and we don't want to have to
@@ -132,7 +138,7 @@ public abstract class PairwiseString extends TwoSequenceString {
       fmt_str = "[" + getClass() + "]" + fmt_str + " ("
              + var1().get_value_info() + ", " + var2().get_value_info() +  ")";
     }
-    return (fmt_str);
+    return fmt_str;
   }
 
   /**
@@ -143,9 +149,10 @@ public abstract class PairwiseString extends TwoSequenceString {
   public InvariantStatus check_modified(String[] x, String[] y,
                                         int count) {
     if (x.length != y.length) {
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         log ("Falsified - x length = %s y length = %s", x.length, y.length);
-      return (InvariantStatus.FALSIFIED);
+      }
+      return InvariantStatus.FALSIFIED;
     }
 
     if (Debug.logDetail()) {
@@ -156,16 +163,18 @@ public abstract class PairwiseString extends TwoSequenceString {
     try {
       for (int i = 0; i < x.length; i++) {
         if (!eq_check (x[i], y[i])) {
-          if (Debug.logOn())
+          if (Debug.logOn()) {
             log ("Falsified - x[%s]=%s y[%s]=%s", i, x[i], i, y[i]);
-          return (InvariantStatus.FALSIFIED);
+          }
+          return InvariantStatus.FALSIFIED;
         }
       }
-      return (InvariantStatus.NO_CHANGE);
+      return InvariantStatus.NO_CHANGE;
     } catch (Exception e) {
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         log ("Falsified - exception %s", e);
-      return (InvariantStatus.FALSIFIED);
+      }
+      return InvariantStatus.FALSIFIED;
     }
   }
 
@@ -176,7 +185,7 @@ public abstract class PairwiseString extends TwoSequenceString {
    * if 'x[] op y[]'  This can't fully be handled as a suppression since
    * a suppression needs to insure that foo == bar as well.  But that
    * is not a requirement here (the fact that 'x[] op y[]' implies that
-   * foo == bar when x[] and y[] are not missing)
+   * foo == bar when x[] and y[] are not missing).
    */
   public /*@Nullable*/ DiscardInfo is_subsequence (VarInfo[] vis) {
 
@@ -184,10 +193,12 @@ public abstract class PairwiseString extends TwoSequenceString {
     VarInfo v2 = var2(vis);
 
     // Make sure each var is a sequence subsequence
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceStringSubsequence))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceStringSubsequence))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceStringSubsequence)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceStringSubsequence)) {
+      return null;
+    }
 
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceStringSubsequence der1 = (SequenceStringSubsequence) v1.derived;
@@ -200,13 +211,15 @@ public abstract class PairwiseString extends TwoSequenceString {
     // of the same length.  Thus any subsequence that starts from the
     // beginning or finishes at the end must end or start at the same
     // spot (or it would have been falsified when it didn't)
-    if (der1.from_start != der2.from_start)
-      return (null);
+    if (der1.from_start != der2.from_start) {
+      return null;
+    }
 
     // Look up this class over the sequence variables
     Invariant inv = find (getClass(), der1.seqvar(), der2.seqvar());
-    if (inv == null)
-      return (null);
+    if (inv == null) {
+      return null;
+    }
     return new DiscardInfo(this, DiscardCode.obvious, "Implied by " +
                            inv.format());
   }
@@ -215,8 +228,9 @@ public abstract class PairwiseString extends TwoSequenceString {
   public /*@Nullable*/ DiscardInfo isObviousDynamically (VarInfo[] vis) {
 
     DiscardInfo super_result = super.isObviousDynamically(vis);
-    if (super_result != null)
+    if (super_result != null) {
       return super_result;
+    }
 
       // any elementwise relation across subsequences is made obvious by
       // the same relation across the original sequence
@@ -233,11 +247,12 @@ public abstract class PairwiseString extends TwoSequenceString {
       StringBuffer why = null;
       for (int j = 0; j < antecedents.length; j++) {
         Invariant inv = antecedents[j].find ();
-        if (inv == null)
+        if (inv == null) {
           continue obvious_loop;
-        if (why == null)
+        }
+        if (why == null) {
           why = new StringBuffer(inv.format());
-        else {
+        } else {
           why.append(" and ");
           why.append(inv.format());
         }
@@ -245,7 +260,7 @@ public abstract class PairwiseString extends TwoSequenceString {
       return new DiscardInfo (this, DiscardCode.obvious, "Implied by " + why);
     }
 
-    return (null);
+    return null;
   }
 
   /**
@@ -274,7 +289,7 @@ public abstract class PairwiseString extends TwoSequenceString {
    * </pre>
    * NOTE: this is not currently used.  Many (if not all) of the missing
    * table cells above could be filled in with linear binary invariants
-   * (eg, m = n + 1)
+   * (eg, m = n + 1).
    */
   public /*@Nullable*/ InvDef array_sizes_eq (VarInfo v1, VarInfo v2) {
 
@@ -288,8 +303,9 @@ public abstract class PairwiseString extends TwoSequenceString {
 
     // If either variable is not derived, there is no possible invariant
     // (since we covered all of the direct size comparisons above)
-    if ((v1.derived == null) || (v2.derived == null))
-      return (null);
+    if ((v1.derived == null) || (v2.derived == null)) {
+      return null;
+    }
 
     // Get the sequence subsequence derivations
     SequenceStringSubsequence v1_ss = (SequenceStringSubsequence) v1.derived;
@@ -301,34 +317,37 @@ public abstract class PairwiseString extends TwoSequenceString {
         && (v1_ss.index_shift == v2_ss.index_shift))
       return (new InvDef (v1_ss.sclvar(), v2_ss.sclvar(), IntEqual.class));
 
-    return (null);
+    return null;
   }
 
   /**
    * Returns a variable that corresponds to the size of v.  Returns null
-   * if no such variable exists.  There are two cases that are
-   * not handled:  x[..n] with an index shift and x[n..]
+   * if no such variable exists.
+   *
+   * There are two cases that are
+   * not handled:  x[..n] with an index shift and x[n..].
    */
   public /*@Nullable*/ VarInfo get_array_size (VarInfo v) {
 
     assert v.rep_type.isArray();
 
-    if (v.derived == null)
+    if (v.derived == null) {
       return (v.sequenceSize());
-    else if (v.derived instanceof SequenceStringSubsequence) {
+    } else if (v.derived instanceof SequenceStringSubsequence) {
       SequenceStringSubsequence ss = (SequenceStringSubsequence) v.derived;
-      if (ss.from_start && (ss.index_shift == -1))
+      if (ss.from_start && (ss.index_shift == -1)) {
         return (ss.sclvar());
+      }
     }
 
-    return (null);
+    return null;
   }
 
   /**
    * Return a format string for the specified output format.  Each instance
    * of %varN% will be replaced by the correct name for varN.
    */
-  public abstract String get_format_str (OutputFormat format);
+  public abstract String get_format_str (/*>>>@GuardSatisfied PairwiseString this,*/ OutputFormat format);
 
   /**
    * Returns true if x and y don't invalidate the invariant.
@@ -351,7 +370,7 @@ public abstract class PairwiseString extends TwoSequenceString {
         result.add (SubString.get_proto(true));
 
     // System.out.printf ("%s get proto: %s\n", PairwiseString.class, result);
-    return (result);
+    return result;
   }
 
   // suppressor definitions, used by many of the classes below
@@ -389,28 +408,28 @@ public abstract class PairwiseString extends TwoSequenceString {
     private static /*@Prototype*/ SubString proto = new /*@Prototype*/ SubString (false);
     private static /*@Prototype*/ SubString proto_swap = new /*@Prototype*/ SubString (true);
 
-    /** Returns the prototype invariant **/
+    /** Returns the prototype invariant */
     public static /*@Prototype*/ SubString get_proto (boolean swap) {
       if (swap) {
-        return (proto_swap);
+        return proto_swap;
       } else {
-        return (proto);
+        return proto;
       }
     }
 
     // Variables starting with dkconfig_ should only be set via the
     // daikon.config.Configuration interface.
-    /** Boolean.  True iff SubString invariants should be considered. **/
+    /** Boolean.  True iff SubString invariants should be considered. */
     public static boolean dkconfig_enabled = false;
 
-    /** Returns whether or not this invariant is enabled **/
+    /** Returns whether or not this invariant is enabled */
     public boolean enabled() { return dkconfig_enabled; }
 
     protected SubString instantiate_dyn (/*>>> @Prototype SubString this,*/ PptSlice slice) {
       return new SubString (slice, swap);
     }
 
-    public String get_format_str (OutputFormat format) {
+    public String get_format_str (/*>>>@GuardSatisfied SubString this,*/ OutputFormat format) {
       if (format == OutputFormat.DAIKON) {
         return "%var1% is a substring of %var2%";
       } else if (format.isJavaFamily()) {
@@ -427,7 +446,7 @@ public abstract class PairwiseString extends TwoSequenceString {
       return (y.contains (x));
     }
 
-    /** Justified as long as there are samples **/
+    /** Justified as long as there are samples */
     protected double computeConfidence() {
       if (ppt.num_samples() == 0) {
         return Invariant.CONFIDENCE_UNJUSTIFIED;
@@ -441,11 +460,14 @@ public abstract class PairwiseString extends TwoSequenceString {
      */
     /*@Pure*/
     public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
-      if (swap) return (suppressions_swap);
-      else return (suppressions);
+      if (swap) {
+        return suppressions_swap;
+      } else {
+        return suppressions;
+      }
     }
 
-    /** definition of this invariant (the suppressee) (unswapped) **/
+    /** definition of this invariant (the suppressee) (unswapped) */
     private static NISuppressee suppressee
       = new NISuppressee (SubString.class, false);
 

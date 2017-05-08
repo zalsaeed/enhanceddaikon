@@ -22,12 +22,13 @@ import plume.*;
 /*>>>
 import org.checkerframework.checker.initialization.qual.*;
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import typequals.*;
 */
 
 /**
- * Contains all of the invariants over a particular set of 2 variables
+ * Contains all of the invariants over a particular set of 2 variables.
  */
 public final class PptSlice2 extends PptSlice {
   // We are Serializable, so we specify a version to allow changes to
@@ -35,7 +36,7 @@ public final class PptSlice2 extends PptSlice {
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20040921L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debugSpecific
                     = Logger.getLogger("daikon.PptSlice2");
 
@@ -45,16 +46,18 @@ public final class PptSlice2 extends PptSlice {
   /**
    * Create a new PptSlice2.  The var_infos must be in varinfo_index
    * order.
-   **/
+   */
   public PptSlice2(PptTopLevel parent, VarInfo[] var_infos) {
 
     super(parent, var_infos);
     assert var_infos.length == 2;
 
-    if (debug.isLoggable(Level.FINE) || debugSpecific.isLoggable(Level.FINE))
+    if (debug.isLoggable(Level.FINE) || debugSpecific.isLoggable(Level.FINE)) {
       debug.info("Created PptSlice2 " + this.name());
-    if (Debug.logOn())
+    }
+    if (Debug.logOn()) {
       Debug.log (getClass(), this, "Created");
+    }
   }
 
   PptSlice2(PptTopLevel parent, VarInfo var_info1, VarInfo var_info2) {
@@ -69,7 +72,7 @@ public final class PptSlice2 extends PptSlice {
    * slice.  No invariants are created unless the variables in the
    * slice are compatible.  If the variables are compatible, invariants
    * that match the type of the slices variables are created.
-   **/
+   */
   public void instantiate_invariants() {
     instantiate_invariants(Daikon.proto_invs);
   }
@@ -80,11 +83,12 @@ public final class PptSlice2 extends PptSlice {
    * No invariants are created unless the variables in the
    * slice are compatible.  If the variables are compatible, invariants
    * that match the type of the slices variables are created.
-   **/
+   */
   public void instantiate_invariants(List</*@Prototype*/ Invariant> proto_invs) {
 
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       log ("instantiate invariants");
+    }
 
     // Do nothing if the variables aren't compatible
 
@@ -114,7 +118,7 @@ public final class PptSlice2 extends PptSlice {
 
       // Skip invariant if it is suppressed.  Note that this will work
       // even though we haven't instantiated all of the invariants for this
-      // slice yet because it will check constant values
+      // slice yet because it will check constant values.
       NISuppressionSet ss = proto.get_ni_suppressions();
       if (NIS.dkconfig_enabled && (ss != null) && !ss.is_instantiate_ok (this)) {
         if (Debug.logOn()) // avoid stringify if not logging
@@ -128,14 +132,18 @@ public final class PptSlice2 extends PptSlice {
       @SuppressWarnings("nullness") // application invariant, see comment above
       /*@NonNull*/ Invariant inv = proto.instantiate (this);
       addInvariant(inv);
-      if (Debug.logOn())
+      if (Debug.logOn()) {
         inv.log ("Created invariant %s ss = %s", inv.format(), ss);
+      }
     }
   }
 
   // These accessors are for abstract methods declared in Ppt
-  /** Returns the number of (non-missing) samples observed at this slice. **/
-  public int num_samples() {
+  /** Returns the number of (non-missing) samples observed at this slice. */
+  public int num_samples(/*>>>@UnknownInitialization @GuardSatisfied PptSlice2 this*/) {
+    if (parent == null || var_infos == null) { // handle not-yet-initialized slices
+      return 0;
+    }
     // return an approximation
 
       int num_slice_samples = parent.num_samples(var_infos[0], var_infos[1]);
@@ -146,7 +154,7 @@ public final class PptSlice2 extends PptSlice {
   /**
    * Returns an upper bound on the number of distinct values observed
    * at this slice.  This is not the number of samples observed.
-   **/
+   */
   public int num_values() {
     // return an approximation
 
@@ -160,7 +168,7 @@ public final class PptSlice2 extends PptSlice {
    * from it, casts them to the proper types, and passes them along to the
    * invariants proper.  (The invariants accept typed values rather than a
    * ValueTuple that encapsulates objects of any type whatever.)
-   **/
+   */
   public List<Invariant> add(ValueTuple full_vt, int count) {
 
     assert invs.size() > 0;
@@ -181,20 +189,23 @@ public final class PptSlice2 extends PptSlice {
       if (var_infos[i].missingOutOfBounds()) {
         List<Invariant> result = new ArrayList<Invariant>();
         for (Invariant inv : invs) {
-          if (PrintInvariants.print_discarded_invariants)
+          if (PrintInvariants.print_discarded_invariants) {
             DiscReasonMap.put(inv, DiscardCode.bad_sample,
                   var_infos[i].name() + " array index was out of bounds");
+          }
           inv.falsify();
           result.add (inv);
-          if (Invariant.logOn())
+          if (Invariant.logOn()) {
             inv.log ("destroyed because %s array index out of bounds",
                      var_infos[i].name());
+          }
         }
-        if (VarInfo.debugMissing.isLoggable (Level.FINE))
+        if (VarInfo.debugMissing.isLoggable (Level.FINE)) {
           VarInfo.debugMissing.fine ("Removing slice " + this +
                           " because var " + var_infos[i].name() +
                           " array index out of bounds");
-        return (result);
+        }
+        return result;
       }
     }
 
@@ -236,7 +247,7 @@ public final class PptSlice2 extends PptSlice {
 
       List<Invariant> weakened_invs = add_val_bu (val1, val2, mod1, mod2, count);
 
-    return (weakened_invs);
+    return weakened_invs;
   }
 
   public List<Invariant> add_val_bu (/*@Interned*/ Object val1, /*@Interned*/ Object val2,
@@ -300,7 +311,7 @@ public final class PptSlice2 extends PptSlice {
         }
       }
     }
-    return (result);
+    return result;
   }
 
   public void addInvariant(Invariant invariant) {
@@ -324,15 +335,16 @@ public final class PptSlice2 extends PptSlice {
 
     invs.add(invariant);
     Global.instantiated_invariants++;
-    if (Invariant.logOn())
+    if (Invariant.logOn()) {
       invariant.log ("Instantiated %s", invariant.format());
+    }
 
   }
 
   /**
    * Copy invariants from this slice to a new slice over the variables
    * argNewVarInfos.  The new slice should not already exist.
-   **/
+   */
   protected PptSlice cloneAndPivot (VarInfo[] argNewVarInfos) {
 
     // Sort the VarInfos by var_index and build a matching permutation
@@ -375,9 +387,10 @@ public final class PptSlice2 extends PptSlice {
       assert inv.ppt == this;
     }
 
-    if (Debug.logOn())
+    if (Debug.logOn()) {
       result.log ("Copied " + newInvs.size() + " invariants from "
                   + this.name() + " with " + invs.size() + " invariants");
+    }
     result.invs.addAll (newInvs);
     if (PptSliceEquality.debug.isLoggable(Level.FINE)) {
       PptSliceEquality.debug.fine ("cloneAndPivot: newInvs " + invs);
@@ -394,17 +407,19 @@ public final class PptSlice2 extends PptSlice {
    *
    * The basic steps are:
    *
-   *    1)  Find all of the child invariants.  These are the invariants in
+   * <ol>
+   *    <li>  Find all of the child invariants.  These are the invariants in
    *        the matching slice of each child.
    *
-   *    2)  For each invariant class, build a list of all of the invariants
+   *    <li>  For each invariant class, build a list of all of the invariants
    *        of that class.  Note that some invariant classes
    *        (eg, functionBinary) contain distinct invariants, each of which
    *        must be merged separately.  See Invariant.Match for more
    *        information concerning what makes an invariant the 'same'
    *
-   *    3)  Each invariant that is found at each of the children is then
+   *    <li>  Each invariant that is found at each of the children is then
    *        merged to possibly create a parent invariant.
+   * </ol>
    */
   public void merge_invariants() {
 
@@ -428,8 +443,9 @@ public final class PptSlice2 extends PptSlice {
 
       // Skip any children that have not seen any samples
       if (ppt.num_samples() == 0) {
-        if (debugMerge.isLoggable (Level.FINE))
+        if (debugMerge.isLoggable (Level.FINE)) {
           debugMerge.fine ("-- slice ignored (no samples) " + ppt.name());
+        }
         continue;
       }
 
@@ -443,8 +459,9 @@ public final class PptSlice2 extends PptSlice {
       for (int j = 0; j < var_infos.length; j++) {
         VarInfo pv = var_infos[j];
         VarInfo cv = rel.childVar (pv);
-        if (cv == null)
+        if (cv == null) {
           continue child_loop;
+        }
         cvis[j] = cv.canonicalRep();
         cvis_sorted[j] = cv.canonicalRep();
       }
@@ -459,9 +476,10 @@ public final class PptSlice2 extends PptSlice {
       // bound var.  Out of bounds variables destroy all invariants in
       // the slice (since the variable is deemed to be nonsensical)
       if (slice_missing (ppt, cvis)) {
-        if (debugMerge.isLoggable (Level.FINE))
+        if (debugMerge.isLoggable (Level.FINE)) {
           debugMerge.fine ("-- slice ignored (missing) " + ppt.name()
                            + " vars " + Debug.toString (cvis_sorted));
+        }
         continue;
       }
 
@@ -476,14 +494,16 @@ public final class PptSlice2 extends PptSlice {
       // invariants must exist at each child to exist at the parent)
       PptSlice2 cslice = (PptSlice2) ppt.findSlice (cvis_sorted);
       if ((cslice == null) || (cslice.invs.size() == 0)) {
-        if (Debug.logOn())
+        if (Debug.logOn()) {
           this.log ("slice not found " + ppt.name() + " "
                    + VarInfo.arrayToString (cvis_sorted)
                    + " num_samples= " + ppt.num_samples()
                    + " ppt.constants = " + ppt.constants);
-        if (debugMerge.isLoggable (Level.FINE))
+        }
+        if (debugMerge.isLoggable (Level.FINE)) {
           debugMerge.fine ("-- slice not found " + ppt.name()
                            + " vars " + Debug.toString (cvis_sorted));
+        }
         return;
       }
 
@@ -530,8 +550,9 @@ public final class PptSlice2 extends PptSlice {
     }
 
     log ("Found " + all_invs.size() + " invariants to merge");
-    if (debugMerge.isLoggable (Level.FINE) && (valid_child_count == 0))
+    if (debugMerge.isLoggable (Level.FINE) && (valid_child_count == 0)) {
       debugMerge.fine ("-- No valid children found");
+    }
 
     // For each invariant found, find the list of invariants of the
     // same type (type corresponds basically but not exactly to the
@@ -561,23 +582,26 @@ public final class PptSlice2 extends PptSlice {
         // this shouldn't happen
         System.out.println ("Found " + child_invs.size() + " invariants at "
                          + name() + " (" + valid_child_count + " children)");
-        for (Invariant child_inv : child_invs)
+        for (Invariant child_inv : child_invs) {
           System.out.printf ("-- Invariant = '%s' [%s] @%s%n",
                              child_inv.repr(), child_inv.getClass(),
                              child_inv.ppt);
+        }
         assert child_invs.size() <= valid_child_count;
       }
       if (child_invs.size() == valid_child_count) {
         Invariant first = child_invs.get(0);
-        if (Debug.logOn())
+        if (Debug.logOn()) {
           first.log ("Attempting merge of %s invariants into ppt %s",
                      child_invs.size(), name());
+        }
         Invariant parent_inv = first.merge (child_invs, this);
         if (parent_inv != null) {
           invs.add (parent_inv);
-          if (Debug.logOn())
+          if (Debug.logOn()) {
             parent_inv.log ("Merge successful of %s into %s",
                             parent_inv.format(), name());
+          }
         }
       } else {
         if (Debug.logOn()) {
@@ -593,7 +617,7 @@ public final class PptSlice2 extends PptSlice {
    * Returns whether or not the slice is missing due to having one or more
    * of its variables always missing.  This returns true only for missing
    * flow and/or missing nonsensical.  Out of Bounds is treated differently
-   * since it destroys all of its invariants
+   * since it destroys all of its invariants.
    */
   private boolean slice_missing (PptTopLevel ppt, VarInfo[] vis) {
 
@@ -606,7 +630,7 @@ public final class PptSlice2 extends PptSlice {
           return(true);
 
     }
-    return (false);
+    return false;
   }
 
 }

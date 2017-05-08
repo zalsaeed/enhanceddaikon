@@ -61,19 +61,24 @@ public final class SequenceFloatArbitrarySubsequenceFactory
       return null;
     }
 
-    if (! seqvar.indexCompatible(sclvar1))
+    if (! seqvar.indexCompatible(sclvar1)) {
       return null;
-    if (! seqvar.indexCompatible(sclvar2))
+    }
+    if (! seqvar.indexCompatible(sclvar2)) {
       return null;
+    }
 
     // For now, do nothing if the sequence is itself derived.
-    if (seqvar.derived != null)
+    if (seqvar.derived != null) {
       return null;
+    }
     // For now, do nothing if the scalar is itself derived.
-    if (sclvar1.derived != null)
+    if (sclvar1.derived != null) {
       return null;
-    if (sclvar2.derived != null)
+    }
+    if (sclvar2.derived != null) {
       return null;
+    }
 
     Vector<TernaryDerivation> results1 = instantiateWithOrder(seqvar, sclvar1, sclvar2);
     Vector<TernaryDerivation> results2 = instantiateWithOrder(seqvar, sclvar2, sclvar1);
@@ -199,15 +204,17 @@ public final class SequenceFloatArbitrarySubsequenceFactory
           // other variables as well.
       //    if (lb.core.b == -1) {
           if (-lb.core.c/lb.core.b == -1) {
-            if (lb.var1() != startvar)
+            if (lb.var1() != startvar) {
               // i = k - 1, so k = i + 1
               suppress_i_plus_1 = true;
+            }
           }
 //          if (lb.core.b == 1) {
           if (-lb.core.c/lb.core.b == 1) {
-            if (lb.var1() == startvar)
+            if (lb.var1() == startvar) {
               // k = i + 1
               suppress_i_plus_1 = true;
+            }
           }
         }
       }
@@ -231,15 +238,17 @@ public final class SequenceFloatArbitrarySubsequenceFactory
           // other variables as well.
 //          if (lb.core.b == -1) {
           if (-lb.core.c/lb.core.b == -1) {
-            if (lb.var1() == endvar)
+            if (lb.var1() == endvar) {
               // k = j - 1
               suppress_j_minus_1 = true;
+            }
           }
 //          if (lb.core.b == 1) {
           if (-lb.core.c/lb.core.b == 1) {
-            if (lb.var1() != endvar)
+            if (lb.var1() != endvar) {
               // j = k + 1, so k = j - 1
               suppress_j_minus_1 = true;
+            }
           }
         }
       }
@@ -248,28 +257,32 @@ public final class SequenceFloatArbitrarySubsequenceFactory
     // End of applicability tests; now actually create the invariants
 
     // a[i..j]
-    if (suppress_i || suppress_j)
+    if (suppress_i || suppress_j) {
       results.add(new SequenceFloatArbitrarySubsequence(seqvar, startvar, endvar, true, true));
-    else
+    } else {
       Global.tautological_suppressed_derived_variables++;
+    }
 
     // a[i+1..j]
-    if (suppress_i_plus_1 || suppress_j)
+    if (suppress_i_plus_1 || suppress_j) {
       Global.tautological_suppressed_derived_variables++;
-    else
+    } else {
       results.add(new SequenceFloatArbitrarySubsequence(seqvar, startvar, endvar, false, true));
+    }
 
     // a[i..j-1]
-    if (suppress_j_minus_1 || suppress_i)
+    if (suppress_j_minus_1 || suppress_i) {
       Global.tautological_suppressed_derived_variables++;
-    else
+    } else {
       results.add(new SequenceFloatArbitrarySubsequence(seqvar, startvar, endvar, true, false));
+    }
 
     // a[i+1..j-1]
-    if (suppress_i_plus_1 || suppress_j_minus_1)
+    if (suppress_i_plus_1 || suppress_j_minus_1) {
       Global.tautological_suppressed_derived_variables++;
-    else
+    } else {
       results.add(new SequenceFloatArbitrarySubsequence(seqvar, startvar, endvar, false, false));
+    }
 
     return results;
   }

@@ -16,7 +16,7 @@ import typequals.*;
  * method. It is also used to force the definition of the
  * hasSeenNonTrivialSample function for each type of
  * EltwiseIntComparison.
- **/
+ */
 
 public abstract class EltwiseFloatComparison
   extends SingleFloatSequence

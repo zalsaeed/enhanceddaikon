@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -26,7 +27,7 @@ import typequals.*;
  * a sequence of long values.
  * Prints as <code>x[] elements &gt; y</code> where <code>x</code> is a
  * long sequence and <code>y</code> is a long scalar.
- **/
+ */
 public final class SeqIntGreaterThan
   extends SequenceScalar
 {
@@ -39,8 +40,8 @@ public final class SeqIntGreaterThan
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SeqIntGreaterThan invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public static final Logger debug
     = Logger.getLogger("daikon.inv.binary.sequenceScalar.SeqIntGreaterThan");
@@ -57,21 +58,22 @@ public final class SeqIntGreaterThan
 
   private static /*@Prototype*/ SeqIntGreaterThan proto = new /*@Prototype*/ SeqIntGreaterThan ();
 
-  /** Returns the prototype invariant for SeqIntGreaterThan **/
+  /** Returns the prototype invariant for SeqIntGreaterThan */
   public static /*@Prototype*/ SeqIntGreaterThan get_proto () {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Non-equal SeqIntComparison is only valid on integral types **/
+  /** Non-equal SeqIntComparison is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     VarInfo seqvar;
     VarInfo sclvar;
@@ -86,13 +88,14 @@ public final class SeqIntGreaterThan
     assert sclvar.rep_type == ProglangType.INT;
     assert seqvar.rep_type == ProglangType.INT_ARRAY;
 
-      if (!seqvar.type.elementIsIntegral())
+      if (!seqvar.type.elementIsIntegral()) {
         return false;
+      }
 
-    return (true);
+    return true;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   protected SeqIntGreaterThan instantiate_dyn (/*>>> @Prototype SeqIntGreaterThan this,*/ PptSlice slice) {
     return new SeqIntGreaterThan (slice);
   }
@@ -107,7 +110,7 @@ public final class SeqIntGreaterThan
    *
    * JHP: Note that these are not strict implications, these are merely
    * uninteresting comparisons (except when op is GreaterEqual for max
-   * and LessEqual for min)
+   * and LessEqual for min).
    */
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousStatically(VarInfo[] vis) {
@@ -127,20 +130,22 @@ public final class SeqIntGreaterThan
       return new DiscardInfo (this, DiscardCode.obvious,
                               sclvar(vis).name() + " is min/max ");
     }
-    return (null);
+    return null;
   }
 
-  /*@SideEffectFree*/ public SeqIntGreaterThan clone() {
+  /*@SideEffectFree*/
+  public SeqIntGreaterThan clone(/*>>>@GuardSatisfied SeqIntGreaterThan this*/) {
     SeqIntGreaterThan result = (SeqIntGreaterThan) super.clone();
     return result;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied SeqIntGreaterThan this*/) {
     return "SeqIntGreaterThan" + varNames() + ": "
       + ",falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied SeqIntGreaterThan this,*/ OutputFormat format) {
 
     if (format.isJavaFamily()) return format_java_family(format);
 
@@ -152,28 +157,28 @@ public final class SeqIntGreaterThan
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied SeqIntGreaterThan this*/) {
     return seqvar().name() + " elements > " + sclvar().name();
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied SeqIntGreaterThan this*/) {
     String[] form = VarInfo.esc_quantify (seqvar(), sclvar());
     return form[0] + "(" + form[1] + " > " + form[2] + ")"
       + form[3];
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied SeqIntGreaterThan this*/) {
     String[] form = VarInfo.simplify_quantify (seqvar(), sclvar());
     return form[0] + "(> " + form[1] + " "
       + form[2] + ")" + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied SeqIntGreaterThan this,*/ OutputFormat format) {
     return "daikon.Quant.eltsGT("
       + seqvar().name_using(format) + ", " + sclvar().name_using(format) + ")";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied SeqIntGreaterThan this*/) {
     String[] split = seqvar().csharp_array_split();
     return "Contract.ForAll(" + split[0] + ", x => x" + split[1] + " > " + sclvar().csharp_name() + ")";
   }
@@ -186,8 +191,9 @@ public final class SeqIntGreaterThan
 
         // assert seqvar().type.elementIsIntegral();
 
-      if (!(a[i] > x))
+      if (!(a[i] > x)) {
         return InvariantStatus.FALSIFIED;
+      }
     }
     return InvariantStatus.NO_CHANGE;
   }
@@ -199,8 +205,9 @@ public final class SeqIntGreaterThan
   protected double computeConfidence() {
 
     // If there are no samples over our variables, its unjustified
-    if (ppt.num_samples() == 0)
+    if (ppt.num_samples() == 0) {
       return CONFIDENCE_UNJUSTIFIED;
+    }
 
     // If the array never has any elements, its unjustified
     ValueSet.ValueSetScalarArray vs = (ValueSet.ValueSetScalarArray) seqvar().get_value_set();
@@ -212,16 +219,19 @@ public final class SeqIntGreaterThan
       return 1 - Math.pow(.5, ppt.num_samples());
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
       return false;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -229,8 +239,9 @@ public final class SeqIntGreaterThan
   public static /*@Nullable*/ SeqIntGreaterThan find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof SeqIntGreaterThan)
+      if (inv instanceof SeqIntGreaterThan) {
         return (SeqIntGreaterThan) inv;
+      }
     }
     return null;
   }
@@ -283,9 +294,10 @@ public final class SeqIntGreaterThan
     // JHP: handled in confidence test now
     // (A[] == []) ==> A[] op x
     if (false) {
-      if (pptt.is_empty (seqvar))
+      if (pptt.is_empty (seqvar)) {
         return new DiscardInfo (this, DiscardCode.obvious, "The sequence "
                                 + seqvar.name() + " is always empty");
+      }
     }
 
     if (isExact()) {
@@ -325,10 +337,10 @@ public final class SeqIntGreaterThan
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (SeqIntGreaterThan.class, 2);
 

@@ -18,6 +18,7 @@ import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -26,14 +27,14 @@ import typequals.*;
 /**
  * Represents the invariant "x != 0" where x represents all of the elements
  * of a sequence of double.  Prints as <code>x[] elements != 0</code>.
- **/
+ */
 
 public final class EltNonZeroFloat
   extends SingleFloatSequence
 {
   /**
    * Debug tracer.
-   **/
+   */
   public static final Logger debug =
     Logger.getLogger("daikon.inv.unary.sequence.EltNonZeroFloat");
 
@@ -46,8 +47,8 @@ public final class EltNonZeroFloat
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff EltNonZero invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   public EltNonZeroFloat(PptSlice ppt) {
     super(ppt);
@@ -59,34 +60,36 @@ public final class EltNonZeroFloat
 
   private static /*@Prototype*/ EltNonZeroFloat proto = new /*@Prototype*/ EltNonZeroFloat ();
 
-  /** Returns the prototype invariant for EltNonZeroFloat **/
+  /** Returns the prototype invariant for EltNonZeroFloat */
   public static /*@Prototype*/ EltNonZeroFloat get_proto() {
     return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected EltNonZeroFloat instantiate_dyn (/*>>> @Prototype EltNonZeroFloat this,*/ PptSlice slice) {
     return new EltNonZeroFloat (slice);
   }
 
   /**
-   * Returns whether or not the variable is a pointer
+   * Returns whether or not the variable is a pointer.
    */
-  /*@Pure*/ private boolean is_pointer() {
+  /*@Pure*/
+  private boolean is_pointer(/*>>>@GuardSatisfied EltNonZeroFloat this*/) {
     return (!ppt.var_infos[0].type.baseIsFloat());
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied EltNonZeroFloat this*/) {
     return "EltNonZeroFloat" + varNames() + ": "
       + !falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied EltNonZeroFloat this,*/ OutputFormat format) {
     if (format.isJavaFamily()) return format_java_family(format);
 
     if (format == OutputFormat.DAIKON) return format_daikon();
@@ -97,18 +100,19 @@ public final class EltNonZeroFloat
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied EltNonZeroFloat this*/) {
     return var().name() + " elements != "
            + (is_pointer() ? "null" : "0");
   }
 
   // We are a special case where a ghost field can actually talk about
   // array contents.
-  /*@Pure*/ public boolean isValidEscExpression() {
+  /*@Pure*/
+  public boolean isValidEscExpression() {
     return true;
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied EltNonZeroFloat this*/) {
     // If this is an entire array or Collection (not a slice), then
     //  * for arrays: use \nonnullelements(A)
     //  * for Collections: use collection.containsNull == false
@@ -118,10 +122,10 @@ public final class EltNonZeroFloat
     if (var().is_direct_non_slice_array()) {
       VarInfo term = var().get_enclosing_var();
       String esc_name = null;
-      if (term == null)
+      if (term == null) {
         // Only happenes in internal format tests
         esc_name = var().name().replace ("[]", "");
-      else {
+      } else {
         // System.out.printf ("term = %s, var = %s%n", term.name, var().name);
         esc_name = term.esc_name();
       }
@@ -142,7 +146,7 @@ public final class EltNonZeroFloat
            + (is_pointer() ? "null" : "0") + ")" + form[2];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied EltNonZeroFloat this,*/ OutputFormat format) {
     String retval =
       "daikon.Quant.eltsNotEqual(" + var().name_using(format)
       + (is_pointer() ? ", null" : ", 0") + ")";
@@ -150,12 +154,12 @@ public final class EltNonZeroFloat
     return retval;
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied EltNonZeroFloat this*/) {
     String[] split = var().csharp_array_split();
     return "Contract.ForAll(" + split[0] + ", x => x" + split[1] + " != " + (is_pointer() ? "null" : "0") + ")";
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied EltNonZeroFloat this*/) {
     String[] form = VarInfo.simplify_quantify (var());
     return form[0] + "(NEQ " + form[1] + " "
       + (is_pointer() ? "null" : "0") + ")" + form[2];
@@ -202,7 +206,7 @@ public final class EltNonZeroFloat
       //                      + vs.min() + " conf="
       //                      + confidence_one_elt_nonzero() + " range="
       //                      + (vs.max() - vs.min() + 1)/ 1);
-      return (result);
+      return result;
     }
   }
 
@@ -232,12 +236,14 @@ public final class EltNonZeroFloat
     return 1.0/range;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof EltNonZeroFloat;
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     if (other instanceof EltOneOfFloat) {
       EltOneOfFloat eoo = (EltOneOfFloat) other;
       if ((eoo.num_elts() == 1) && (((Double)eoo.elt()).doubleValue() == 0)) {
@@ -249,6 +255,8 @@ public final class EltNonZeroFloat
 
   /*@Pure*/
   public /*@Nullable*/ DiscardInfo isObviousStatically(VarInfo[] vis) {
+    // This test doesn't seem right: the invariant is obvious if the
+    // elements don't have null, not if the collection doesn't have null.
     if (!vis[0].aux.hasNull()) {
       // If it's not a number and null doesn't have special meaning...
       return new DiscardInfo(this, DiscardCode.obvious, "'null' has no special meaning for " + vis[0].name());
@@ -273,12 +281,14 @@ public final class EltNonZeroFloat
     // (a[] > 0) v (a[] < 0) ==> a[] != 0
     EltLowerBoundFloat lb = (EltLowerBoundFloat) ppt.parent.find_inv_by_class
                                                     (vis, EltLowerBoundFloat.class);
-    if ((lb != null) && (lb.min() > 0))
+    if ((lb != null) && (lb.min() > 0)) {
       return new DiscardInfo (this, DiscardCode.obvious, v1 + " > " + lb.min());
+    }
     EltUpperBoundFloat ub = (EltUpperBoundFloat) ppt.parent.find_inv_by_class
                                                     (vis, EltUpperBoundFloat.class);
-    if ((ub != null) && (ub.max() < 0))
+    if ((ub != null) && (ub.max() < 0)) {
       return new DiscardInfo (this, DiscardCode.obvious, v1 + " < " + ub.max());
+    }
 
     // For every other EltNonZero at this program point, see if there is a
     // subsequence relationship between that array and this one.
@@ -296,11 +306,13 @@ public final class EltNonZeroFloat
           debug.fine ("  Have to test: " + inv.repr());
         }
 
-        if (Debug.logOn())
+        if (Debug.logOn()) {
           Daikon.current_inv = this;
-        if (parent.is_subsequence (v1, v2))
+        }
+        if (parent.is_subsequence (v1, v2)) {
           return new DiscardInfo (this, DiscardCode.obvious, v1.name() +
                                   " is a subsequence of " + v2.name());
+        }
       }
     }
 
@@ -311,16 +323,17 @@ public final class EltNonZeroFloat
   public static /*@Nullable*/ EltNonZeroFloat find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof EltNonZeroFloat)
+      if (inv instanceof EltNonZeroFloat) {
         return (EltNonZeroFloat) inv;
+      }
     }
     return null;
   }
 
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** returns the ni-suppressions for EltNonZeroFloat **/
+  /** returns the ni-suppressions for EltNonZeroFloat */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
     if (suppressions == null) {
@@ -338,7 +351,7 @@ public final class EltNonZeroFloat
         });
     }
 
-    return (suppressions);
+    return suppressions;
   }
 
 }

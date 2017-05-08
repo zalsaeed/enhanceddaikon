@@ -1,11 +1,12 @@
 package daikon.inv.unary.scalar;
 
 import daikon.*;
-import daikon.inv.OutputFormat;
 import daikon.inv.Invariant;
 import daikon.inv.InvariantStatus;
+import daikon.inv.OutputFormat;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
 */
@@ -14,15 +15,11 @@ import typequals.*;
 // This invariant is provided for pedagogical reasons only.
 
 /**
- * Represents the invariant <code>x &gt; 0</code> where <code>x</code>
- * is a long scalar.  This exists
- * only as an example for the purposes of the manual.  It isn't actually
- * used (it is replaced by the more general invariant LowerBound).
- **/
-
-public class Positive
-  extends SingleScalar
-{
+ * Represents the invariant <code>x &gt; 0</code> where <code>x</code> is a long scalar. This exists
+ * only as an example for the purposes of the manual. It isn't actually used (it is replaced by the
+ * more general invariant LowerBound).
+ */
+public class Positive extends SingleScalar {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
@@ -30,10 +27,8 @@ public class Positive
 
   // Variables starting with dkconfig_ should only be set via the
   // daikon.config.Configuration interface.
-  /**
-   * Boolean.  True iff Positive invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+  /** Boolean. True iff Positive invariants should be considered. */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   ///
   /// Required methods
@@ -47,25 +42,26 @@ public class Positive
     super();
   }
 
-  private static /*@Prototype*/ Positive proto = new /*@Prototype*/ Positive ();
+  private static /*@Prototype*/ Positive proto = new /*@Prototype*/ Positive();
 
-  /** Returns the prototype invariant **/
+  /** Returns the prototype invariant */
   public static /*@Prototype*/ Positive get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
-  public Positive instantiate_dyn (/*>>> @Prototype Positive this,*/ PptSlice slice) {
+  /** instantiate an invariant on the specified slice */
+  public Positive instantiate_dyn(/*>>> @Prototype Positive this,*/ PptSlice slice) {
     return new Positive(slice);
   }
 
   // A printed representation for user output
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied Positive this,*/ OutputFormat format) {
     return var().name() + " > 0";
   }
 
@@ -87,4 +83,9 @@ public class Positive
     return 1 - Math.pow(.5, ppt.num_samples());
   }
 
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
+    assert other instanceof Positive;
+    return true;
+  }
 }

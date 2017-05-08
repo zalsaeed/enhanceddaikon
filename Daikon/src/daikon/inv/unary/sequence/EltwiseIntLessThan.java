@@ -7,12 +7,12 @@ import daikon.derive.*;
 import daikon.derive.binary.*;
 import daikon.inv.*;
 import daikon.Quantify.QuantFlags;
-// import daikon.inv.binary.twoScalar.CORECLASS;
 import plume.*;
 import java.util.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -22,7 +22,7 @@ import typequals.*;
    * Represents the invariant &lt; between adjacent elements
    * (x[i], x[i+1]) of a long sequence.  Prints as
    * <code>x[] sorted by &lt;</code>.
-   **/
+   */
 
 public class EltwiseIntLessThan
   extends EltwiseIntComparison
@@ -36,8 +36,8 @@ public class EltwiseIntLessThan
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff EltwiseIntComparison invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   static final boolean debugEltwiseIntComparison = false;
 
@@ -51,44 +51,48 @@ public class EltwiseIntLessThan
 
   private static /*@Prototype*/ EltwiseIntLessThan proto = new /*@Prototype*/ EltwiseIntLessThan ();
 
-  /** Returns the prototype invariant for EltwiseIntLessThan **/
+  /** Returns the prototype invariant for EltwiseIntLessThan */
   public static /*@Prototype*/ EltwiseIntLessThan get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Non-equality EltwiseIntLessThan invariants are only valid on integral types **/
+  /** Non-equality EltwiseIntLessThan invariants are only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-      if (!vis[0].type.baseIsIntegral())
-        return (false);
+      if (!vis[0].type.baseIsIntegral()) {
+        return false;
+      }
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate the invariant on the specified slice **/
+  /** Instantiate the invariant on the specified slice */
   protected EltwiseIntLessThan instantiate_dyn (/*>>> @Prototype EltwiseIntLessThan this,*/ PptSlice slice) {
     return new EltwiseIntLessThan(slice);
   }
 
-  /*@SideEffectFree*/ public EltwiseIntLessThan clone() {
+  /*@SideEffectFree*/
+  public EltwiseIntLessThan clone(/*>>>@GuardSatisfied EltwiseIntLessThan this*/) {
     EltwiseIntLessThan result = (EltwiseIntLessThan) super.clone();
     return result;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied EltwiseIntLessThan this*/) {
     return "EltwiseIntLessThan" + varNames() + ": "
       + "falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied EltwiseIntLessThan this,*/ OutputFormat format) {
     if (format.isJavaFamily()) return format_java_family(format);
 
     if (format == OutputFormat.DAIKON) return format_daikon();
@@ -99,7 +103,7 @@ public class EltwiseIntLessThan
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied EltwiseIntLessThan this*/) {
     if (debugEltwiseIntComparison) {
       System.out.println(repr());
     }
@@ -107,23 +111,23 @@ public class EltwiseIntLessThan
     return (var().name() + " sorted by <");
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied EltwiseIntLessThan this*/) {
     String[] form = VarInfo.esc_quantify (false, var(), var());
 
       return form[0] + "((i+1 == j) ==> (" + form[1] + " < " + form[2] + "))" + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied EltwiseIntLessThan this,*/ OutputFormat format) {
     return "daikon.Quant.eltwiseLT(" + var().name_using(format) + ")";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied EltwiseIntLessThan this*/) {
     String[] split = var().csharp_array_split();
     String name = var().csharp_name();
     return "Contract.ForAll(0, " + split[0] + ".Count()-1, i => " + split[0] + "[i]" + split[1] + " < " + split[0] + "[i+1]" + split[1] + ")";
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied EltwiseIntLessThan this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.adjacent(),
                                                var(), var());
 
@@ -153,12 +157,14 @@ public class EltwiseIntLessThan
     return 1 - Math.pow(.5, ppt.num_samples());
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
 
     return false;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return (other instanceof EltwiseIntLessThan);
   }
 
@@ -166,12 +172,14 @@ public class EltwiseIntLessThan
   // Also, reasonably complicated, need to ensure exact correctness, not sure if the
   // regression tests test this functionality
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     // This whole approach is wrong in the case when the sequence can
     // ever consist of only one element.  For now, just forget
     // it. -SMcC
-    if (true)
+    if (true) {
       return false;
+    }
 
     if (other instanceof EltwiseIntComparison) {
 
@@ -186,8 +194,9 @@ public class EltwiseIntLessThan
   public static /*@Nullable*/ EltwiseIntLessThan find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof EltwiseIntLessThan)
+      if (inv instanceof EltwiseIntLessThan) {
         return (EltwiseIntLessThan) inv;
+      }
     }
     return null;
   }
@@ -271,10 +280,11 @@ public class EltwiseIntLessThan
       // Find the slice with the full sequence, check for an invariant of this type
       PptSlice sliceToCheck;
 
-      if (deriv instanceof SequenceScalarSubsequence)
+      if (deriv instanceof SequenceScalarSubsequence) {
         sliceToCheck = ppt.parent.findSlice(((SequenceScalarSubsequence)deriv).seqvar());
-      else
+      } else {
         sliceToCheck = ppt.parent.findSlice(((SequenceFloatSubsequence)deriv).seqvar());
+      }
 
       if (sliceToCheck != null) {
         for (Invariant inv : sliceToCheck.invs) {

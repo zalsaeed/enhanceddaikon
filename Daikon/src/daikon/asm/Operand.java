@@ -11,13 +11,11 @@ import java.util.regex.Pattern;
 import org.checkerframework.checker.regex.qual.*;
 */
 
-/**
- * Utility methods for operands of instructions.
- *
- */
+/** Utility methods for operands of instructions. */
 public class Operand {
 
   private static Set<String> registers8Bit;
+
   static {
     registers8Bit = new LinkedHashSet<String>();
     registers8Bit.add("ah");
@@ -35,6 +33,7 @@ public class Operand {
   }
 
   private static Set<String> registers16Bit;
+
   static {
     registers16Bit = new LinkedHashSet<String>();
     registers16Bit.add("ax");
@@ -53,6 +52,7 @@ public class Operand {
 
   private static Set<String> registers32Bit;
   private static Pattern registers32BitRegExp;
+
   static {
     registers32Bit = new LinkedHashSet<String>();
     StringBuilder b = new StringBuilder();
@@ -83,6 +83,7 @@ public class Operand {
   }
 
   private static Set<String> registersFPU;
+
   static {
     registersFPU = new LinkedHashSet<String>();
     registersFPU.add("st0");
@@ -99,16 +100,11 @@ public class Operand {
     return registersFPU.contains(s);
   }
 
-
   static boolean isRegister(String s) {
-    if (is8BitReg(s))
-      return true;
-    if (is16BitReg(s))
-      return true;
-    if (isExtendedReg(s))
-      return true;
-    if (isFPUReg(s))
-      return true;
+    if (is8BitReg(s)) return true;
+    if (is16BitReg(s)) return true;
+    if (isExtendedReg(s)) return true;
+    if (isFPUReg(s)) return true;
     return false;
   }
 
@@ -138,10 +134,8 @@ public class Operand {
     // TODO a regexp would be more succint.
     for (int i = 0; i < withoutBrackets.length(); i++) {
       char c = withoutBrackets.charAt(i);
-      if (Character.isDigit(c))
-        continue;
-      if (c == '+')
-        continue;
+      if (Character.isDigit(c)) continue;
+      if (c == '+') continue;
       return false;
     }
     return true;

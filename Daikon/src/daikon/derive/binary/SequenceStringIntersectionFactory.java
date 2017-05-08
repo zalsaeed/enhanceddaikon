@@ -18,7 +18,7 @@ import org.checkerframework.checker.nullness.qual.*;
 
 public final class SequenceStringIntersectionFactory extends BinaryDerivationFactory {
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   private static final Logger debug =
     Logger.getLogger("daikon.derive.binary.SequenceStringIntersectionFactory");
 
@@ -34,8 +34,9 @@ public final class SequenceStringIntersectionFactory extends BinaryDerivationFac
     }
 
     // Intersect only sets with the same declared element type
-    if (!seq1.type.base().equals(seq2.type.base()))
+    if (!seq1.type.base().equals(seq2.type.base())) {
       return null;
+    }
 
     // For now, do nothing if the sequences are derived.
     //    if ((seq1.derived != null) || (seq2.derived != null))

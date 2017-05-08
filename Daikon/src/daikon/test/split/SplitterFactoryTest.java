@@ -133,140 +133,112 @@ public class SplitterFactoryTest extends TestCase {
                      targetDir + f1 + ".goal");
   }
 
-  public static void testDataStructures_QueueAr_isFull_22() {
-    assertEqualFiles("DataStructures_QueueAr_isFull_22.java");
-  }
-
-  public static void testMath__BigFloat_bdiv__35() {
-    assertEqualFiles("Math__BigFloat_bdiv__35.java");
-  }
-
-  public static void testDataStructures_QueueAr_isEmpty_19() {
-    assertEqualFiles("DataStructures_QueueAr_isEmpty_19.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_13() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_13.java");
-  }
-
-  public static void testDataStructures_QueueAr_isFull_21() {
-    assertEqualFiles("DataStructures_QueueAr_isFull_21.java");
-  }
-
-  public static void testDataStructures_QueueAr_getFront_23() {
-    assertEqualFiles("DataStructures_QueueAr_getFront_23.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_StreetNumberSet_0() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_0.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_10() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_10.java");
-  }
-
-  public static void testDataStructures_QueueAr_isEmpty_20() {
-    assertEqualFiles("DataStructures_QueueAr_isEmpty_20.java");
-  }
-
-  public static void testMath__BigFloat_bdiv__38() {
-    assertEqualFiles("Math__BigFloat_bdiv__38.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_9() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_9.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_7() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_7.java");
-  }
-
-  public static void testDataStructures_QueueAr_dequeue_26() {
-    assertEqualFiles("DataStructures_QueueAr_dequeue_26.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_12() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_12.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_StreetNumberSet_2() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_2.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_checkRep_4() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_checkRep_4.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_11() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_11.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_contains_8() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_contains_8.java");
-  }
-
-  public static void testMapQuick1_StreetNumberSet_orderStatistic_15() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_orderStatistic_15.java");
-  }
-
-  public static void testDataStructures_QueueAr_getFront_24() {
-    assertEqualFiles("DataStructures_QueueAr_getFront_24.java");
-  }
-
-  public static void testDataStructures_QueueAr_dequeue_27() {
-    assertEqualFiles("DataStructures_QueueAr_dequeue_27.java");
-  }
-
-  public static void testMath__BigFloat_bdiv__39() {
-    assertEqualFiles("Math__BigFloat_bdiv__39.java");
-  }
-
-  public static void testDataStructures_QueueAr_enqueue_29() {
-    assertEqualFiles("DataStructures_QueueAr_enqueue_29.java");
-  }
-
-  public static void testDataStructures_QueueAr_dequeue_25() {
-    assertEqualFiles("DataStructures_QueueAr_dequeue_25.java");
-  }
-
-  public static void testMath__BigFloat_bmul__42() {
-    assertEqualFiles("Math__BigFloat_bmul__42.java");
-  }
-
   public static void testMapQuick1_StreetNumberSet_contains_6() {
     assertEqualFiles("MapQuick1_StreetNumberSet_contains_6.java");
-  }
-
-  public static void testmisc_Fib_main_18() {
-    assertEqualFiles("misc_Fib_main_18.java");
-  }
-
-  public static void testDataStructures_QueueAr_enqueue_32() {
-    assertEqualFiles("DataStructures_QueueAr_enqueue_32.java");
   }
 
   public static void testMapQuick1_StreetNumberSet_orderStatistic_14() {
     assertEqualFiles("MapQuick1_StreetNumberSet_orderStatistic_14.java");
   }
 
-  public static void testMath__BigFloat_bmul__43() {
-    assertEqualFiles("Math__BigFloat_bmul__43.java");
+  public static void testDataStructures_QueueAr_isFull_21() {
+    assertEqualFiles("DataStructures_QueueAr_isFull_21.java");
   }
 
-  public static void testMath__BigFloat_bdiv__37() {
-    assertEqualFiles("Math__BigFloat_bdiv__37.java");
+  public static void testMath__BigFloat_bmul__40() {
+    assertEqualFiles("Math__BigFloat_bmul__40.java");
   }
 
-  public static void testDataStructures_QueueAr_enqueue_30() {
-    assertEqualFiles("DataStructures_QueueAr_enqueue_30.java");
+  public static void testMapQuick1_StreetNumberSet_contains_10() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_10.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_contains_9() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_9.java");
+  }
+
+  public static void testDataStructures_QueueAr_enqueue_32() {
+    assertEqualFiles("DataStructures_QueueAr_enqueue_32.java");
+  }
+
+  public static void testDataStructures_QueueAr_dequeue_25() {
+    assertEqualFiles("DataStructures_QueueAr_dequeue_25.java");
+  }
+
+  public static void testMath__BigFloat_bdiv__38() {
+    assertEqualFiles("Math__BigFloat_bdiv__38.java");
   }
 
   public static void testMath__BigFloat_bdiv__33() {
     assertEqualFiles("Math__BigFloat_bdiv__33.java");
   }
 
+  public static void testMath__BigFloat_bdiv__36() {
+    assertEqualFiles("Math__BigFloat_bdiv__36.java");
+  }
+
+  public static void testDataStructures_QueueAr_getFront_24() {
+    assertEqualFiles("DataStructures_QueueAr_getFront_24.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_contains_11() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_11.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_size_17() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_size_17.java");
+  }
+
+  public static void testMath__BigFloat_bmul__42() {
+    assertEqualFiles("Math__BigFloat_bmul__42.java");
+  }
+
+  public static void testMath__BigFloat_bdiv__39() {
+    assertEqualFiles("Math__BigFloat_bdiv__39.java");
+  }
+
+  public static void testDataStructures_QueueAr_enqueue_31() {
+    assertEqualFiles("DataStructures_QueueAr_enqueue_31.java");
+  }
+
+  public static void testDataStructures_QueueAr_enqueue_29() {
+    assertEqualFiles("DataStructures_QueueAr_enqueue_29.java");
+  }
+
   public static void testMath__BigFloat_bmul__41() {
     assertEqualFiles("Math__BigFloat_bmul__41.java");
+  }
+
+  public static void testMath__BigFloat_bmul__43() {
+    assertEqualFiles("Math__BigFloat_bmul__43.java");
+  }
+
+  public static void testDataStructures_QueueAr_dequeue_26() {
+    assertEqualFiles("DataStructures_QueueAr_dequeue_26.java");
+  }
+
+  public static void testMath__BigFloat_bdiv__34() {
+    assertEqualFiles("Math__BigFloat_bdiv__34.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_checkRep_4() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_checkRep_4.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_contains_13() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_13.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_StreetNumberSet_1() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_1.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_contains_12() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_12.java");
+  }
+
+  public static void testDataStructures_QueueAr_dequeue_27() {
+    assertEqualFiles("DataStructures_QueueAr_dequeue_27.java");
   }
 
   public static void testMapQuick1_StreetNumberSet_size_16() {
@@ -277,85 +249,113 @@ public class SplitterFactoryTest extends TestCase {
     assertEqualFiles("DataStructures_QueueAr_dequeue_28.java");
   }
 
-  public static void testDataStructures_QueueAr_enqueue_31() {
-    assertEqualFiles("DataStructures_QueueAr_enqueue_31.java");
+  public static void testMapQuick1_StreetNumberSet_StreetNumberSet_2() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_2.java");
   }
 
-  public static void testMath__BigFloat_bdiv__34() {
-    assertEqualFiles("Math__BigFloat_bdiv__34.java");
+  public static void testDataStructures_QueueAr_isEmpty_19() {
+    assertEqualFiles("DataStructures_QueueAr_isEmpty_19.java");
   }
 
-  public static void testMapQuick1_StreetNumberSet_StreetNumberSet_1() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_1.java");
+  public static void testMapQuick1_StreetNumberSet_StreetNumberSet_0() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_0.java");
   }
 
-  public static void testMapQuick1_StreetNumberSet_size_17() {
-    assertEqualFiles("MapQuick1_StreetNumberSet_size_17.java");
+  public static void testDataStructures_QueueAr_enqueue_30() {
+    assertEqualFiles("DataStructures_QueueAr_enqueue_30.java");
   }
 
-  public static void testMath__BigFloat_bdiv__36() {
-    assertEqualFiles("Math__BigFloat_bdiv__36.java");
+  public static void testMath__BigFloat_bdiv__37() {
+    assertEqualFiles("Math__BigFloat_bdiv__37.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_orderStatistic_15() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_orderStatistic_15.java");
+  }
+
+  public static void testmisc_Fib_main_18() {
+    assertEqualFiles("misc_Fib_main_18.java");
+  }
+
+  public static void testDataStructures_QueueAr_isFull_22() {
+    assertEqualFiles("DataStructures_QueueAr_isFull_22.java");
+  }
+
+  public static void testDataStructures_QueueAr_isEmpty_20() {
+    assertEqualFiles("DataStructures_QueueAr_isEmpty_20.java");
   }
 
   public static void testMapQuick1_StreetNumberSet_checkRep_5() {
     assertEqualFiles("MapQuick1_StreetNumberSet_checkRep_5.java");
   }
 
+  public static void testDataStructures_QueueAr_getFront_23() {
+    assertEqualFiles("DataStructures_QueueAr_getFront_23.java");
+  }
+
+  public static void testMath__BigFloat_bdiv__35() {
+    assertEqualFiles("Math__BigFloat_bdiv__35.java");
+  }
+
+  public static void testMapQuick1_StreetNumberSet_contains_8() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_8.java");
+  }
+
   public static void testMapQuick1_StreetNumberSet_StreetNumberSet_3() {
     assertEqualFiles("MapQuick1_StreetNumberSet_StreetNumberSet_3.java");
   }
 
-  public static void testMath__BigFloat_bmul__40() {
-    assertEqualFiles("Math__BigFloat_bmul__40.java");
+  public static void testMapQuick1_StreetNumberSet_contains_7() {
+    assertEqualFiles("MapQuick1_StreetNumberSet_contains_7.java");
   }
 
   public static Test suite() {
     setUpTests();
     TestSuite suite = new TestSuite();
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isFull_22"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__35"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isEmpty_19"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_13"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isFull_21"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_getFront_23"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_0"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_10"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isEmpty_20"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__38"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_9"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_7"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_26"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_12"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_2"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_checkRep_4"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_11"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_8"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_orderStatistic_15"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_getFront_24"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_27"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__39"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_29"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_25"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__42"));
     suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_6"));
-    suite.addTest(new SplitterFactoryTest("testmisc_Fib_main_18"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_32"));
     suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_orderStatistic_14"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__43"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__37"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_30"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isFull_21"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__40"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_10"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_9"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_32"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_25"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__38"));
     suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__33"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__36"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_getFront_24"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_11"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_size_17"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__42"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__39"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_31"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_29"));
     suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__41"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__43"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_26"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__34"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_checkRep_4"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_13"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_1"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_12"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_27"));
     suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_size_16"));
     suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_dequeue_28"));
-    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_31"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__34"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_1"));
-    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_size_17"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__36"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_2"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isEmpty_19"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_0"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_enqueue_30"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__37"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_orderStatistic_15"));
+    suite.addTest(new SplitterFactoryTest("testmisc_Fib_main_18"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isFull_22"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_isEmpty_20"));
     suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_checkRep_5"));
+    suite.addTest(new SplitterFactoryTest("testDataStructures_QueueAr_getFront_23"));
+    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bdiv__35"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_8"));
     suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_StreetNumberSet_3"));
-    suite.addTest(new SplitterFactoryTest("testMath__BigFloat_bmul__40"));
+    suite.addTest(new SplitterFactoryTest("testMapQuick1_StreetNumberSet_contains_7"));
     return suite;
   }
 

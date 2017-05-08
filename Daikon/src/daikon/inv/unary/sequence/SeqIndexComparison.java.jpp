@@ -150,6 +150,7 @@ import java.util.logging.Logger;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -159,14 +160,14 @@ import typequals.*;
  * Represents an invariant over sequences of PRIMITIVE values between the
  * index of an element of the sequence and the element itself.
  * Prints as <code>x[i] EQUALShtml i</code>.
- **/
+ */
 public class CLASSNAME extends SUPERCLASS {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20040203L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug
     = Logger.getLogger ("daikon.inv.unary.sequence." + STRING(CLASSNAME));
 
@@ -174,7 +175,7 @@ public class CLASSNAME extends SUPERCLASS {
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff CLASSNAME invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   private /*@Prototype*/ CLASSNAME () {
@@ -189,26 +190,28 @@ public class CLASSNAME extends SUPERCLASS {
 
   private static /*@Prototype*/ CLASSNAME proto = new /*@Prototype*/ CLASSNAME ();
 
-  /** Returns the prototype invariant for CLASSNAME **/
+  /** Returns the prototype invariant for CLASSNAME */
   public static /*@Prototype*/ CLASSNAME get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not we are enabled **/
+  /** returns whether or not we are enabled */
   public boolean enabled() {
     return (dkconfig_enabled && !dkconfig_SeqIndexDisableAll);
   }
 
-  /** Check that SeqIndex comparisons make sense over these vars **/
+  /** Check that SeqIndex comparisons make sense over these vars */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // Don't compare indices to object addresses.
     ProglangType elt_type = vis[0].file_rep_type.elementType();
-    if (!elt_type.BASEISTYPE())
-      return (false);
+    if (!elt_type.BASEISTYPE()) {
+      return false;
+    }
 
     // Make sure that the indices are comparable to the elements
     VarInfo seqvar = vis[0];
@@ -216,22 +219,22 @@ public class CLASSNAME extends SUPERCLASS {
     VarComparability elt_compar = seqvar.comparability.elementType();
     VarComparability index_compar = seqvar.comparability.indexType(0);
     if (! VarComparability.comparable (elt_compar, index_compar)) {
-      return (false);
+      return false;
     }
 
-    return (true);
+    return true;
   }
 
-  /** Instantiate the invariant on the specified slice **/
+  /** Instantiate the invariant on the specified slice */
   public CLASSNAME instantiate_dyn (/*>>> @Prototype CLASSNAME this,*/ PptSlice slice) {
     return new CLASSNAME (slice);
   }
 
 #if defined(LESSEQUAL) || defined(LESSEQUALFLOAT) || defined(GREATEREQUAL) || defined(GREATEREQUALFLOAT)
-  /** NI suppressions, initialized in get_ni_suppressions() **/
+  /** NI suppressions, initialized in get_ni_suppressions() */
   private static /*@Nullable*/ NISuppressionSet suppressions = null;
 
-  /** returns the ni-suppressions for CLASSNAME **/
+  /** returns the ni-suppressions for CLASSNAME */
   /*@Pure*/
   public /*@NonNull*/ NISuppressionSet get_ni_suppressions() {
     if (suppressions == null) {
@@ -264,10 +267,10 @@ public class CLASSNAME extends SUPERCLASS {
         #endif
         });
     }
-    return (suppressions);
+    return suppressions;
   }
 #else
-  /** returns the ni-suppressions for CLASSNAME **/
+  /** returns the ni-suppressions for CLASSNAME */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
     return null;
@@ -286,7 +289,8 @@ public class CLASSNAME extends SUPERCLASS {
     return EQUALSstring;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied CLASSNAME this,*/ OutputFormat format) {
     if (format.isJavaFamily()) return format_java_family(format);
 
     // TODO: Eliminate the unnecessary format_xxx() below if the
@@ -300,7 +304,7 @@ public class CLASSNAME extends SUPERCLASS {
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied CLASSNAME this*/) {
 
     // If this is an array/container and not a subsequence
     if (var().isDerivedSubSequenceOf() == null) {
@@ -311,22 +315,22 @@ public class CLASSNAME extends SUPERCLASS {
   }
 
   // Bad code here: if the first index is changed from i this breaks
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied CLASSNAME this*/) {
     String[] form = VarInfo.esc_quantify (var());
     return form[0] + "(" + form[1] + " " + EQUALSstring + " i)" + form[2];
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied CLASSNAME this*/) {
     String[] split = var().csharp_array_split();
     return "Contract.ForAll(0, " + split[0] + ".Count(), i => " + split[0] + "[i]" + split[1] + " " + EQUALSstring + " i)";
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied CLASSNAME this,*/ OutputFormat format) {
     return "daikon.Quant.elts" + EQUALSQUANTstring + "Index("
       + var().name_using(format) + ")";
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied CLASSNAME this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.include_index(),
                                                var());
     return form[0] + "(" + EQUALSSIMPLIFYstring + " " + form[1] + " " + form[2] + ")"
@@ -335,20 +339,23 @@ public class CLASSNAME extends SUPERCLASS {
 
   public InvariantStatus check_modified(PRIMITIVE /*@Interned*/ [] a, int count) {
     for (int i=0; i<a.length; i++) {
-      if (!EQUALS(a[i], i))
+      if (!EQUALS(a[i], i)) {
         return InvariantStatus.FALSIFIED;
+      }
     }
     return InvariantStatus.NO_CHANGE;
   }
 
   public InvariantStatus add_modified(PRIMITIVE /*@Interned*/ [] a, int count) {
 
-    if (logDetail())
+    if (logDetail()) {
       log ("Entered add_modified: ppt.num_values()==%s, sample==%s",
            ppt.num_values(), ArraysMDE.toString(a));
+    }
     InvariantStatus stat = check_modified (a, count);
-    if (logDetail())
+    if (logDetail()) {
       log ("Exiting add_modified status = %s", stat);
+    }
 
     return stat;
   }
@@ -357,24 +364,27 @@ public class CLASSNAME extends SUPERCLASS {
 
     // Make sure there have been some elements in the sequence
     VALUE_SET vs = (VALUE_SET) ppt.var_infos[0].get_value_set();
-    if (vs.elem_cnt() == 0)
+    if (vs.elem_cnt() == 0) {
       return Invariant.CONFIDENCE_UNJUSTIFIED;
+    }
 
     int num_values = ppt.num_values();
-    if (num_values == 0)
+    if (num_values == 0) {
       return Invariant.CONFIDENCE_UNJUSTIFIED;
+    }
 
     #if defined(EQUAL) || defined(EQUALFLOAT)
       return Invariant.CONFIDENCE_JUSTIFIED;
     #elif defined(NONEQUAL) || defined(NONEQUALFLOAT)
       int max_indx = vs.max_length() - 1;
-      if ((vs.min() > max_indx) || (vs.max() < 0))
+      if ((vs.min() > max_indx) || (vs.max() < 0)) {
         return Invariant.CONFIDENCE_UNJUSTIFIED;
-      else {
+      } else {
         long overlap = LONG_CAST(Math.min (vs.max(), max_indx)
                                - Math.max (vs.min(), 0));
-        if (overlap < 0)
+        if (overlap < 0) {
           return Invariant.CONFIDENCE_UNJUSTIFIED;
+        }
         overlap++;
         double range1 = (double)max_indx + 1;
         double range2 = DOUBLE_CAST(vs.max()) - vs.min() + 1;
@@ -403,11 +413,13 @@ public class CLASSNAME extends SUPERCLASS {
   }
 
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -415,8 +427,9 @@ public class CLASSNAME extends SUPERCLASS {
   public static /*@Nullable*/ CLASSNAME find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof CLASSNAME)
+      if (inv instanceof CLASSNAME) {
         return (CLASSNAME) inv;
+      }
     }
     return null;
   }
@@ -451,8 +464,9 @@ public class CLASSNAME extends SUPERCLASS {
     PptTopLevel pptt = ppt.parent;
     for (int i=0; i<pptt.var_infos.length; i++) {
       VarInfo vi = pptt.var_infos[i];
-      if (vi.equalitySet == seqvar.equalitySet)
+      if (vi.equalitySet == seqvar.equalitySet) {
         continue;
+      }
       if (SUBSEQUENCE.isObviousSubSequenceDynamically(this, seqvar, vi)) {
         PptSlice1 other_slice = pptt.findSlice(vi);
         if (other_slice != null) {

@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -24,7 +25,7 @@ import typequals.*;
  * Base class for each of the FunctionBinaryFloat functions and permutatons.
  * Most of the work is done here.  The subclasses basically define the
  * function and return information describing the function and permutation
- * to these methods
+ * to these methods.
  */
 public abstract class FunctionBinaryFloat extends ThreeFloat {
   // We are Serializable, so we specify a version to allow changes to
@@ -34,7 +35,7 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
 
   /**
    * Boolean. True if FunctionBinaryFloat invariants should be considered.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   public static Logger debug
@@ -59,31 +60,33 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
     super ();
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** FunctionBinaryFloat is only valid on isFloat() types **/
+  /** FunctionBinaryFloat is only valid on isFloat() types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // Make sure that each variable is integral (not boolean or hashcode)
     if (!vis[0].file_rep_type.isFloat()
         || !vis[1].file_rep_type.isFloat()
         || !vis[2].file_rep_type.isFloat())
-      return (false);
+      return false;
 
-    return (true);
+    return true;
   }
 
   // check_modified relies on func having no side effects.
   abstract double func (double arg1, double arg2);
-  /*@Pure*/ abstract boolean is_symmetric();
-  abstract String[] get_method_name();
-  abstract int get_var_order();
+  /*@Pure*/
+  abstract boolean is_symmetric();
+  abstract String[] get_method_name(/*>>>@GuardSatisfied FunctionBinaryFloat this*/);
+  abstract int get_var_order(/*>>>@GuardSatisfied FunctionBinaryFloat this*/);
   abstract void set_function_id (int function_id);
   abstract int get_function_id ();
 
@@ -115,12 +118,14 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
     for (int ii = 0; ii < subclasses.length; ii++) {
       Class</*@Prototype*/ FunctionBinaryFloat> subc = subclasses[ii];
       String function = subc.getName();
-      if (function.indexOf ("CLOVER") >= 0)
+      if (function.indexOf ("CLOVER") >= 0) {
         continue;
+      }
       function = function.replaceFirst (".*FunctionBinary\\$", "");
       function = function.replaceFirst ("_.*", "");
-      if (function.equals ("SubClass"))
+      if (function.equals ("SubClass")) {
         continue;
+      }
       /*@Prototype*/ FunctionBinaryFloat[] fb_arr = functions.get (function);
       if (fb_arr == null) {
         fb_arr = new /*@Prototype*/ FunctionBinaryFloat[7];
@@ -147,7 +152,7 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
   }
 
   /**
-   * Returns a list of all of the FunctionBinaryFloat prototype invariants
+   * Returns a list of all of the FunctionBinaryFloat prototype invariants.
    */
   public static List</*@Prototype*/ Invariant> get_proto_all() {
 
@@ -167,7 +172,7 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
         }
       }
     }
-    return (result);
+    return result;
   }
 
   /** Permuted result var. */
@@ -186,15 +191,16 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
   }
 
   /**
-   * Apply the specified sample to the function, returning the result
+   * Apply the specified sample to the function, returning the result.
    * The caller is responsible for permuting the arguments.
    */
   public InvariantStatus check_ordered (double result, double arg1,
                                       double arg2, int count) {
     // This implementation relies on func having no side effects.
     try {
-      if (! (Global.fuzzy.eq (result, func (arg1, arg2))))
+      if (! (Global.fuzzy.eq (result, func (arg1, arg2)))) {
         return InvariantStatus.FALSIFIED;
+      }
     } catch (Exception e) {
         return InvariantStatus.FALSIFIED;
     }
@@ -202,7 +208,7 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
   }
 
   /**
-   * Apply the specified sample to the function, returning the result
+   * Apply the specified sample to the function, returning the result.
    * The caller is responsible for permuting the arguments.
    */
   public InvariantStatus add_ordered (double result, double arg1,
@@ -263,27 +269,31 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
     assert var_order != -1;
 
     // If the var order hasn't changed, we don't need to do anything
-    if (var_order == get_var_order())
-      return (this);
+    if (var_order == get_var_order()) {
+      return this;
+    }
 
     // Find the class that corresponds to the new order
-    if (functions.isEmpty())
+    if (functions.isEmpty()) {
       build_func_list();
+    }
     int func_id = get_function_id();
     /*@Prototype*/ FunctionBinaryFloat[] fb_arr = func_list.get (func_id);
     assert fb_arr != null;
     for (int ii = 0; ii < fb_arr.length; ii++)
-      if ((fb_arr[ii] != null) && (fb_arr[ii].get_var_order() == var_order))
+      if ((fb_arr[ii] != null) && (fb_arr[ii].get_var_order() == var_order)) {
         return (fb_arr[ii].instantiate_dyn (ppt));
+      }
 
     throw new Error ("Could not find new ordering");
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied FunctionBinaryFloat this*/) {
     return format();
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied FunctionBinaryFloat this,*/ OutputFormat format) {
     if (format == OutputFormat.SIMPLIFY) {
       return format_simplify();
     }
@@ -320,7 +330,7 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
     return format_unimplemented(format);
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied FunctionBinaryFloat this*/) {
     int var_order = get_var_order();
     String[] methodname = get_method_name();
     VarInfo[] vis = ppt.var_infos;
@@ -351,13 +361,14 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
       assert methodname[2].equals("");
       func = "|java-" + methodname[1].trim() + "|";
     }
-    if (func == null)
+    if (func == null) {
       return "format_simplify_contract() doesn't know function " + methodname[0] + "-" +
         methodname[1] + "-" + methodname[2];
+    }
     return "(EQ " + result + " (" + func + " " + arg1 + " " + arg2 + "))";
   }
 
-  public String format_csharp_contract() {
+  public String format_csharp_contract(/*>>>@GuardSatisfied FunctionBinaryFloat this*/) {
     int var_order = get_var_order();
     String[] methodname = get_method_name();
 
@@ -416,13 +427,15 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
       func = "|" + methodname[1].trim() + "|";
     }
 
-    if (func == null)
+    if (func == null) {
       return "format_csharp_contract() doesn't know function " + methodname[0] + "-" + methodname[1] + "-" + methodname[2];
+    }
     return result + " == " + func + "(" + arg1 + ", " + arg2 + ")";
   }
 
   // If our classes match, we must match
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
   public double computeConfidence() {
@@ -441,7 +454,7 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
 
   /**
    * If the arg is a sequence size, return the sequence; otherwise return null.
-   **/
+   */
   private /*@Nullable*/ VarInfo sized_sequence(VarInfo size) {
     if (size.derived instanceof SequenceLength) {
       return ((SequenceLength)size.derived).base;
@@ -476,12 +489,13 @@ public abstract class FunctionBinaryFloat extends ThreeFloat {
   }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMultiply () {
-    return (false);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Multiply (y, z)</code>
+ * Represents the invariant <code>x = Multiply(y, z)</code>
  * over three double scalars.
  * 
  */
@@ -493,12 +507,12 @@ public static class MultiplyDouble_xyz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MultiplyDouble_xyz proto = new /*@Prototype*/ MultiplyDouble_xyz ();
 
-  /** Returns the prototype invariant for MultiplyDouble_xyz **/
+  /** Returns the prototype invariant for MultiplyDouble_xyz */
   public static /*@Prototype*/ MultiplyDouble_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MultiplyDouble_xyz instantiate_dyn (/*>>> @Prototype MultiplyDouble_xyz this,*/ PptSlice slice) {
     return new MultiplyDouble_xyz (slice);
   }
@@ -513,14 +527,14 @@ public static class MultiplyDouble_xyz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " * ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MultiplyDouble_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -530,13 +544,14 @@ public static class MultiplyDouble_xyz extends FunctionBinaryFloat {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MultiplyDouble_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double y, double z) {
@@ -551,29 +566,33 @@ public static class MultiplyDouble_xyz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMultiply() {
-    return (true);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MultiplyDouble_xyz.class, 3);
 
@@ -673,7 +692,7 @@ public static class MultiplyDouble_xyz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Multiply (x, z)</code>
+ * Represents the invariant <code>y = Multiply(x, z)</code>
  * over three double scalars.
  * 
  */
@@ -685,12 +704,12 @@ public static class MultiplyDouble_yxz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MultiplyDouble_yxz proto = new /*@Prototype*/ MultiplyDouble_yxz ();
 
-  /** Returns the prototype invariant for MultiplyDouble_yxz **/
+  /** Returns the prototype invariant for MultiplyDouble_yxz */
   public static /*@Prototype*/ MultiplyDouble_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MultiplyDouble_yxz instantiate_dyn (/*>>> @Prototype MultiplyDouble_yxz this,*/ PptSlice slice) {
     return new MultiplyDouble_yxz (slice);
   }
@@ -705,14 +724,14 @@ public static class MultiplyDouble_yxz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " * ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MultiplyDouble_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -722,13 +741,14 @@ public static class MultiplyDouble_yxz extends FunctionBinaryFloat {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MultiplyDouble_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double x, double z) {
@@ -743,29 +763,33 @@ public static class MultiplyDouble_yxz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMultiply() {
-    return (true);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MultiplyDouble_yxz.class, 3);
 
@@ -865,7 +889,7 @@ public static class MultiplyDouble_yxz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Multiply (x, y)</code>
+ * Represents the invariant <code>z = Multiply(x, y)</code>
  * over three double scalars.
  * 
  */
@@ -877,12 +901,12 @@ public static class MultiplyDouble_zxy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MultiplyDouble_zxy proto = new /*@Prototype*/ MultiplyDouble_zxy ();
 
-  /** Returns the prototype invariant for MultiplyDouble_zxy **/
+  /** Returns the prototype invariant for MultiplyDouble_zxy */
   public static /*@Prototype*/ MultiplyDouble_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MultiplyDouble_zxy instantiate_dyn (/*>>> @Prototype MultiplyDouble_zxy this,*/ PptSlice slice) {
     return new MultiplyDouble_zxy (slice);
   }
@@ -897,14 +921,14 @@ public static class MultiplyDouble_zxy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " * ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MultiplyDouble_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -914,13 +938,14 @@ public static class MultiplyDouble_zxy extends FunctionBinaryFloat {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MultiplyDouble_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double x, double y) {
@@ -935,29 +960,33 @@ public static class MultiplyDouble_zxy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMultiply() {
-    return (true);
+  /*@Pure*/
+  public boolean isMultiply() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MultiplyDouble_zxy.class, 3);
 
@@ -1059,12 +1088,13 @@ public static class MultiplyDouble_zxy extends FunctionBinaryFloat {
   // #define EQUALITY_MIN_MAX_SUPPRESS
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMinimum () {
-    return (false);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Minimum (y, z)</code>
+ * Represents the invariant <code>x = Minimum(y, z)</code>
  * over three double scalars.
  * 
  */
@@ -1076,12 +1106,12 @@ public static class MinimumDouble_xyz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MinimumDouble_xyz proto = new /*@Prototype*/ MinimumDouble_xyz ();
 
-  /** Returns the prototype invariant for MinimumDouble_xyz **/
+  /** Returns the prototype invariant for MinimumDouble_xyz */
   public static /*@Prototype*/ MinimumDouble_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MinimumDouble_xyz instantiate_dyn (/*>>> @Prototype MinimumDouble_xyz this,*/ PptSlice slice) {
     return new MinimumDouble_xyz (slice);
   }
@@ -1096,14 +1126,14 @@ public static class MinimumDouble_xyz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.min(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MinimumDouble_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1113,13 +1143,14 @@ public static class MinimumDouble_xyz extends FunctionBinaryFloat {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MinimumDouble_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double y, double z) {
@@ -1134,13 +1165,15 @@ public static class MinimumDouble_xyz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMinimum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return true;
   }
 
   /**
@@ -1148,13 +1181,14 @@ public static class MinimumDouble_xyz extends FunctionBinaryFloat {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MinimumDouble_xyz.class, 3);
 
@@ -1248,7 +1282,7 @@ public static class MinimumDouble_xyz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Minimum (x, z)</code>
+ * Represents the invariant <code>y = Minimum(x, z)</code>
  * over three double scalars.
  * 
  */
@@ -1260,12 +1294,12 @@ public static class MinimumDouble_yxz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MinimumDouble_yxz proto = new /*@Prototype*/ MinimumDouble_yxz ();
 
-  /** Returns the prototype invariant for MinimumDouble_yxz **/
+  /** Returns the prototype invariant for MinimumDouble_yxz */
   public static /*@Prototype*/ MinimumDouble_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MinimumDouble_yxz instantiate_dyn (/*>>> @Prototype MinimumDouble_yxz this,*/ PptSlice slice) {
     return new MinimumDouble_yxz (slice);
   }
@@ -1280,14 +1314,14 @@ public static class MinimumDouble_yxz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.min(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MinimumDouble_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1297,13 +1331,14 @@ public static class MinimumDouble_yxz extends FunctionBinaryFloat {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MinimumDouble_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double x, double z) {
@@ -1318,13 +1353,15 @@ public static class MinimumDouble_yxz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMinimum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return true;
   }
 
   /**
@@ -1332,13 +1369,14 @@ public static class MinimumDouble_yxz extends FunctionBinaryFloat {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MinimumDouble_yxz.class, 3);
 
@@ -1432,7 +1470,7 @@ public static class MinimumDouble_yxz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Minimum (x, y)</code>
+ * Represents the invariant <code>z = Minimum(x, y)</code>
  * over three double scalars.
  * 
  */
@@ -1444,12 +1482,12 @@ public static class MinimumDouble_zxy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MinimumDouble_zxy proto = new /*@Prototype*/ MinimumDouble_zxy ();
 
-  /** Returns the prototype invariant for MinimumDouble_zxy **/
+  /** Returns the prototype invariant for MinimumDouble_zxy */
   public static /*@Prototype*/ MinimumDouble_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MinimumDouble_zxy instantiate_dyn (/*>>> @Prototype MinimumDouble_zxy this,*/ PptSlice slice) {
     return new MinimumDouble_zxy (slice);
   }
@@ -1464,14 +1502,14 @@ public static class MinimumDouble_zxy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.min(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MinimumDouble_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1481,13 +1519,14 @@ public static class MinimumDouble_zxy extends FunctionBinaryFloat {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MinimumDouble_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double x, double y) {
@@ -1502,13 +1541,15 @@ public static class MinimumDouble_zxy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMinimum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMinimum() {
+    return true;
   }
 
   /**
@@ -1516,13 +1557,14 @@ public static class MinimumDouble_zxy extends FunctionBinaryFloat {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MinimumDouble_zxy.class, 3);
 
@@ -1618,12 +1660,13 @@ public static class MinimumDouble_zxy extends FunctionBinaryFloat {
   // #define EQUALITY_MIN_MAX_SUPPRESS
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isMaximum () {
-    return (false);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Maximum (y, z)</code>
+ * Represents the invariant <code>x = Maximum(y, z)</code>
  * over three double scalars.
  * 
  */
@@ -1635,12 +1678,12 @@ public static class MaximumDouble_xyz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MaximumDouble_xyz proto = new /*@Prototype*/ MaximumDouble_xyz ();
 
-  /** Returns the prototype invariant for MaximumDouble_xyz **/
+  /** Returns the prototype invariant for MaximumDouble_xyz */
   public static /*@Prototype*/ MaximumDouble_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MaximumDouble_xyz instantiate_dyn (/*>>> @Prototype MaximumDouble_xyz this,*/ PptSlice slice) {
     return new MaximumDouble_xyz (slice);
   }
@@ -1655,14 +1698,14 @@ public static class MaximumDouble_xyz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.max(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MaximumDouble_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1672,13 +1715,14 @@ public static class MaximumDouble_xyz extends FunctionBinaryFloat {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MaximumDouble_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double y, double z) {
@@ -1693,13 +1737,15 @@ public static class MaximumDouble_xyz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isMaximum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return true;
   }
 
   /**
@@ -1707,13 +1753,14 @@ public static class MaximumDouble_xyz extends FunctionBinaryFloat {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MaximumDouble_xyz.class, 3);
 
@@ -1807,7 +1854,7 @@ public static class MaximumDouble_xyz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Maximum (x, z)</code>
+ * Represents the invariant <code>y = Maximum(x, z)</code>
  * over three double scalars.
  * 
  */
@@ -1819,12 +1866,12 @@ public static class MaximumDouble_yxz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MaximumDouble_yxz proto = new /*@Prototype*/ MaximumDouble_yxz ();
 
-  /** Returns the prototype invariant for MaximumDouble_yxz **/
+  /** Returns the prototype invariant for MaximumDouble_yxz */
   public static /*@Prototype*/ MaximumDouble_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MaximumDouble_yxz instantiate_dyn (/*>>> @Prototype MaximumDouble_yxz this,*/ PptSlice slice) {
     return new MaximumDouble_yxz (slice);
   }
@@ -1839,14 +1886,14 @@ public static class MaximumDouble_yxz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.max(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MaximumDouble_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -1856,13 +1903,14 @@ public static class MaximumDouble_yxz extends FunctionBinaryFloat {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MaximumDouble_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double x, double z) {
@@ -1877,13 +1925,15 @@ public static class MaximumDouble_yxz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isMaximum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return true;
   }
 
   /**
@@ -1891,13 +1941,14 @@ public static class MaximumDouble_yxz extends FunctionBinaryFloat {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MaximumDouble_yxz.class, 3);
 
@@ -1991,7 +2042,7 @@ public static class MaximumDouble_yxz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Maximum (x, y)</code>
+ * Represents the invariant <code>z = Maximum(x, y)</code>
  * over three double scalars.
  * 
  */
@@ -2003,12 +2054,12 @@ public static class MaximumDouble_zxy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ MaximumDouble_zxy proto = new /*@Prototype*/ MaximumDouble_zxy ();
 
-  /** Returns the prototype invariant for MaximumDouble_zxy **/
+  /** Returns the prototype invariant for MaximumDouble_zxy */
   public static /*@Prototype*/ MaximumDouble_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected MaximumDouble_zxy instantiate_dyn (/*>>> @Prototype MaximumDouble_zxy this,*/ PptSlice slice) {
     return new MaximumDouble_zxy (slice);
   }
@@ -2023,14 +2074,14 @@ public static class MaximumDouble_zxy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.max(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied MaximumDouble_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2040,13 +2091,14 @@ public static class MaximumDouble_zxy extends FunctionBinaryFloat {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied MaximumDouble_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (true);
+      return true;
   }
 
   public double func (double x, double y) {
@@ -2061,13 +2113,15 @@ public static class MaximumDouble_zxy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isMaximum() {
-    return (true);
+  /*@Pure*/
+  public boolean isMaximum() {
+    return true;
   }
 
   /**
@@ -2075,13 +2129,14 @@ public static class MaximumDouble_zxy extends FunctionBinaryFloat {
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (MaximumDouble_zxy.class, 3);
 
@@ -2175,12 +2230,13 @@ public static class MaximumDouble_zxy extends FunctionBinaryFloat {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isDivision () {
-    return (false);
+  /*@Pure*/
+  public boolean isDivision() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Division (y, z)</code>
+ * Represents the invariant <code>x = Division(y, z)</code>
  * over three double scalars.
  * 
  */
@@ -2192,12 +2248,12 @@ public static class DivisionDouble_xyz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ DivisionDouble_xyz proto = new /*@Prototype*/ DivisionDouble_xyz ();
 
-  /** Returns the prototype invariant for DivisionDouble_xyz **/
+  /** Returns the prototype invariant for DivisionDouble_xyz */
   public static /*@Prototype*/ DivisionDouble_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionDouble_xyz instantiate_dyn (/*>>> @Prototype DivisionDouble_xyz this,*/ PptSlice slice) {
     return new DivisionDouble_xyz (slice);
   }
@@ -2212,14 +2268,14 @@ public static class DivisionDouble_xyz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionDouble_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2229,13 +2285,14 @@ public static class DivisionDouble_xyz extends FunctionBinaryFloat {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionDouble_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double y, double z) {
@@ -2250,29 +2307,33 @@ public static class DivisionDouble_xyz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionDouble_xyz.class, 3);
 
@@ -2365,7 +2426,7 @@ public static class DivisionDouble_xyz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Division (x, z)</code>
+ * Represents the invariant <code>y = Division(x, z)</code>
  * over three double scalars.
  * 
  */
@@ -2377,12 +2438,12 @@ public static class DivisionDouble_yxz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ DivisionDouble_yxz proto = new /*@Prototype*/ DivisionDouble_yxz ();
 
-  /** Returns the prototype invariant for DivisionDouble_yxz **/
+  /** Returns the prototype invariant for DivisionDouble_yxz */
   public static /*@Prototype*/ DivisionDouble_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionDouble_yxz instantiate_dyn (/*>>> @Prototype DivisionDouble_yxz this,*/ PptSlice slice) {
     return new DivisionDouble_yxz (slice);
   }
@@ -2397,14 +2458,14 @@ public static class DivisionDouble_yxz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionDouble_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2414,13 +2475,14 @@ public static class DivisionDouble_yxz extends FunctionBinaryFloat {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionDouble_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double x, double z) {
@@ -2435,29 +2497,33 @@ public static class DivisionDouble_yxz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionDouble_yxz.class, 3);
 
@@ -2550,7 +2616,7 @@ public static class DivisionDouble_yxz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Division (x, y)</code>
+ * Represents the invariant <code>z = Division(x, y)</code>
  * over three double scalars.
  * 
  */
@@ -2562,12 +2628,12 @@ public static class DivisionDouble_zxy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ DivisionDouble_zxy proto = new /*@Prototype*/ DivisionDouble_zxy ();
 
-  /** Returns the prototype invariant for DivisionDouble_zxy **/
+  /** Returns the prototype invariant for DivisionDouble_zxy */
   public static /*@Prototype*/ DivisionDouble_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionDouble_zxy instantiate_dyn (/*>>> @Prototype DivisionDouble_zxy this,*/ PptSlice slice) {
     return new DivisionDouble_zxy (slice);
   }
@@ -2582,14 +2648,14 @@ public static class DivisionDouble_zxy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionDouble_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2599,13 +2665,14 @@ public static class DivisionDouble_zxy extends FunctionBinaryFloat {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionDouble_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double x, double y) {
@@ -2620,29 +2687,33 @@ public static class DivisionDouble_zxy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionDouble_zxy.class, 3);
 
@@ -2735,7 +2806,7 @@ public static class DivisionDouble_zxy extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>x = Division (z, y)</code>
+ * Represents the invariant <code>x = Division(z, y)</code>
  * over three double scalars.
  * 
  */
@@ -2747,12 +2818,12 @@ public static class DivisionDouble_xzy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ DivisionDouble_xzy proto = new /*@Prototype*/ DivisionDouble_xzy ();
 
-  /** Returns the prototype invariant for DivisionDouble_xzy **/
+  /** Returns the prototype invariant for DivisionDouble_xzy */
   public static /*@Prototype*/ DivisionDouble_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionDouble_xzy instantiate_dyn (/*>>> @Prototype DivisionDouble_xzy this,*/ PptSlice slice) {
     return new DivisionDouble_xzy (slice);
   }
@@ -2767,14 +2838,14 @@ public static class DivisionDouble_xzy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionDouble_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2784,13 +2855,14 @@ public static class DivisionDouble_xzy extends FunctionBinaryFloat {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionDouble_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double z, double y) {
@@ -2805,29 +2877,33 @@ public static class DivisionDouble_xzy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionDouble_xzy.class, 3);
 
@@ -2920,7 +2996,7 @@ public static class DivisionDouble_xzy extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Division (z, x)</code>
+ * Represents the invariant <code>y = Division(z, x)</code>
  * over three double scalars.
  * 
  */
@@ -2932,12 +3008,12 @@ public static class DivisionDouble_yzx extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ DivisionDouble_yzx proto = new /*@Prototype*/ DivisionDouble_yzx ();
 
-  /** Returns the prototype invariant for DivisionDouble_yzx **/
+  /** Returns the prototype invariant for DivisionDouble_yzx */
   public static /*@Prototype*/ DivisionDouble_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionDouble_yzx instantiate_dyn (/*>>> @Prototype DivisionDouble_yzx this,*/ PptSlice slice) {
     return new DivisionDouble_yzx (slice);
   }
@@ -2952,14 +3028,14 @@ public static class DivisionDouble_yzx extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionDouble_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -2969,13 +3045,14 @@ public static class DivisionDouble_yzx extends FunctionBinaryFloat {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionDouble_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double z, double x) {
@@ -2990,29 +3067,33 @@ public static class DivisionDouble_yzx extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionDouble_yzx.class, 3);
 
@@ -3105,7 +3186,7 @@ public static class DivisionDouble_yzx extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Division (y, x)</code>
+ * Represents the invariant <code>z = Division(y, x)</code>
  * over three double scalars.
  * 
  */
@@ -3117,12 +3198,12 @@ public static class DivisionDouble_zyx extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ DivisionDouble_zyx proto = new /*@Prototype*/ DivisionDouble_zyx ();
 
-  /** Returns the prototype invariant for DivisionDouble_zyx **/
+  /** Returns the prototype invariant for DivisionDouble_zyx */
   public static /*@Prototype*/ DivisionDouble_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected DivisionDouble_zyx instantiate_dyn (/*>>> @Prototype DivisionDouble_zyx this,*/ PptSlice slice) {
     return new DivisionDouble_zyx (slice);
   }
@@ -3137,14 +3218,14 @@ public static class DivisionDouble_zyx extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"", " / ", ""};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied DivisionDouble_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3154,13 +3235,14 @@ public static class DivisionDouble_zyx extends FunctionBinaryFloat {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied DivisionDouble_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double y, double x) {
@@ -3175,29 +3257,33 @@ public static class DivisionDouble_zyx extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isDivision() {
-    return (true);
+  /*@Pure*/
+  public boolean isDivision() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (DivisionDouble_zyx.class, 3);
 
@@ -3290,12 +3376,13 @@ public static class DivisionDouble_zyx extends FunctionBinaryFloat {
 }
 
   // default is that it is not this function, overriden in the subclass
-  /*@Pure*/ public boolean isPower () {
-    return (false);
+  /*@Pure*/
+  public boolean isPower() {
+    return false;
   }
 
 /**
- * Represents the invariant <code>x = Power (y, z)</code>
+ * Represents the invariant <code>x = Power(y, z)</code>
  * over three double scalars.
  * 
  */
@@ -3307,12 +3394,12 @@ public static class PowerDouble_xyz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ PowerDouble_xyz proto = new /*@Prototype*/ PowerDouble_xyz ();
 
-  /** Returns the prototype invariant for PowerDouble_xyz **/
+  /** Returns the prototype invariant for PowerDouble_xyz */
   public static /*@Prototype*/ PowerDouble_xyz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerDouble_xyz instantiate_dyn (/*>>> @Prototype PowerDouble_xyz this,*/ PptSlice slice) {
     return new PowerDouble_xyz (slice);
   }
@@ -3327,14 +3414,14 @@ public static class PowerDouble_xyz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerDouble_xyz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3344,13 +3431,14 @@ public static class PowerDouble_xyz extends FunctionBinaryFloat {
 
   private static int var_order = 1;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerDouble_xyz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double y, double z) {
@@ -3365,29 +3453,33 @@ public static class PowerDouble_xyz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, y, z);
+    }
     return (add_ordered (x, y, z, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerDouble_xyz.class, 3);
 
@@ -3497,7 +3589,7 @@ public static class PowerDouble_xyz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Power (x, z)</code>
+ * Represents the invariant <code>y = Power(x, z)</code>
  * over three double scalars.
  * 
  */
@@ -3509,12 +3601,12 @@ public static class PowerDouble_yxz extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ PowerDouble_yxz proto = new /*@Prototype*/ PowerDouble_yxz ();
 
-  /** Returns the prototype invariant for PowerDouble_yxz **/
+  /** Returns the prototype invariant for PowerDouble_yxz */
   public static /*@Prototype*/ PowerDouble_yxz get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerDouble_yxz instantiate_dyn (/*>>> @Prototype PowerDouble_yxz this,*/ PptSlice slice) {
     return new PowerDouble_yxz (slice);
   }
@@ -3529,14 +3621,14 @@ public static class PowerDouble_yxz extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerDouble_yxz this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3546,13 +3638,14 @@ public static class PowerDouble_yxz extends FunctionBinaryFloat {
 
   private static int var_order = 2;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerDouble_yxz this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double x, double z) {
@@ -3567,29 +3660,33 @@ public static class PowerDouble_yxz extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, x, z);
+    }
     return (add_ordered (y, x, z, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerDouble_yxz.class, 3);
 
@@ -3699,7 +3796,7 @@ public static class PowerDouble_yxz extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Power (x, y)</code>
+ * Represents the invariant <code>z = Power(x, y)</code>
  * over three double scalars.
  * 
  */
@@ -3711,12 +3808,12 @@ public static class PowerDouble_zxy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ PowerDouble_zxy proto = new /*@Prototype*/ PowerDouble_zxy ();
 
-  /** Returns the prototype invariant for PowerDouble_zxy **/
+  /** Returns the prototype invariant for PowerDouble_zxy */
   public static /*@Prototype*/ PowerDouble_zxy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerDouble_zxy instantiate_dyn (/*>>> @Prototype PowerDouble_zxy this,*/ PptSlice slice) {
     return new PowerDouble_zxy (slice);
   }
@@ -3731,14 +3828,14 @@ public static class PowerDouble_zxy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerDouble_zxy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3748,13 +3845,14 @@ public static class PowerDouble_zxy extends FunctionBinaryFloat {
 
   private static int var_order = 3;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerDouble_zxy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double x, double y) {
@@ -3769,29 +3867,33 @@ public static class PowerDouble_zxy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, x, y);
+    }
     return (add_ordered (z, x, y, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerDouble_zxy.class, 3);
 
@@ -3901,7 +4003,7 @@ public static class PowerDouble_zxy extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>x = Power (z, y)</code>
+ * Represents the invariant <code>x = Power(z, y)</code>
  * over three double scalars.
  * 
  */
@@ -3913,12 +4015,12 @@ public static class PowerDouble_xzy extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ PowerDouble_xzy proto = new /*@Prototype*/ PowerDouble_xzy ();
 
-  /** Returns the prototype invariant for PowerDouble_xzy **/
+  /** Returns the prototype invariant for PowerDouble_xzy */
   public static /*@Prototype*/ PowerDouble_xzy get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerDouble_xzy instantiate_dyn (/*>>> @Prototype PowerDouble_xzy this,*/ PptSlice slice) {
     return new PowerDouble_xzy (slice);
   }
@@ -3933,14 +4035,14 @@ public static class PowerDouble_xzy extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerDouble_xzy this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -3950,13 +4052,14 @@ public static class PowerDouble_xzy extends FunctionBinaryFloat {
 
   private static int var_order = 4;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerDouble_xzy this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double z, double y) {
@@ -3971,29 +4074,33 @@ public static class PowerDouble_xzy extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", x, z, y);
+    }
     return (add_ordered (x, z, y, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerDouble_xzy.class, 3);
 
@@ -4103,7 +4210,7 @@ public static class PowerDouble_xzy extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>y = Power (z, x)</code>
+ * Represents the invariant <code>y = Power(z, x)</code>
  * over three double scalars.
  * 
  */
@@ -4115,12 +4222,12 @@ public static class PowerDouble_yzx extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ PowerDouble_yzx proto = new /*@Prototype*/ PowerDouble_yzx ();
 
-  /** Returns the prototype invariant for PowerDouble_yzx **/
+  /** Returns the prototype invariant for PowerDouble_yzx */
   public static /*@Prototype*/ PowerDouble_yzx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerDouble_yzx instantiate_dyn (/*>>> @Prototype PowerDouble_yzx this,*/ PptSlice slice) {
     return new PowerDouble_yzx (slice);
   }
@@ -4135,14 +4242,14 @@ public static class PowerDouble_yzx extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerDouble_yzx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -4152,13 +4259,14 @@ public static class PowerDouble_yzx extends FunctionBinaryFloat {
 
   private static int var_order = 5;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerDouble_yzx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double z, double x) {
@@ -4173,29 +4281,33 @@ public static class PowerDouble_yzx extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", y, z, x);
+    }
     return (add_ordered (y, z, x, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerDouble_yzx.class, 3);
 
@@ -4305,7 +4417,7 @@ public static class PowerDouble_yzx extends FunctionBinaryFloat {
 }
 
 /**
- * Represents the invariant <code>z = Power (y, x)</code>
+ * Represents the invariant <code>z = Power(y, x)</code>
  * over three double scalars.
  * 
  */
@@ -4317,12 +4429,12 @@ public static class PowerDouble_zyx extends FunctionBinaryFloat {
 
   private static /*@Prototype*/ PowerDouble_zyx proto = new /*@Prototype*/ PowerDouble_zyx ();
 
-  /** Returns the prototype invariant for PowerDouble_zyx **/
+  /** Returns the prototype invariant for PowerDouble_zyx */
   public static /*@Prototype*/ PowerDouble_zyx get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   protected PowerDouble_zyx instantiate_dyn (/*>>> @Prototype PowerDouble_zyx this,*/ PptSlice slice) {
     return new PowerDouble_zyx (slice);
   }
@@ -4337,14 +4449,14 @@ public static class PowerDouble_zyx extends FunctionBinaryFloat {
 
   private static String[] method_name = new String[] {"java.lang.Math.pow(", ", ", ")"};
 
-  public String[] get_method_name () {
-    return (method_name);
+  public String[] get_method_name (/*>>>@GuardSatisfied PowerDouble_zyx this*/) {
+    return method_name;
   }
 
   private static int function_id = -1;
 
   public int get_function_id() {
-    return (function_id);
+    return function_id;
   }
 
   public void set_function_id (int function_id) {
@@ -4354,13 +4466,14 @@ public static class PowerDouble_zyx extends FunctionBinaryFloat {
 
   private static int var_order = 6;
 
-  public int get_var_order() {
+  public int get_var_order(/*>>>@GuardSatisfied PowerDouble_zyx this*/) {
     return var_order;
   }
 
-  /*@Pure*/ public boolean is_symmetric() {
+  /*@Pure*/
+  public boolean is_symmetric() {
 
-      return (false);
+      return false;
   }
 
   public double func (double y, double x) {
@@ -4375,29 +4488,33 @@ public static class PowerDouble_zyx extends FunctionBinaryFloat {
 
   public InvariantStatus add_modified(double x, double y,
                                       double z, int count) {
-    if (Debug.logDetail())
+    if (Debug.logDetail()) {
       log ("result=%s, arg1=%s, arg2=%s", z, y, x);
+    }
     return (add_ordered (z, y, x, count));
   }
 
-  /*@Pure*/ public boolean isPower() {
-    return (true);
+  /*@Pure*/
+  public boolean isPower() {
+    return true;
   }
 
-    /*@Pure*/ public boolean isExact() { return true; }
+    /*@Pure*/
+    public boolean isExact() { return true; }
 
   /**
    * Returns a list of non-instantiating suppressions for this invariant.
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    if (NIS.dkconfig_enabled && dkconfig_enabled)
-      return (suppressions);
-    else
-      return (null);
+    if (NIS.dkconfig_enabled && dkconfig_enabled) {
+      return suppressions;
+    } else {
+      return null;
+    }
   }
 
-  /** definition of this invariant (the suppressee) **/
+  /** definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
                     = new NISuppressee (PowerDouble_zyx.class, 3);
 

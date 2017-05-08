@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.io.Serializable;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
@@ -23,7 +24,7 @@ public final class LinearBinaryCoreFloat
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20030822L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug =
     Logger.getLogger("daikon.inv.binary.twoScalar.LinearBinaryCoreFloat");
 
@@ -52,13 +53,16 @@ public final class LinearBinaryCoreFloat
     this.wrapper = wrapper;
   }
 
-  /*@SideEffectFree*/ public LinearBinaryCoreFloat clone() {
+  /*@SideEffectFree*/
+  public LinearBinaryCoreFloat clone(/*>>>@GuardSatisfied LinearBinaryCoreFloat this*/) {
     try {
       LinearBinaryCoreFloat result = (LinearBinaryCoreFloat) super.clone();
-      if (x_cache != null)
+      if (x_cache != null) {
         result.x_cache = x_cache.clone();
-      if (y_cache != null)
+      }
+      if (y_cache != null) {
         result.y_cache = y_cache.clone();
+      }
       return result;
     } catch (CloneNotSupportedException e) {
       throw new Error(); // can't happen
@@ -108,9 +112,10 @@ public final class LinearBinaryCoreFloat
   /**
    * Returns whether or not the invariant is currently active.  We become
    * active after MINPAIRS values have been seen and a line calculated.
-   * Before that, a and b are uninitialized
+   * Before that, a and b are uninitialized.
    */
-  /*@Pure*/ public boolean isActive() {
+  /*@Pure*/
+  public boolean isActive() {
     return (values_seen >= MINPAIRS);
   }
 
@@ -119,8 +124,9 @@ public final class LinearBinaryCoreFloat
    * line.  These sample can't be flowed from ppt to ppt (since they probably
    * didn't occur at the lower ppt).
    */
-  /*@Pure*/ public boolean isFlowable() {
-    return (false);
+  /*@Pure*/
+  public boolean isFlowable() {
+    return false;
   }
 
   // Note that this method is relatively inconsistent with respect to
@@ -140,8 +146,9 @@ public final class LinearBinaryCoreFloat
       // computation of the slope can be non-negligible.
 
       for (int i=0; i<values_seen; i++)
-        if ((x_cache[i] == x) && (y_cache[i] == y))
+        if ((x_cache[i] == x) && (y_cache[i] == y)) {
           return InvariantStatus.NO_CHANGE;
+        }
       x_cache[values_seen] = x;
       y_cache[values_seen] = y;
       values_seen++;
@@ -182,9 +189,10 @@ public final class LinearBinaryCoreFloat
         max_b = b;
         min_c = c;
         max_c = c;
-        if (debug.isLoggable(Level.FINE))
+        if (debug.isLoggable(Level.FINE)) {
             debug.fine (wrapper.ppt.name() + ": Initial a (" + a +
                          ") and b (" + b + ") and c (" + c + ")");
+        }
 
         // Check all values against a, b, and c.
         if ((Global.fuzzy.eq ((a), ( 0)))) {
@@ -258,9 +266,10 @@ public final class LinearBinaryCoreFloat
         new_a = (min_a + max_a) / 2;
         new_b = (min_b + max_b) / 2;
         new_c = (min_c + max_c) / 2;
-        if (debug.isLoggable(Level.FINE))
+        if (debug.isLoggable(Level.FINE)) {
             debug.fine (wrapper.ppt.name() + ": Trying new a (" + new_a +
                          ") and b (" + new_b + ")");
+        }
 
         // if the new a, b, c are 'equal' to min/max a, b, c and
         // this point fits, then this new equation is good enough both
@@ -273,9 +282,10 @@ public final class LinearBinaryCoreFloat
           a = new_a;
           b = new_b;
           c = new_c;
-          if (debug.isLoggable(Level.FINE))
+          if (debug.isLoggable(Level.FINE)) {
             debug.fine (wrapper.ppt.name() + ": New a (" + a + ") and b ("
                          + b + ") and c (" + c + ")");
+          }
         } else {
           if (debug.isLoggable(Level.FINE)) {
             debug.fine ("Suppressing LinearBinaryCoreFloat (" +
@@ -296,7 +306,7 @@ public final class LinearBinaryCoreFloat
    * Returns a 2-element int array of the indices of the most separated
    * pair of points between the points represented by x_array and y_array.
    * Requires that x_array and y_array are the same length.
-   **/
+   */
   static int[] maxsep_point(double[] x_array, double[] y_array) {
     // Find the most separated pair.
     // Do I really need to check in two dimensions, or would one be enough?
@@ -345,7 +355,7 @@ public final class LinearBinaryCoreFloat
    * Given ((x0,y0),(x1,y1)), finds a,b and c such that ax + by + c = 0.
    * Places a, b and c (if they exist) into result at indexes 0, 1 and 2
    * respectively.
-   * @return true if such an a and b exist.
+   * @return true if such an a and b exist
    */
   private static boolean find_bi_linear(double x0,
                                        double x1,
@@ -391,7 +401,7 @@ public final class LinearBinaryCoreFloat
 
   /**
    * Given ((x0,y0),(x1,y1)), set a, b and c such that ax + by + c = 0.
-   **/
+   */
   private InvariantStatus set_bi_linear(double x0, double x1, double y0, double y1) {
     double[] AandBandC = new double[3];
     if (! find_bi_linear(x0, x1, y0, y1, AandBandC)) {
@@ -408,7 +418,7 @@ public final class LinearBinaryCoreFloat
     return InvariantStatus.NO_CHANGE;
   }
 
-  public boolean enoughSamples() {
+  public boolean enoughSamples(/*>>>@GuardSatisfied LinearBinaryCoreFloat this*/) {
     return (values_seen >= MINPAIRS);
   }
 
@@ -416,7 +426,7 @@ public final class LinearBinaryCoreFloat
     return Invariant.conf_is_ge(values_seen, MINPAIRS);
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied LinearBinaryCoreFloat this*/) {
     return "LinearBinaryCoreFloat" + wrapper.varNames() + ": "
       + "a=" + a
       + ",b=" + b
@@ -433,8 +443,9 @@ public final class LinearBinaryCoreFloat
                                    boolean first) {
     double ncoeff = coeff;
 
-    if (ncoeff == 0)
+    if (ncoeff == 0) {
       return "";
+    }
     String sign;
     if (ncoeff < 0) {
       if (first) {
@@ -450,15 +461,18 @@ public final class LinearBinaryCoreFloat
 
     //we want to ensure that the positive value is used because the sign has already been determined
     String coeff_string = (ncoeff == (int)ncoeff) ? "" + Math.abs((int)ncoeff) : "" + Math.abs(ncoeff);
-    if (varname == null)
+    if (varname == null) {
       return sign + coeff_string;
-    if (ncoeff == 1 || ncoeff == -1)
+    }
+    if (ncoeff == 1 || ncoeff == -1) {
       return sign + varname;
-    else
+    } else {
       return sign + coeff_string + " * " + varname;
+    }
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format,
+  /*@SideEffectFree*/
+  public String format_using(OutputFormat format,
                              String vix, String viy,
                              double u, double v, double w) {
 
@@ -527,7 +541,8 @@ public final class LinearBinaryCoreFloat
       return "(EQ 0 " + str_axpc + ")";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format, String xname, String yname) {
+  /*@SideEffectFree*/
+  public String format_using(OutputFormat format, String xname, String yname) {
     String result = format_using(format, xname, yname, a, b, c);
     if (result != null) {
       return result;
@@ -551,7 +566,7 @@ public final class LinearBinaryCoreFloat
    */
 
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
   /**
@@ -562,7 +577,7 @@ public final class LinearBinaryCoreFloat
    * that invariant.  The merged core is returned.  Null is
    * returned if the cores don't describe the same line
    *
-   * @param cores   List of LinearBinary cores to merge.  They should
+   * @param cores   list of LinearBinary cores to merge.  They should
    *                all be permuted to match the variable order in
    *                ppt.
    */
@@ -571,41 +586,45 @@ public final class LinearBinaryCoreFloat
     // Look for any active lines.  All must define the same line
     LinearBinaryCoreFloat result = null;
     for (LinearBinaryCoreFloat c : cores) {
-      if (!c.isActive())
+      if (!c.isActive()) {
         continue;
-      if (result == null)
+      }
+      if (result == null) {
         result = c.clone();
-      else {
+      } else {
         if (!Global.fuzzy.eq (result.a, c.a)
             || !Global.fuzzy.eq (result.b, c.b)
             || !Global.fuzzy.eq(result.c, c.c))
-          return (null);
+          return null;
       }
     }
 
     // If no active lines were found, created an empty core
-    if (result == null)
+    if (result == null) {
       result = new LinearBinaryCoreFloat (wrapper);
-    else
+    } else {
       result.wrapper = wrapper;
+    }
 
     // Merge in any points from non-active cores
     for (LinearBinaryCoreFloat c : cores) {
-      if (c.isActive())
+      if (c.isActive()) {
         continue;
+      }
       for (int j = 0; j < c.values_seen; j++) {
         if (result.add_modified (c.x_cache[j], c.y_cache[j], 1) ==
             InvariantStatus.FALSIFIED) {
           //        if (wrapper.falsified)
-          return (null);
+          return null;
         }
       }
     }
 
-    return (result);
+    return result;
   }
 
-  /*@Pure*/ public boolean isSameFormula(LinearBinaryCoreFloat other) {
+  /*@Pure*/
+  public boolean isSameFormula(LinearBinaryCoreFloat other) {
     boolean thisMeaningless = values_seen < MINPAIRS;
     boolean otherMeaningless = other.values_seen < MINPAIRS;
 
@@ -621,7 +640,8 @@ public final class LinearBinaryCoreFloat
     }
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(LinearBinaryCoreFloat other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(LinearBinaryCoreFloat other) {
     if ((values_seen < MINPAIRS) ||
         (other.values_seen < MINPAIRS)) {
       return false;

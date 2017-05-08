@@ -1,32 +1,30 @@
 package daikon;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.io.IOException;
 import plume.*;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
 /**
- * PptName is an immutable ADT that represents naming data associated with a
- * given program point, such as the class or method.
+ * PptName is an immutable ADT that represents naming data associated with a given program point,
+ * such as the class or method.
  *
- * <p> Examples below are as if the full value of this PptName were
+ * <p>Examples below are as if the full value of this PptName were
  * "DataStructures.StackAr.pop()Ljava/lang/Object;:::EXIT84"
  *
- * <p>
- * PptName is deprecated, because declaration file format 2 should not need
- * it.  Uses of PptName should be eliminated.
- **/
+ * <p>PptName is deprecated, because declaration file format 2 should not need it. Uses of PptName
+ * should be eliminated.
+ */
 // No "@Deprecated" annotation yet, but we should add it once support for
 // file format 1 is removed from Daikon.
-public class PptName
-  implements Serializable
-{
+public class PptName implements Serializable {
   // We are Serializable, so we specify a version to allow changes to
   // method signatures without breaking serialization.  If you add or
   // remove fields, you should change this number to the current date.
@@ -34,13 +32,20 @@ public class PptName
 
   // These are never changed but cannot be declared "final", because they
   // must be re-interned upon deserialization.
-  private /*@Interned*/ String fullname;   // interned full program point name
+  /** Full program point name */
+  private /*@Interned*/ String fullname;
+
   // fn_name and point together comprise fullname
-  private /*@Interned*/ String fn_name;    // interned; the part of fullname before ":::"
-  private /*@Interned*/ String point;      // interned post-separator (separator is ":::")
+  /** The part of fullname before ":::" */
+  private /*@Interned*/ String fn_name;
+  /** Post-separator (separator is ":::") */
+  private /*@Interned*/ String point;
+
   // cls and method together comprise fn_name
-  private /*@Nullable*/ /*@Interned*/ String cls;        // interned fully-qualified class name
-  final private /*@Nullable*/ /*@Interned*/ String method;     // interned method signature, including types
+  /** Fully-qualified class name */
+  private /*@Nullable*/ /*@Interned*/ String cls;
+  /** Method signature, including types */
+  private final /*@Nullable*/ /*@Interned*/ String method;
 
   // Representation invariant:
   //
@@ -55,19 +60,17 @@ public class PptName
 
   // ==================== CONSTRUCTORS ====================
 
-  /**
-   * @param name non-null ppt name as given in the decls file
-   **/
-  public PptName( String name ) {
+  /** @param name non-null ppt name as given in the decls file */
+  public PptName(String name) {
     // If the name is well-formed, like "mvspc.setupGUI()V:::EXIT75",
     // then this constructor will extract the class and method names.
     // If not (eg for lisp code), it's okay because only the GUI uses
     // this class/method information.
 
     fullname = name.intern();
-    int separatorPosition = name.indexOf( FileIO.ppt_tag_separator );
+    int separatorPosition = name.indexOf(FileIO.ppt_tag_separator);
     if (separatorPosition == -1) {
-      throw new Daikon.TerminationMessage("no ppt_tag_separator in '"+name+"'");
+      throw new Daikon.TerminationMessage("no ppt_tag_separator in '" + name + "'");
       // // probably a lisp program, which was instrumented differently
       // cls = method = point = fn_name = null;
       // return;
@@ -93,13 +96,11 @@ public class PptName
     method = fn_name.substring(dot + 1).intern();
   }
 
-  /**
-   * className or methodName (or both) must be non-null
-   **/
-  public PptName(/*@Nullable*/ String className, /*@Nullable*/ String methodName, String pointName) {
+  /** className or methodName (or both) must be non-null. */
+  public PptName(
+      /*@Nullable*/ String className, /*@Nullable*/ String methodName, String pointName) {
     if ((className == null) && (methodName == null)) {
-      throw new UnsupportedOperationException
-        ("One of class or method must be non-null");
+      throw new UnsupportedOperationException("One of class or method must be non-null");
     }
     // First set class name
     if (className != null) {
@@ -131,76 +132,66 @@ public class PptName
   /**
    * @return getName() [convenience accessor]
    * @see #getName()
-   **/
+   */
   /*@Pure*/
   public String name() {
     return getName();
   }
 
   /**
-   * @return the complete program point name
-   * e.g. "DataStructures.StackAr.pop()Ljava/lang/Object;:::EXIT84"
-   **/
+   * @return the complete program point name e.g.
+   *     "DataStructures.StackAr.pop()Ljava/lang/Object;:::EXIT84"
+   */
   /*@Pure*/
   public String getName() {
     return fullname;
   }
 
   /**
-   * @return the fully-qualified class name, which uniquely identifies
-   * a given class.
-   * May be null.
-   * e.g. "DataStructures.StackAr"
-   **/
+   * @return the fully-qualified class name, which uniquely identifies a given class. May be null.
+   *     e.g. "DataStructures.StackAr"
+   */
   public /*@Nullable*/ String getFullClassName() {
     return cls;
   }
 
   /**
-   * @return the short name of the class, not including any
-   * additional context, such as the package it is in.
-   * May be null.
-   * e.g. "StackAr"
-   **/
+   * @return the short name of the class, not including any additional context, such as the package
+   *     it is in. May be null. e.g. "StackAr"
+   */
   public /*@Nullable*/ String getShortClassName() {
     if (cls == null) return null;
     int pt = cls.lastIndexOf('.');
-    if (pt == -1)
+    if (pt == -1) {
       return cls;
-    else
-      return cls.substring(pt+1);
+    } else {
+      return cls.substring(pt + 1);
+    }
   }
 
-  /**
-   * @return a guess at the package name.
-   * May be null.
-   **/
+  /** @return a guess at the package name. May be null. */
   public /*@Nullable*/ String getPackageName() {
     if (cls == null) return null;
     int pt = cls.lastIndexOf('.');
-    if (pt == -1)
+    if (pt == -1) {
       return null;
-    else
+    } else {
       return cls.substring(0, pt);
+    }
   }
 
   /**
-   * @return the full name which can uniquely identify a method within
-   * a class.  The name includes symbols for the argument types and
-   * return type.
-   * May be null.
-   * e.g. "pop()Ljava/lang/Object;"
-   **/
+   * @return the full name which can uniquely identify a method within a class. The name includes
+   *     symbols for the argument types and return type. May be null. e.g. "pop()Ljava/lang/Object;"
+   */
   public /*@Nullable*/ String getSignature() {
     return method;
   }
 
   /**
-   * @return the name (identifier) of the method, not taking into
-   * account any arguments, return values, etc.
-   * May be null.
-   * e.g. "pop"
-   **/
+   * @return the name (identifier) of the method, not taking into account any arguments, return
+   *     values, etc. May be null. e.g. "pop"
+   */
   public /*@Nullable*/ String getMethodName() {
     if (method == null) return null;
     int lparen = method.indexOf('(');
@@ -209,37 +200,34 @@ public class PptName
   }
 
   /**
-   * @return the fully-qualified class and method name (and signature).
-   * Does not include any point information (such as ENTER or EXIT).
-   * May be null.
-   * e.g. "DataStructures.StackAr.pop()Ljava/lang/Object;"
-   **/
+   * @return the fully-qualified class and method name (and signature). Does not include any point
+   *     information (such as ENTER or EXIT). May be null. e.g.
+   *     "DataStructures.StackAr.pop()Ljava/lang/Object;"
+   */
   public /*@Nullable*/ /*@Interned*/ String getNameWithoutPoint() {
     return fn_name;
-    // if (cls == null && method == null) return null;
+    // if (cls == null && method == null) {
+    //   return null;
+    // }
     // if (cls == null) return method;
     // if (method == null) return cls;
     // return (cls + "." + method).intern();
   }
 
   /**
-   * @return something interesting and descriptive about the point in
-   * question, along the lines of "ENTER" or "EXIT" or somesuch.  The
-   * semantics of this method are not yet decided, so don't try to do
-   * aynthing useful with this result.
-   * May be null.
-   * e.g. "EXIT84"
-   **/
+   * @return something interesting and descriptive about the point in question, along the lines of
+   *     "ENTER" or "EXIT" or somesuch. The semantics of this method are not yet decided, so don't
+   *     try to do aynthing useful with this result. May be null. e.g. "EXIT84"
+   */
   public /*@Nullable*/ String getPoint() {
     return point;
   }
 
   /**
-   * @return a numerical subscript of the given point, or
-   * Integer.MIN_VALUE if none exists.
-   * e.g. "84"
+   * @return a numerical subscript of the given point, or Integer.MIN_VALUE if none exists. e.g.
+   *     "84"
    * @see #exitLine()
-   **/
+   */
   public int getPointSubscript() {
     int result = Integer.MIN_VALUE;
     if (point != null) {
@@ -258,110 +246,98 @@ public class PptName
     return result;
   }
 
-  /**
-   * @return true iff this name refers to a synthetic object instance
-   * program point
-   **/
-  /*@Pure*/ public boolean isObjectInstanceSynthetic() {
+  /** @return true iff this name refers to a synthetic object instance program point */
+  /*@Pure*/
+  public boolean isObjectInstanceSynthetic() {
     return FileIO.object_suffix.equals(point);
   }
 
-  /**
-   * @return true iff this name refers to a synthetic class instance
-   * program point
-   **/
-  /*@Pure*/ public boolean isClassStaticSynthetic() {
+  /** @return true iff this name refers to a synthetic class instance program point */
+  /*@Pure*/
+  public boolean isClassStaticSynthetic() {
     return FileIO.class_static_suffix.equals(point);
   }
 
-  /**
-   * @return true iff this name refers to program globals
-   **/
-  /*@Pure*/ public boolean isGlobalPoint() {
-    return FileIO.global_suffix.equals (point);
+  /** @return true iff this name refers to program globals */
+  /*@Pure*/
+  public boolean isGlobalPoint() {
+    return FileIO.global_suffix.equals(point);
   }
 
-  /**
-   * @return true iff this name refers to a procedure exit point
-   **/
+  /** @return true iff this name refers to a procedure exit point */
   /*@EnsuresNonNullIf(result=true, expression="point")*/
-  /*@Pure*/ public boolean isExitPoint() {
+  /*@Pure*/
+  public boolean isExitPoint() {
     return (point != null) && point.startsWith(FileIO.exit_suffix);
   }
 
-  /**
-   * @return true iff this name refers to an abrupt completion point
-   **/
+  /** @return true iff this name refers to an abrupt completion point */
   /*@EnsuresNonNullIf(result=true, expression="point")*/
-  /*@Pure*/ public boolean isThrowsPoint() {
+  /*@Pure*/
+  public boolean isThrowsPoint() {
     return (point != null) && point.startsWith(FileIO.throws_suffix);
   }
 
-  /**
-   * @return true iff this name refers to a combined (synthetic) procedure
-   *         exit point
-   **/
+  /** @return true iff this name refers to a combined (synthetic) procedure exit point */
   /*@EnsuresNonNullIf(result=true, expression="point")*/
-  /*@Pure*/ public boolean isCombinedExitPoint() {
+  /*@Pure*/
+  public boolean isCombinedExitPoint() {
     return (point != null) && point.equals(FileIO.exit_suffix);
   }
 
   /**
-   * @return true iff this name refers to an actual (not combined)
-   * procedure exit point (eg, EXIT22)
+   * @return true iff this name refers to an actual (not combined) procedure exit point (eg, EXIT22)
    */
   /*@EnsuresNonNullIf(result=true, expression="point")*/
-  /*@Pure*/ public boolean isNumberedExitPoint() {
+  /*@Pure*/
+  public boolean isNumberedExitPoint() {
     return ((point != null) && (isExitPoint() && !isCombinedExitPoint()));
   }
 
-  /**
-   * @return true iff this name refers to a procedure exit point
-   **/
+  /** @return true iff this name refers to a procedure exit point */
   /*@EnsuresNonNullIf(result=true, expression="point")*/
-  /*@Pure*/ public boolean isEnterPoint() {
+  /*@Pure*/
+  public boolean isEnterPoint() {
     return (point != null) && point.startsWith(FileIO.enter_suffix);
   }
 
   /**
-   * @return a string containing the line number, if this is an exit point;
-   *         otherwise, return an empty string
+   * @return a string containing the line number, if this is an exit point; otherwise, return an
+   *     empty string
    * @see #getPointSubscript()
-   **/
+   */
   public String exitLine() {
-    if (!isExitPoint())
+    if (!isExitPoint()) {
       return "";
+    }
     int non_digit;
-    for (non_digit=FileIO.exit_suffix.length(); non_digit<point.length(); non_digit++) {
-      if (! Character.isDigit(point.charAt(non_digit)))
-        break;
+    for (non_digit = FileIO.exit_suffix.length(); non_digit < point.length(); non_digit++) {
+      if (!Character.isDigit(point.charAt(non_digit))) break;
     }
     return point.substring(FileIO.exit_suffix.length(), non_digit);
   }
 
   /**
-   * @return true iff this program point is a constructor entry or exit.
-   * There are two ways in which this works.  With the older declaration
-   * format, the method name starts with &lt;init&gt;.  The newer declaration
-   * format does not have &lt;init&gt; but their method name includes the class
-   * name.  For compatibility both mechanisms are checked.
-   **/
-  /*@Pure*/ public boolean isConstructor() {
+   * @return true iff this program point is a constructor entry or exit. There are two ways in which
+   *     this works. With the older declaration format, the method name starts with &lt;init&gt;.
+   *     The newer declaration format does not have &lt;init&gt; but their method name includes the
+   *     class name. For compatibility both mechanisms are checked.
+   */
+  /*@Pure*/
+  public boolean isConstructor() {
 
     if (method != null) {
 
-      if (method.startsWith ("<init>"))
-        return (true);
+      if (method.startsWith("<init>")) return true;
 
-      if (cls == null)
-        return (false);
+      if (cls == null) return false;
 
-      String class_name = UtilMDE.unqualified_name (cls);
-      assert method != null;    // for nullness checker
-      int arg_start = method.indexOf ('(');
+      @SuppressWarnings("signature") // cls is allowed to be arbitrary, especially for non-Java code
+      String class_name = UtilMDE.fullyQualifiedNameToSimpleName(cls);
+      assert method != null; // for nullness checker
+      int arg_start = method.indexOf('(');
       String method_name = method;
-      if (arg_start != -1)
-        method_name = method.substring (0, arg_start);
+      if (arg_start != -1) method_name = method.substring(0, arg_start);
 
       // System.out.println ("fullname = " + fullname);
       // System.out.println ("fn_name = " + fn_name);
@@ -370,31 +346,33 @@ public class PptName
       // System.out.println ("class_name = " + class_name);
       // System.out.println ("method_name = " + method_name);
 
-      if (class_name.equals (method_name))
-        return (true);
+      if (class_name.equals(method_name)) return true;
     }
 
-    return (false);
-
+    return false;
   }
 
-
-  /** Debugging output **/
+  /** Debugging output */
   public String repr() {
-    return "PptName: fullname=" + fullname
-      + "; fn_name=" + fn_name
-      + "; point=" + point
-      + "; cls=" + cls
-      + "; method=" + method;
+    return "PptName: fullname="
+        + fullname
+        + "; fn_name="
+        + fn_name
+        + "; point="
+        + point
+        + "; cls="
+        + cls
+        + "; method="
+        + method;
   }
-
 
   // ==================== PRODUCERS ====================
 
   /**
    * Requires: this.isExitPoint()
+   *
    * @return a name for the corresponding enter point
-   **/
+   */
   public PptName makeEnter() {
     // This associates throw points with the main entry point.
     // We may wish to have a different exceptional than non-exceptional
@@ -408,8 +386,9 @@ public class PptName
 
   /**
    * Requires: this.isExitPoint() || this.isEnterPoint()
+   *
    * @return a name for the combined exit point
-   **/
+   */
   public PptName makeExit() {
     assert isExitPoint() || isEnterPoint() : fullname;
     return new PptName(cls, method, FileIO.exit_suffix);
@@ -417,8 +396,9 @@ public class PptName
 
   /**
    * Requires: this.isExitPoint() || this.isEnterPoint()
+   *
    * @return a name for the corresponding object invariant
-   **/
+   */
   public PptName makeObject() {
     assert isExitPoint() || isEnterPoint() : fullname;
     return new PptName(cls, null, FileIO.object_suffix);
@@ -426,8 +406,9 @@ public class PptName
 
   /**
    * Requires: this.isExitPoint() || this.isEnterPoint() || this.isObjectInstanceSynthetic()
+   *
    * @return a name for the corresponding class-static invariant
-   **/
+   */
   public PptName makeClassStatic() {
     assert isExitPoint() || isEnterPoint() || isObjectInstanceSynthetic() : fullname;
     return new PptName(cls, null, FileIO.class_static_suffix);
@@ -436,46 +417,45 @@ public class PptName
   // ==================== OBJECT METHODS ====================
 
   /* @return interned string such that this.equals(new PptName(this.toString())) */
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied PptName this*/) {
     return fullname;
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public boolean equals (/*@Nullable*/ Object o) {
+  /*@Pure*/
+  public boolean equals(
+      /*>>>@GuardSatisfied PptName this,*/
+      /*@GuardSatisfied*/ /*@Nullable*/ Object o) {
     return (o instanceof PptName) && equals((PptName) o);
   }
 
   /*@EnsuresNonNullIf(result=true, expression="#1")*/
-  /*@Pure*/ public boolean equals (PptName o) {
+  /*@Pure*/
+  public boolean equals(/*>>>@GuardSatisfied PptName this,*//*@GuardSatisfied*/ PptName o) {
     return (o != null) && (o.fullname == fullname);
   }
 
-  /*@Pure*/ public int hashCode() {
+  /*@Pure*/
+  public int hashCode(/*>>>@GuardSatisfied PptName this*/) {
     return fullname.hashCode();
   }
 
   // Interning is lost when an object is serialized and deserialized.
   // Manually re-intern any interned fields upon deserialization.
-  private void readObject(ObjectInputStream in)
-    throws IOException, ClassNotFoundException
-  {
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     try {
       in.defaultReadObject();
-      if (fullname != null)
-        fullname = fullname.intern();
-      if (fn_name != null)
-        fn_name = fn_name.intern();
-      if (cls != null)
-        cls = cls.intern();
+      if (fullname != null) fullname = fullname.intern();
+      if (fn_name != null) fn_name = fn_name.intern();
+      if (cls != null) cls = cls.intern();
       if (method != null) {
         // method = method.intern();
         UtilMDE.setFinalField(this, "method", method.intern());
       }
-      if (point != null)
-        point = point.intern();
+      if (point != null) point = point.intern();
     } catch (NoSuchFieldException e) {
       throw new Error(e);
     }
   }
-
 }

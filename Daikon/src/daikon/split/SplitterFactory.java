@@ -1,14 +1,13 @@
 package daikon.split;
 
 import daikon.*;
-
-import plume.*;
-import plume.FileCompiler;
-import jtb.ParseException;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.*;
+import jtb.ParseException;
+import plume.*;
+import plume.FileCompiler;
 
 /*>>>
 import org.checkerframework.checker.nullness.qual.*;
@@ -17,15 +16,15 @@ import org.checkerframework.checker.signature.qual.*;
 */
 
 /**
- * This class contains static methods parse_spinfofile(spinfofile) and
- * load_splitters() which respectively creates Splitters from a .spinfo file
- * and load the splitters for a given Ppt.
- **/
+ * This class contains static methods {@link #parse_spinfofile(File)} which creates Splitterss from
+ * a {@code .spinfo} file, and {@link #load_splitters} which loads the splitters for a given Ppt.
+ */
 public class SplitterFactory {
-  private SplitterFactory() { throw new Error("do not instantiate"); }
+  private SplitterFactory() {
+    throw new Error("do not instantiate");
+  }
 
-  public static final Logger debug =
-    Logger.getLogger("daikon.split.SplitterFactory");
+  public static final Logger debug = Logger.getLogger("daikon.split.SplitterFactory");
 
   /** The directory in which the Java files for the splitter will be made. */
   // This must *not* be set in a static block, which happens before the
@@ -34,44 +33,43 @@ public class SplitterFactory {
   private static /*@MonotonicNonNull*/ String tempdir;
 
   /**
-   * Boolean.  If true, the temporary Splitter files are deleted on exit.
-   * Set it to "false" if you are debugging splitters.
-   **/
+   * Boolean. If true, the temporary Splitter files are deleted on exit. Set it to "false" if you
+   * are debugging splitters.
+   */
   public static boolean dkconfig_delete_splitters_on_exit = true;
 
   /**
-   * String.  Specifies which Java compiler is used to compile
-   * Splitters.  This can be the full path name or whatever is used on
-   * the command line.
-   * <p>
+   * String. Specifies which Java compiler is used to compile Splitters. This can be the full path
+   * name or whatever is used on the command line.
    *
-   * By default, $DAIKONDIR/java is part of the classpath. This is useful
-   * when working from the sources directly.
-   * <p>
+   * <p>By default, $DAIKONDIR/java is part of the classpath. This is useful when working from the
+   * sources directly.
    *
-   * The default value is
-   * "javac -classpath $DAIKONDIR/daikon.jar:$DAIKONDIR/java"
-   * (with appropriate classpath separator for the operating system).
-   **/
+   * <p>The default value is "javac -classpath $DAIKONDIR/daikon.jar:$DAIKONDIR/java" (with
+   * appropriate classpath separator for the operating system).
+   */
   public static String dkconfig_compiler
-    // "-source 6 -target 6" is a hack for when using a Java 8 compiler but
-    // a -Java 6 or Java 7 runtime.  A better solution would be to add
-    // these command-line arguments only when running
-    // SplitterFactoryTestUpdater, but that program does not support that.
-    = "javac -nowarn -source 6 -target 6 -classpath " + new File(System.getenv("DAIKONDIR"), "java")  + File.pathSeparatorChar + new File(System.getenv("DAIKONDIR"), "daikon.jar");
+      // "-source 6 -target 6" is a hack for when using a Java 8 compiler but
+      // a -Java 6 or Java 7 runtime.  A better solution would be to add
+      // these command-line arguments only when running
+      // SplitterFactoryTestUpdater, but that program does not support that.
+      =
+      "javac -nowarn -source 6 -target 6 -classpath "
+          + new File(System.getenv("DAIKONDIR"), "java")
+          + File.pathSeparatorChar
+          + new File(System.getenv("DAIKONDIR"), "daikon.jar");
 
   /**
-   * Positive integer.  Specifies the Splitter compilation timeout, in
-   * seconds, after which the compilation process is terminated and
-   * retried, on the assumption that it has hung.
-   **/
-  public static int dkconfig_compile_timeout = 6;
+   * Positive integer. Specifies the Splitter compilation timeout, in seconds, after which the
+   * compilation process is terminated and retried, on the assumption that it has hung.
+   */
+  public static int dkconfig_compile_timeout = 20;
 
   private static /*@MonotonicNonNull*/ FileCompiler fileCompiler; // lazily initialized
 
   /**
-   * guid is a counter that increments every time a file is written.  It is
-   * used to ensure that every file written has a unique name.
+   * guid is a counter that increments every time a file is written. It is used to ensure that every
+   * file written has a unique name.
    */
   private static int guid = 0;
 
@@ -79,30 +77,30 @@ public class SplitterFactory {
 
   /**
    * Parses the Splitter info.
+   *
    * @param infofile filename.spinfo
-   * @return a SpinfoFile encapsulating the parsed splitter info file.
+   * @return a SpinfoFile encapsulating the parsed splitter info file
    */
-
-  public static SpinfoFile parse_spinfofile (File infofile)
-    throws IOException, FileNotFoundException {
+  public static SpinfoFile parse_spinfofile(File infofile)
+      throws IOException, FileNotFoundException {
     if (tempdir == null) {
       tempdir = createTempDir();
     }
-    if (! dkconfig_delete_splitters_on_exit) {
+    if (!dkconfig_delete_splitters_on_exit) {
       System.out.println("\rSplitters for this run created in " + tempdir);
     }
     return new SpinfoFile(infofile, tempdir);
   }
 
   /**
-   * Finds the splitters that apply to a given Ppt and loads them.
+   * Finds the splitters that apply to a given Ppt and loads them (that is, it populates
+   * SplitterList).
+   *
    * @param ppt the Ppt
    * @param spfiles a list of SpinfoFiles
    */
   /*@RequiresNonNull("tempdir")*/
-  public static void load_splitters (PptTopLevel ppt,
-                                     List<SpinfoFile> spfiles)
-  {
+  public static void load_splitters(PptTopLevel ppt, List<SpinfoFile> spfiles) {
     Global.debugSplit.fine("<<enter>> load_splitters");
 
     for (SpinfoFile spfile : spfiles) {
@@ -112,7 +110,13 @@ public class SplitterFactory {
         int numsplitters = splitterObjects[i].length;
         if (numsplitters != 0) {
           String ppt_name = splitterObjects[i][0].getPptName();
-          Global.debugSplit.fine("          load_splitters: " + ppt_name + ", " + ppt + "; match=" + matchPpt(ppt_name, ppt));
+          Global.debugSplit.fine(
+              "          load_splitters: "
+                  + ppt_name
+                  + ", "
+                  + ppt
+                  + "; match="
+                  + matchPpt(ppt_name, ppt));
           if (matchPpt(ppt_name, ppt)) {
             int numGood = 0;
             // Writes, compiles, and loads the splitter .java files.
@@ -130,9 +134,10 @@ public class SplitterFactory {
                 System.out.println(splitterObjects[i][k].getError());
               }
             }
-            System.out.printf("%s: %d of %d splitters successful%n", ppt_name, numGood, numsplitters);
+            System.out.printf(
+                "%s: %d of %d splitters successful%n", ppt_name, numGood, numsplitters);
             if (sp.size() >= 1) {
-              SplitterList.put (ppt_name, sp.toArray(new Splitter[0]));
+              SplitterList.put(ppt_name, sp.toArray(new Splitter[0]));
             }
             // delete this entry in the splitter array to prevent it from
             // matching any other Ppts, since the documented behavior is that
@@ -161,18 +166,17 @@ public class SplitterFactory {
   }
 
   /**
-   * Writes, compiles, and loads the splitter .java files for each
-   * splitterObject in splitterObjects.
+   * Writes, compiles, and loads the splitter {@code .java} files for each splitterObject in
+   * splitterObjects.
+   *
    * @param splitterObjects are the splitterObjects for ppt
    * @param ppt the Ppt for these splitterObjects
-   * @param statementReplacer a StatementReplacer for the replace statements
-   *  to be used in these splitterObjects.
+   * @param statementReplacer a StatementReplacer for the replace statements to be used in these
+   *     splitterObjects
    */
   /*@RequiresNonNull("tempdir")*/
-  private static void loadSplitters(SplitterObject[] splitterObjects,
-                                    PptTopLevel ppt,
-                                    StatementReplacer statementReplacer)
-  {
+  private static void loadSplitters(
+      SplitterObject[] splitterObjects, PptTopLevel ppt, StatementReplacer statementReplacer) {
     Global.debugSplit.fine("<<enter>> loadSplitters - count: " + splitterObjects.length);
 
     // System.out.println("loadSplitters for " + ppt.name);
@@ -185,11 +189,8 @@ public class SplitterFactory {
       StringBuffer fileContents;
       try {
         SplitterJavaSource splitterWriter =
-          new SplitterJavaSource(splitObj,
-                                 splitObj.getPptName(),
-                                 fileName,
-                                 ppt.var_infos,
-                                 statementReplacer);
+            new SplitterJavaSource(
+                splitObj, splitObj.getPptName(), fileName, ppt.var_infos, statementReplacer);
         fileContents = splitterWriter.getFileText();
       } catch (ParseException e) {
         System.out.println("Error in SplitterFactory while writing splitter java file for: ");
@@ -203,14 +204,13 @@ public class SplitterFactory {
       try {
         BufferedWriter writer = UtilMDE.bufferedFileWriter(fileAddress + ".java");
         if (dkconfig_delete_splitters_on_exit) {
-          (new File (fileAddress + ".java")).deleteOnExit();
-          (new File (fileAddress + ".class")).deleteOnExit();
+          (new File(fileAddress + ".java")).deleteOnExit();
+          (new File(fileAddress + ".class")).deleteOnExit();
         }
         writer.write(fileContents.toString());
         writer.flush();
       } catch (IOException ioe) {
-        System.out.println("Error while writing Splitter file: " +
-                           fileAddress);
+        System.out.println("Error while writing Splitter file: " + fileAddress);
         debug.fine(ioe.toString());
       }
     }
@@ -226,8 +226,9 @@ public class SplitterFactory {
       debug.fine(ioe.toString());
     }
     boolean errorOutputExists = errorOutput != null && !errorOutput.equals("");
-    if (errorOutputExists && (! PptSplitter.dkconfig_suppressSplitterErrors)) {
-      System.out.println("\nErrors while compiling Splitter files (Daikon will use non-erroneous splitters):");
+    if (errorOutputExists && (!PptSplitter.dkconfig_suppressSplitterErrors)) {
+      System.out.println(
+          "\nErrors while compiling Splitter files (Daikon will use non-erroneous splitters):");
       System.out.println(errorOutput);
     }
     for (int i = 0; i < splitterObjects.length; i++) {
@@ -238,8 +239,8 @@ public class SplitterFactory {
   }
 
   /**
-   * Compiles the files given by fileNames.
-   * Return the error output.
+   * Compiles the files given by fileNames. Return the error output.
+   *
    * @return the error output from compiling the files
    * @param fileNames paths to the files to be compiled as Strings
    * @throws IOException if there is a problem reading a file
@@ -249,27 +250,24 @@ public class SplitterFactory {
     // We delay setting fileCompiler until now because we want to permit
     // the user to set the dkconfig_compiler variable.  Note that our
     // timeout is specified in seconds, but the parameter to FileCompiler
-    // is specified in milliseconds
+    // is specified in milliseconds.
     if (fileCompiler == null) {
-      fileCompiler = new FileCompiler(dkconfig_compiler,
-                                      1000 * (long) dkconfig_compile_timeout);
+      fileCompiler = new FileCompiler(dkconfig_compiler, 1000 * (long) dkconfig_compile_timeout);
     }
     return fileCompiler.compileFiles(fileNames);
   }
 
-  /**
-   * Determine whether a Ppt's name matches the given pattern.
-   */
+  /** Determine whether a Ppt's name matches the given pattern. */
   private static boolean matchPpt(String ppt_name, PptTopLevel ppt) {
-    if (ppt.name.equals(ppt_name))
-      return true;
+    if (ppt.name.equals(ppt_name)) return true;
     if (ppt_name.endsWith(":::EXIT")) {
       String regex = Pattern.quote(ppt_name) + "[0-9]+";
-      if (matchPptRegex(regex, ppt))
+      if (matchPptRegex(regex, ppt)) {
         return true;
+      }
     }
 
-    // look for corresponding EXIT ppt. This is because the exit ppt usually has
+    // Look for corresponding EXIT ppt. This is because the exit ppt usually has
     // more relevant variables in scope (eg. return, hashcodes) than the enter.
     String regex;
     int index = ppt_name.indexOf("OBJECT");
@@ -279,7 +277,7 @@ public class SplitterFactory {
     } else {
       // Found "OBJECT" suffix.
       if (ppt_name.length() > 6) {
-        regex = Pattern.quote(ppt_name.substring(0, index-1)) + ":::OBJECT";
+        regex = Pattern.quote(ppt_name.substring(0, index - 1)) + ":::OBJECT";
       } else {
         regex = Pattern.quote(ppt_name);
       }
@@ -297,15 +295,13 @@ public class SplitterFactory {
   }
 
   /**
-   * Returns a file name for a splitter file to be used with a Ppt
-   * with the name, ppt_name.  The file name is ppt_name with all
-   * characters which are invalid for use in a java file name (such
-   * as ".") replaced with "_".  Then "_guid" is append to the end.
-   * For example if ppt_name is "myPackage.myClass.someMethod" and
-   * guid = 12, then the following would be returned:
+   * Returns a file name for a splitter file to be used with a Ppt with the name, ppt_name. The file
+   * name is ppt_name with all characters which are invalid for use in a java file name (such as
+   * ".") replaced with "_". Then "_guid" is append to the end. For example if ppt_name is
+   * "myPackage.myClass.someMethod" and guid = 12, then the following would be returned:
    * "myPackage_myClass_someMethod_12".
-   * @param ppt_name the name of the Ppt for which the splitter
-   *  java file is going to be used with.
+   *
+   * @param ppt_name the name of the Ppt that the splitter Java file wil be used with
    */
   private static String getFileName(String ppt_name) {
     String splitterName = clean(ppt_name);
@@ -315,17 +311,16 @@ public class SplitterFactory {
   }
 
   /**
-   * Cleans str by replacing all characters that are not
-   * valid java indentifier parts with "_".
-   * @param str the string to be cleaned.
-   * @return str with all non java indentifier parts replaced
-   *  with "_".
+   * Cleans str by replacing all characters that are not valid java indentifier parts with "_".
+   *
+   * @param str the string to be cleaned
+   * @return str with all non-Java-indentifier parts replaced with "_"
    */
   private static String clean(String str) {
     char[] cleaned = str.toCharArray();
-    for (int i=0; i < cleaned.length; i++) {
+    for (int i = 0; i < cleaned.length; i++) {
       char c = cleaned[i];
-      if (! Character.isJavaIdentifierPart(c)) {
+      if (!Character.isJavaIdentifierPart(c)) {
         cleaned[i] = '_';
       }
     }
@@ -333,11 +328,10 @@ public class SplitterFactory {
   }
 
   /**
-   * Creates the temporary directory in which splitter files will
-   * be stored.
-   * @return the name of the temporary directory. This is where
-   *  the Splitters are created.
-   **/
+   * Creates the temporary directory in which splitter files will be stored.
+   *
+   * @return the name of the temporary directory. This is where the Splitters are created.
+   */
   private static String createTempDir() {
     try {
       File tmpDir = UtilMDE.createTempDir("daikon", "split");
@@ -350,5 +344,4 @@ public class SplitterFactory {
     }
     return ""; // Use current directory
   }
-
 }

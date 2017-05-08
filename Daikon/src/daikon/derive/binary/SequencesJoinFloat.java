@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /*>>>
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 */
 
@@ -22,7 +23,7 @@ import org.checkerframework.dataflow.qual.*;
  * us to detect uniqueness and equality style invariants across the
  * data structure rather than just one slice of it.  Works for number
  * and string arrays.
- **/
+ */
 public final class SequencesJoinFloat
   extends BinaryDerivation
 {
@@ -31,24 +32,24 @@ public final class SequencesJoinFloat
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20020122L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug = Logger.getLogger("daikon.derive.binary.SequencesJoinFloat");
 
   // Variables starting with dkconfig_ should only be set via the
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SequencesJoin derived variables should be generated.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
-  public VarInfo var1() { return base1; }
-  public VarInfo var2() { return base2; }
+  public VarInfo var1(/*>>>@GuardSatisfied SequencesJoinFloat this*/) { return base1; }
+  public VarInfo var2(/*>>>@GuardSatisfied SequencesJoinFloat this*/) { return base2; }
 
   /**
    * Create a new SequencesJoin derivation.
-   * @param vi1 The first of the two variables this is based on
-   * @param vi2 The second of the two variables this is based on
-   **/
+   * @param vi1 the first of the two variables this is based on
+   * @param vi2 the second of the two variables this is based on
+   */
   public SequencesJoinFloat(VarInfo vi1, VarInfo vi2) {
     super(vi1, vi2);
   }
@@ -58,8 +59,8 @@ public final class SequencesJoinFloat
    * hashcodes of the component sequences.  This is modified whenever
    * either component sequence is modified.
    * @param full_vt the value tuple of a program point to compute the
-   * derived value from.
-   **/
+   * derived value from
+   */
   public ValueAndModified computeValueAndModifiedImpl(ValueTuple full_vt) {
     Object val1 = var1().getValue(full_vt);
     Object val2 = var2().getValue(full_vt);
@@ -174,20 +175,23 @@ public final class SequencesJoinFloat
       VarComparability.makeComparabilitySameIndices (newTypeName,
                                                      var1.comparability);
 
-    return (vi);
+    return vi;
   }
 
-  /*@SideEffectFree*/ public String toString() {
+  /*@SideEffectFree*/
+  public String toString(/*>>>@GuardSatisfied SequencesJoinFloat this*/) {
     return "[SequencesJoinFloat of " + var1().name() + " " + var2().name()
       + "]";
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     return (other instanceof SequencesJoinFloat);
   }
 
-  /** Returns the ESC name **/
-  /*@SideEffectFree*/ public String esc_name(String index) {
+  /** Returns the ESC name */
+  /*@SideEffectFree*/
+  public String esc_name(String index) {
     return String.format ("join[%s,%s]", var1().esc_name(), var2().esc_name());
   }
 }

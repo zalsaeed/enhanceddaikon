@@ -19,6 +19,7 @@ import java.util.*;
 /*>>>
 import org.checkerframework.checker.initialization.qual.*;
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import org.checkerframework.framework.qual.*;
@@ -47,7 +48,7 @@ public final class OneOfString
 
   /**
    * Debugging logger.
-   **/
+   */
   public static final Logger debug
     = Logger.getLogger (OneOfString.class.getName());
 
@@ -55,13 +56,13 @@ public final class OneOfString
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff OneOf invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   /**
    * Positive integer.  Specifies the maximum set size for this type
    * of invariant (x is one of <code>size</code> items).
-   **/
+   */
 
   public static int dkconfig_size = 3;
 
@@ -89,30 +90,33 @@ public final class OneOfString
 
   private static /*@Prototype*/ OneOfString proto = new /*@Prototype*/ OneOfString ();
 
-  /** Returns the prototype invariant for OneOfString **/
+  /** Returns the prototype invariant for OneOfString */
   public static /*@Prototype*/ OneOfString get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** instantiate an invariant on the specified slice **/
+  /** instantiate an invariant on the specified slice */
   public OneOfString instantiate_dyn (/*>>> @Prototype OneOfString this,*/ PptSlice slice) {
     return new OneOfString(slice);
   }
 
-  /*@Pure*/ public boolean is_boolean() {
+  /*@Pure*/
+  public boolean is_boolean(/*>>>@GuardSatisfied OneOfString this*/) {
     return (var().file_rep_type.elementType() == ProglangType.BOOLEAN);
   }
-  /*@Pure*/ public boolean is_hashcode() {
+  /*@Pure*/
+  public boolean is_hashcode(/*>>>@GuardSatisfied OneOfString this*/) {
     return (var().file_rep_type.elementType() == ProglangType.HASHCODE);
   }
 
   @SuppressWarnings("interning") // clone method re-does interning
-  /*@SideEffectFree*/ public OneOfString clone() {
+  /*@SideEffectFree*/
+  public OneOfString clone(/*>>>@GuardSatisfied OneOfString this*/) {
     OneOfString result = (OneOfString) super.clone();
     result.elts = elts.clone();
 
@@ -129,8 +133,9 @@ public final class OneOfString
   }
 
   public Object elt(int index) {
-    if (num_elts <= index)
+    if (num_elts <= index) {
       throw new Error("Represents " + num_elts + " elements, index " + index + " not valid");
+    }
 
     return elts[index];
   }
@@ -139,28 +144,31 @@ public final class OneOfString
 
   static Comparator<String> comparator = new UtilMDE.NullableStringComparator();
 
-  private void sort_rep() {
+  private void sort_rep(/*>>>@GuardSatisfied OneOfString this*/) {
     Arrays.sort(elts, 0, num_elts , comparator);
   }
 
   public /*@Interned*/ String min_elt() {
-    if (num_elts == 0)
+    if (num_elts == 0) {
       throw new Error("Represents no elements");
+    }
     sort_rep();
     return elts[0];
   }
 
   public /*@Interned*/ String max_elt() {
-    if (num_elts == 0)
+    if (num_elts == 0) {
       throw new Error("Represents no elements");
+    }
     sort_rep();
     return elts[num_elts-1];
   }
 
   // Assumes the other array is already sorted
   public boolean compare_rep(int num_other_elts, /*@Interned*/ String[] other_elts) {
-    if (num_elts != num_other_elts)
+    if (num_elts != num_other_elts) {
       return false;
+    }
     sort_rep();
     for (int i=0; i < num_elts; i++)
       if (! ((elts[i]) == (other_elts[i]))) // elements are interned
@@ -168,15 +176,16 @@ public final class OneOfString
     return true;
   }
 
-  private String subarray_rep() {
+  private String subarray_rep(/*>>>@GuardSatisfied OneOfString this*/) {
     // Not so efficient an implementation, but simple;
     // and how often will we need to print this anyway?
     sort_rep();
     StringBuffer sb = new StringBuffer();
     sb.append("{ ");
     for (int i=0; i<num_elts; i++) {
-      if (i != 0)
+      if (i != 0) {
         sb.append(", ");
+      }
 
       if (PrintInvariants.dkconfig_static_const_infer) {
         boolean curVarMatch = false;
@@ -194,8 +203,7 @@ public final class OneOfString
         if (curVarMatch == false) {
           sb.append(((elts[i]==null) ? "null" : "\"" + UtilMDE.escapeNonASCII(elts[i]) + "\""));
         }
-      }
-      else {
+      } else {
         sb.append(((elts[i]==null) ? "null" : "\"" + UtilMDE.escapeNonASCII(elts[i]) + "\""));
       }
 
@@ -204,7 +212,7 @@ public final class OneOfString
     return sb.toString();
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied OneOfString this*/) {
     return "OneOfString" + varNames() + ": "
       + "falsified=" + falsified
       + ", num_elts=" + num_elts
@@ -219,10 +227,13 @@ public final class OneOfString
     return temp;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied OneOfString this,*/ OutputFormat format) {
     sort_rep();
 
-    if (format.isJavaFamily()) return format_java_family(format);
+    if (format.isJavaFamily()) {
+      return format_java_family(format);
+    }
 
     if (format == OutputFormat.DAIKON) {
       return format_daikon();
@@ -238,7 +249,7 @@ public final class OneOfString
     }
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied OneOfString this*/) {
     String varname = var().name();
     if (num_elts == 1) {
 
@@ -276,7 +287,8 @@ public final class OneOfString
     }
   }
 
-  /*@Pure*/ private boolean is_type() {
+  /*@Pure*/
+  private boolean is_type(/*>>>@GuardSatisfied OneOfString this*/) {
     return var().has_typeof();
   }
 
@@ -306,7 +318,7 @@ public final class OneOfString
     return "\\type(" + type_str + ")";
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied OneOfString this*/) {
     sort_rep();
 
     String varname = var().esc_name();
@@ -334,7 +346,7 @@ public final class OneOfString
     return result;
   }
 
-public String format_csharp_contract() {
+public String format_csharp_contract(/*>>>@GuardSatisfied OneOfString this*/) {
 
     /*@NonNull @NonRaw @Initialized*/ // UNDONE: don't understand why needed (markro)
     String result;
@@ -370,7 +382,7 @@ public String format_csharp_contract() {
     return result;
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied OneOfString this,*/ OutputFormat format) {
 
     String result;
 
@@ -403,7 +415,7 @@ public String format_csharp_contract() {
     return result;
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied OneOfString this*/) {
 
     sort_rep();
 
@@ -439,8 +451,9 @@ public String format_csharp_contract() {
       return format_too_few_samples(OutputFormat.SIMPLIFY, null);
     }
 
-    if (result.indexOf("format_simplify") == -1)
+    if (result.indexOf("format_simplify") == -1) {
       daikon.simplify.SimpUtil.assert_well_formed(result);
+    }
     return result;
   }
 
@@ -500,19 +513,19 @@ public String format_csharp_contract() {
       //if (logDetail())
       //  log ("add_modified (" + v + ")");
       if (((elts[i]) == ( v))) {
-        return (InvariantStatus.NO_CHANGE);
+        return InvariantStatus.NO_CHANGE;
       }
     }
 
     if (num_elts == dkconfig_size) {
-      return (InvariantStatus.FALSIFIED);
+      return InvariantStatus.FALSIFIED;
     }
 
     if (is_type() && (num_elts == 1)) {
-      return (InvariantStatus.FALSIFIED);
+      return InvariantStatus.FALSIFIED;
     }
 
-    return (InvariantStatus.WEAKENED);
+    return InvariantStatus.WEAKENED;
   }
 
   protected double computeConfidence() {
@@ -575,33 +588,39 @@ public String format_csharp_contract() {
    * formula at an upper point.
    */
   public boolean mergeFormulasOk() {
-    return (true);
+    return true;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant o) {
     OneOfString other = (OneOfString) o;
-    if (num_elts != other.num_elts)
+    if (num_elts != other.num_elts) {
       return false;
-    if (num_elts == 0 && other.num_elts == 0)
+    }
+    if (num_elts == 0 && other.num_elts == 0) {
       return true;
+    }
 
     sort_rep();
     other.sort_rep();
 
     for (int i=0; i < num_elts; i++) {
-      if (! ((elts[i]) == (other.elts[i])))
+      if (! ((elts[i]) == (other.elts[i]))) {
         return false;
+      }
     }
 
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant o) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant o) {
     if (o instanceof OneOfString) {
       OneOfString other = (OneOfString) o;
 
-      if (num_elts == 0 || other.num_elts == 0)
+      if (num_elts == 0 || other.num_elts == 0) {
         return false;
+      }
       for (int i=0; i < num_elts; i++) {
         for (int j=0; j < other.num_elts; j++) {
           if (((elts[i]) == (other.elts[j]))) // elements are interned
@@ -618,7 +637,8 @@ public String format_csharp_contract() {
   // OneOf invariants that indicate a small set of possible values are
   // uninteresting.  OneOf invariants that indicate exactly one value
   // are interesting.
-  /*@Pure*/ public boolean isInteresting() {
+  /*@Pure*/
+  public boolean isInteresting() {
     if (num_elts() > 1) {
       return false;
     } else {
@@ -631,7 +651,8 @@ public String format_csharp_contract() {
     return false;
   }
 
-  /*@Pure*/ public boolean isExact() {
+  /*@Pure*/
+  public boolean isExact() {
     return (num_elts == 1);
   }
 
@@ -639,8 +660,9 @@ public String format_csharp_contract() {
   public static /*@Nullable*/ OneOfString find(PptSlice ppt) {
     assert ppt.arity() == 1;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof OneOfString)
+      if (inv instanceof OneOfString) {
         return (OneOfString) inv;
+      }
     }
     return null;
   }
@@ -652,8 +674,9 @@ public String format_csharp_contract() {
     ClassNotFoundException {
     in.defaultReadObject();
 
-    for (int i=0; i < num_elts; i++)
+    for (int i=0; i < num_elts; i++) {
       elts[i] = Intern.intern(elts[i]);
+    }
   }
 
   /**
@@ -661,11 +684,11 @@ public String format_csharp_contract() {
    * a OneOfString invariant.  This code finds all of the oneof values
    * from each of the invariants and returns the merged invariant (if any).
    *
-   * @param invs       List of invariants to merge.  The invariants must all be
+   * @param invs       list of invariants to merge.  The invariants must all be
    *                   of the same type and should come from the children of
    *                   parent_ppt.  They should also all be permuted to match
    *                   the variable order in parent_ppt.
-   * @param parent_ppt Slice that will contain the new invariant
+   * @param parent_ppt slice that will contain the new invariant
    */
   @SuppressWarnings("interning") // cloning requires re-interning
   public /*@Nullable*/ Invariant merge (List<Invariant> invs, PptSlice parent_ppt) {
@@ -690,13 +713,13 @@ public String format_csharp_contract() {
         InvariantStatus status = result.add_mod_elem(val, 1);
         if (status == InvariantStatus.FALSIFIED) {
           result.log ("%s", "child value '" + val + "' destroyed oneof");
-          return (null);
+          return null;
         }
       }
     }
 
     result.log ("Merged '%s' from %s child invariants", result.format(), invs.size());
-    return (result);
+    return result;
   }
 
   /**
@@ -707,8 +730,9 @@ public String format_csharp_contract() {
   public void set_one_of_val (String[] vals) {
 
     num_elts = vals.length;
-    for (int i = 0; i < num_elts; i++)
+    for (int i = 0; i < num_elts; i++) {
       elts[i] = Intern.intern (vals[i]);
+    }
   }
 
   /**
@@ -718,12 +742,14 @@ public String format_csharp_contract() {
    */
   public boolean state_match (Object state) {
 
-    if (num_elts == 0)
-      return (false);
+    if (num_elts == 0) {
+      return false;
+    }
 
-    if (!(state instanceof /*@Interned*/ String[]))
+    if (!(state instanceof /*@Interned*/ String[])) {
       System.out.println ("state is of class '" + state.getClass().getName()
                           + "'");
+    }
     /*@Interned*/ String[] e = (/*@Interned*/ String[]) state;
     for (int i = 0; i < num_elts; i++) {
       boolean match = false;
@@ -733,10 +759,11 @@ public String format_csharp_contract() {
           break;
         }
       }
-      if (!match)
-        return (false);
+      if (!match) {
+        return false;
+      }
     }
-    return (true);
+    return true;
   }
 
 }

@@ -32,7 +32,7 @@ public final class SequenceFloatUnion
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff SequenceFloatUnion derived variables should be generated.
-   **/
+   */
   public static boolean dkconfig_enabled = false;
 
   public SequenceFloatUnion(VarInfo vi1, VarInfo vi2) {
@@ -41,18 +41,22 @@ public final class SequenceFloatUnion
 
   public ValueAndModified computeValueAndModifiedImpl(ValueTuple full_vt) {
     int mod1 = base1.getModified(full_vt);
-    if (mod1 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod1 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     int mod2 = base2.getModified(full_vt);
-    if (mod2 == ValueTuple.MISSING_NONSENSICAL)
+    if (mod2 == ValueTuple.MISSING_NONSENSICAL) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     Object val1 = base1.getValue(full_vt);
-    if (val1 == null)
+    if (val1 == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     double[] val1_array = (double[]) val1;
     Object val2 = base2.getValue(full_vt);
-    if (val2 == null)
+    if (val2 == null) {
       return ValueAndModified.MISSING_NONSENSICAL;
+    }
     double[] val2_array = (double[]) val2;
 
     double[] tmp = new double[val1_array.length+val2_array.length];
@@ -84,12 +88,14 @@ public final class SequenceFloatUnion
     return VarInfo.make_function ("union", base1, base2);
   }
 
-  /*@Pure*/ public boolean isSameFormula(Derivation other) {
+  /*@Pure*/
+  public boolean isSameFormula(Derivation other) {
     return (other instanceof SequenceFloatUnion);
   }
 
-  /** Returns the ESC name **/
-  /*@SideEffectFree*/ public String esc_name(String index) {
+  /** Returns the ESC name */
+  /*@SideEffectFree*/
+  public String esc_name(String index) {
     return String.format ("union(%s,%s)", var1().esc_name(),
                           var2().esc_name());
   }

@@ -9,6 +9,7 @@ import java.util.logging.Level;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
 */
@@ -16,7 +17,7 @@ import typequals.*;
 /**
  * Represents two sequences of long where one is in the reverse order
  * of the other.  Prints as <code>x[] is the reverse of y[]</code>.
- **/
+ */
 public class Reverse
   extends TwoSequence
 {
@@ -32,8 +33,8 @@ public class Reverse
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff Reverse invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   protected Reverse(PptSlice ppt) {
     super(ppt);
@@ -45,31 +46,32 @@ public class Reverse
 
   private static /*@Prototype*/ Reverse proto = new /*@Prototype*/ Reverse ();
 
-  /** Returns the prototype invariant for Reverse **/
+  /** Returns the prototype invariant for Reverse */
   public static /*@Prototype*/ Reverse get_proto() {
     return proto;
   }
 
-  /** returns whether or not this invariant is enabled **/
+  /** returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** Reverse only makes sense on ordered arrays **/
+  /** Reverse only makes sense on ordered arrays */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
     // Check to see that both arrays are ordered
     if (!vis[0].aux.hasOrder() ||
         !vis[1].aux.hasOrder())
-      return (false);
+      return false;
 
-    return (true);
+    return true;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   public Reverse instantiate_dyn (/*>>> @Prototype Reverse this,*/ PptSlice slice) {
     return new Reverse(slice);
   }
@@ -79,12 +81,13 @@ public class Reverse
     return this;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied Reverse this*/) {
     return "Reverse" + varNames() + ": "
       + "falsified=" + falsified;
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied Reverse this,*/ OutputFormat format) {
     if (format.isJavaFamily()) return format_java_family(format);
 
     if (format == OutputFormat.DAIKON) return format_daikon();
@@ -94,29 +97,30 @@ public class Reverse
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied Reverse this*/) {
     return var1().name() + " is the reverse of " + var2().name();
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied Reverse this,*/ OutputFormat format) {
           return "daikon.Quant.isReverse(" + var1().name_using(format)
             + ", " + var2().name_using(format) + ")";
   }
 
-  public String format_csharp() {
+  public String format_csharp(/*>>>@GuardSatisfied Reverse this*/) {
     String[] split1 = var1().csharp_array_split();
     String[] split2 = var2().csharp_array_split();
     return "Contract.ForAll(0, " + split1[0] + ".Count(), i => " + split1[0] + "[i]"  + split1[1] + ".Equals(" + split2[0] + "[" +split1[0] + ".Count()-1-i]" + split2[1] +"))";
   }
 
-  public String format_simplify() {
-    if (Invariant.dkconfig_simplify_define_predicates)
+  public String format_simplify(/*>>>@GuardSatisfied Reverse this*/) {
+    if (Invariant.dkconfig_simplify_define_predicates) {
       return format_simplify_defined();
-    else
+    } else {
       return format_simplify_explicit();
+    }
   }
 
-  private String format_simplify_defined() {
+  private String format_simplify_defined(/*>>>@GuardSatisfied Reverse this*/) {
     VarInfo onevar = var1();
     VarInfo othervar = var2();
     String[] one_name = onevar.simplifyNameAndBounds();
@@ -132,7 +136,7 @@ public class Reverse
       other_name[0] + " " + other_name[1] + " " + other_name[2] + ")";
   }
 
-  private String format_simplify_explicit() {
+  private String format_simplify_explicit(/*>>>@GuardSatisfied Reverse this*/) {
     VarInfo onevar = var1();
     VarInfo othervar = var2();
     String[] one_name = onevar.simplifyNameAndBounds();
@@ -191,7 +195,8 @@ public class Reverse
     return Invariant.CONFIDENCE_JUSTIFIED;
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     assert other instanceof Reverse;
     return true;
   }

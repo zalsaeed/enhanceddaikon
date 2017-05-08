@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 /*>>>
 import org.checkerframework.checker.interning.qual.*;
+import org.checkerframework.checker.lock.qual.*;
 import org.checkerframework.checker.nullness.qual.*;
 import org.checkerframework.dataflow.qual.*;
 import typequals.*;
@@ -29,7 +30,7 @@ import typequals.*;
  * Thus, <code>x[0]</code> is compared to <code>y[0]</code>,
  * <code>x[1]</code> to <code>y[1]</code>, and so forth.
  * Prints as <code>x[] == y[]</code>.
- **/
+ */
 
 public class PairwiseFloatEqual
   extends TwoSequenceFloat
@@ -39,7 +40,7 @@ public class PairwiseFloatEqual
   // remove fields, you should change this number to the current date.
   static final long serialVersionUID = 20030822L;
 
-  /** Debug tracer. **/
+  /** Debug tracer. */
   public static final Logger debug =
     Logger.getLogger("daikon.inv.binary.twoSequence.PairwiseFloatEqual");
 
@@ -47,8 +48,8 @@ public class PairwiseFloatEqual
   // daikon.config.Configuration interface.
   /**
    * Boolean.  True iff PairwiseIntComparison invariants should be considered.
-   **/
-  public static boolean dkconfig_enabled = true;
+   */
+  public static boolean dkconfig_enabled = Invariant.invariantEnabledDefault;
 
   static final boolean debugPairwiseIntComparison = false;
 
@@ -62,30 +63,32 @@ public class PairwiseFloatEqual
 
   private static /*@Prototype*/ PairwiseFloatEqual proto = new /*@Prototype*/ PairwiseFloatEqual ();
 
-  /** Returns the prototype invariant for PairwiseFloatEqual **/
+  /** Returns the prototype invariant for PairwiseFloatEqual */
   public static /*@Prototype*/ PairwiseFloatEqual get_proto() {
-    return (proto);
+    return proto;
   }
 
-  /** Returns whether or not this invariant is enabled **/
+  /** Returns whether or not this invariant is enabled */
   public boolean enabled() {
     return dkconfig_enabled;
   }
 
-  /** PairwiseFloatEqual is only valid on integral types **/
+  /** PairwiseFloatEqual is only valid on integral types */
   public boolean instantiate_ok (VarInfo[] vis) {
 
-    if (!valid_types (vis))
-      return (false);
+    if (!valid_types (vis)) {
+      return false;
+    }
 
-    return (true);
+    return true;
   }
 
-  /** instantiates the invariant on the specified slice **/
+  /** instantiates the invariant on the specified slice */
   protected PairwiseFloatEqual instantiate_dyn (/*>>> @Prototype PairwiseFloatEqual this,*/ PptSlice slice) {
     PairwiseFloatEqual inv = new PairwiseFloatEqual(slice);
-    if (logOn())
+    if (logOn()) {
       inv.log ("instantiate");
+    }
     return inv;
   }
 
@@ -127,8 +130,9 @@ public class PairwiseFloatEqual
     // Subsequence invariants are implied by the same invariant over
     // the supersequence
     DiscardInfo di = superseq_implies (vis);
-    if (di != null)
-      return (di);
+    if (di != null) {
+      return di;
+    }
 
     return null;
     }
@@ -137,40 +141,44 @@ public class PairwiseFloatEqual
    * Checks to see if the same invariant exists over supersequences of
    * these variables:
    *
+   * <pre>
    *    (A[] op B[]) ^ (i == j)  &rArr; A[i..] op B[j..]
    *    (A[] op B[]) ^ (i == j)  &rArr; A[..i] op B[..j]
+   * </pre>
    */
   private /*@Nullable*/ DiscardInfo superseq_implies (VarInfo[] vis) {
 
     // Make sure the variables are SequenceFloatSubsequence with the same start/end
     VarInfo v1 = vis[0];
     VarInfo v2 = vis[1];
-    if (!v1.isDerived() || !(v1.derived instanceof SequenceFloatSubsequence))
-      return (null);
-    if (!v2.isDerived() || !(v2.derived instanceof SequenceFloatSubsequence))
-      return (null);
+    if (!v1.isDerived() || !(v1.derived instanceof SequenceFloatSubsequence)) {
+      return null;
+    }
+    if (!v2.isDerived() || !(v2.derived instanceof SequenceFloatSubsequence)) {
+      return null;
+    }
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceFloatSubsequence der1 = (SequenceFloatSubsequence) v1.derived;
     @SuppressWarnings("nullness") // checker bug: flow
     /*@NonNull*/ SequenceFloatSubsequence der2 = (SequenceFloatSubsequence) v2.derived;
     if ((der1.from_start != der2.from_start)
         || (der1.index_shift != der2.index_shift))
-      return (null);
+      return null;
 
     // Make sure the subscripts are equal
     DiscardInfo di = new DiscardInfo (this, DiscardCode.obvious, "");
     if (!ppt.parent.check_implied_canonical (di, der1.sclvar(), der2.sclvar(),
                                              IntEqual.get_proto()))
-      return (null);
+      return null;
 
     // See if the super-sequences have the same invariant
     if (!ppt.parent.check_implied_canonical (di, der1.seqvar(), der2.seqvar(),
                                              PairwiseFloatEqual.get_proto()))
-      return (null);
+      return null;
 
     // Add in the vis variables to di reason (if they are different)
     di.add_implied_vis (vis);
-    return (di);
+    return di;
   }
 
   protected Invariant resurrect_done_swapped() {
@@ -178,11 +186,12 @@ public class PairwiseFloatEqual
       return this;
   }
 
-    /*@Pure*/ public boolean is_symmetric() {
-    return (true);
+    /*@Pure*/
+    public boolean is_symmetric() {
+    return true;
   }
 
-  public String repr() {
+  public String repr(/*>>>@GuardSatisfied PairwiseFloatEqual this*/) {
     return "PairwiseFloatEqual" + varNames() + ": ";
   }
 
@@ -190,7 +199,8 @@ public class PairwiseFloatEqual
     return "==";
   }
 
-  /*@SideEffectFree*/ public String format_using(OutputFormat format) {
+  /*@SideEffectFree*/
+  public String format_using(/*>>>@GuardSatisfied PairwiseFloatEqual this,*/ OutputFormat format) {
 
     if (format.isJavaFamily()) return format_java_family(format);
 
@@ -202,28 +212,28 @@ public class PairwiseFloatEqual
     return format_unimplemented(format);
   }
 
-  public String format_daikon() {
+  public String format_daikon(/*>>>@GuardSatisfied PairwiseFloatEqual this*/) {
     return var1().name() + " == " + var2().name()
       + " (elementwise)";
   }
 
-  public String format_esc() {
+  public String format_esc(/*>>>@GuardSatisfied PairwiseFloatEqual this*/) {
     String[] form = VarInfo.esc_quantify (var1(), var2());
     return form[0] + "(" + form[1] + " == " + form[2] + ")" + form[3];
   }
 
-  public String format_simplify() {
+  public String format_simplify(/*>>>@GuardSatisfied PairwiseFloatEqual this*/) {
     String[] form = VarInfo.simplify_quantify (QuantFlags.element_wise(),
                                                var1(), var2());
     return form[0] + "(EQ " + form[1] + " " + form[2] + ")" + form[3];
   }
 
-  public String format_java_family(OutputFormat format) {
+  public String format_java_family(/*>>>@GuardSatisfied PairwiseFloatEqual this,*/ OutputFormat format) {
     return "daikon.Quant.pairwiseEqual(" + var1().name_using(format)
       + ", " + var2().name_using(format) + ")";
   }
 
-  public String format_csharp() {
+  public String format_csharp(/*>>>@GuardSatisfied PairwiseFloatEqual this*/) {
 
     String[] split1 = var1().csharp_array_split();
     String[] split2 = var2().csharp_array_split();
@@ -261,9 +271,10 @@ public class PairwiseFloatEqual
 
     public InvariantStatus add_modified(double /*@Interned*/ [] a1, double /*@Interned*/ [] a2,
                                         int count) {
-      if (logDetail())
+      if (logDetail()) {
         log (debug, "saw add_modified (" + ArraysMDE.toString(a1) +
              ", " + ArraysMDE.toString(a2) + ")");
+      }
       return check_modified(a1, a2, count);
     }
 
@@ -280,11 +291,13 @@ public class PairwiseFloatEqual
     }
   }
 
-  /*@Pure*/ public boolean isSameFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isSameFormula(Invariant other) {
     return true;
   }
 
-  /*@Pure*/ public boolean isExclusiveFormula(Invariant other) {
+  /*@Pure*/
+  public boolean isExclusiveFormula(Invariant other) {
     return false;
   }
 
@@ -292,8 +305,9 @@ public class PairwiseFloatEqual
   public static /*@Nullable*/ PairwiseFloatEqual find(PptSlice ppt) {
     assert ppt.arity() == 2;
     for (Invariant inv : ppt.invs) {
-      if (inv instanceof PairwiseFloatEqual)
+      if (inv instanceof PairwiseFloatEqual) {
         return (PairwiseFloatEqual) inv;
+      }
     }
     return null;
   }
@@ -303,10 +317,10 @@ public class PairwiseFloatEqual
    */
   /*@Pure*/
   public /*@Nullable*/ NISuppressionSet get_ni_suppressions() {
-    return (suppressions);
+    return suppressions;
   }
 
-  /** Definition of this invariant (the suppressee) **/
+  /** Definition of this invariant (the suppressee) */
   private static NISuppressee suppressee
     = new NISuppressee (PairwiseFloatEqual.class, 2);
 
