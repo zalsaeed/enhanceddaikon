@@ -19,7 +19,7 @@ import org.checkerframework.dataflow.qual.*;
 */
 
 /**
- * Runtime support for Chicory, the Daikon front end for Java. This class is a collection of
+ * Runtime support for Enhanced Chicory v1.1, the Daikon front end for Java. This class is a collection of
  * methods; it should never be instantiated.
  */
 @SuppressWarnings(
