@@ -1298,6 +1298,12 @@ public abstract class DaikonVariableInfo
 	   if(Runtime.working_debug)
 		   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got Called!");
 	   Field field = null;
+
+	   //if the list (dynamic object) object is already null, then return immediately with an empty list of elements.
+	   if(obj == null){
+	     return listOfElements;
+       }
+
 	   try {
 		   field = obj.getClass().getDeclaredField(listName);
 		   
