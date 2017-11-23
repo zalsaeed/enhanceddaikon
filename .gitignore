@@ -6,3 +6,9 @@
 #Eclipse
 .classpath
 .project
+
+
+#Intellij Idea
+*.iml
+.idea
+Daikon/out/
