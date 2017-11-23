@@ -1289,6 +1289,7 @@ public abstract class DaikonVariableInfo
     * A method to return a list of elements in the given object.
     * 
     * @param obj
+    * @param listName
     */
    protected List<Object> getListElements(Object obj, String listName){
 		//TODO add nested primitive values to scope.
@@ -1308,7 +1309,7 @@ public abstract class DaikonVariableInfo
 		   field = obj.getClass().getDeclaredField(listName);
 		   
 	   } catch (NoSuchFieldException | SecurityException e) {
-		   // TODO throw a proper message 
+		   //TODO throw a proper message
 		   e.printStackTrace();   
 	   }
 	   
@@ -1324,7 +1325,7 @@ public abstract class DaikonVariableInfo
 	   try {
 		   listInstance = field.get(obj);   
 	   } catch (IllegalArgumentException | IllegalAccessException e) {
-		   // TODO throw a proper message
+		   //TODO throw a proper message
 		   e.printStackTrace();   
 	   }
 	   
