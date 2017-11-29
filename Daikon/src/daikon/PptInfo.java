@@ -45,8 +45,17 @@ public class PptInfo {
 	 */
 	String parentID = null;
 	
+	/** A filed to check if the variable is constant or not. This is not used yet, but should be used to solve issue 
+	 * #24 */
+	boolean isConstant = false;
+	
+	/** Keys ordered based on the order in which they were observed (chronological)*/
 	List<String> arrangedKeys = new ArrayList<String>();
+	
+	/** Mapping between variables and their properties. */
 	final HashMap<String,String[]> var_to_prop_reps = new HashMap<String,String[]>();
+	
+	/** Mapping between variables and their properties */
 	HashMap<String,List<VariableProp>> var_to_propVals = new HashMap<String,List<VariableProp>>();
 	
 	public PptInfo (String name){

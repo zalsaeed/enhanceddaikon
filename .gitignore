@@ -18,3 +18,5 @@ Daikon/out/
 
 *.dtrace
 *.dtrace.gz
+*inv.gz
+INV-*.txt
