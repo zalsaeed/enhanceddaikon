@@ -12,3 +12,9 @@
 *.iml
 .idea
 Daikon/out/
+
+
+#Daikon files
+
+*.dtrace
+*.dtrace.gz
