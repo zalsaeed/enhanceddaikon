@@ -1301,9 +1301,9 @@ public abstract class DaikonVariableInfo
 	   Field field = null;
 
 	   //if the list (dynamic object) object is already null, then return immediately with an empty list of elements.
-	   if(obj == null){
-	     return listOfElements;
-       }
+	   //if(obj == null){
+	   //  return listOfElements;
+       //}
 
 	   try {
 		   field = obj.getClass().getDeclaredField(listName);
