@@ -1360,7 +1360,9 @@ public abstract class DaikonVariableInfo
 				   }
 			   } else { // cast it to class to check if it is primitive
 				   Class<?> fieldArgClass = (Class<?>) fieldArgType;
-				   if (!fieldArgClass.isPrimitive()){
+				   // TODO delete this print stmt:
+                 System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Is interface? " + fieldArgClass.isInterface());
+                 if (!fieldArgClass.isPrimitive()){
 					   if(Runtime.working_debug)
 					      System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive: " + fieldArgClass.getTypeName());
 					   // Go over each object (e.g. in a list) and get its fields.
