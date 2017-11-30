@@ -1330,8 +1330,11 @@ public abstract class DaikonVariableInfo
 	   }
 	   
 	   //return immediately if the list is still not initialized.
-	   if(listInstance == null)
-		   return listOfElements;
+	   if(listInstance == null) {
+	     if(Runtime.working_debug)
+           System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] List is not initialized, abort!");
+         return listOfElements;
+       }
 	   
 	   if(listInstance instanceof Collection){
 		   if(Runtime.working_debug)
