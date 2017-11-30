@@ -1367,13 +1367,19 @@ public abstract class DaikonVariableInfo
 					   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
 					     // TODO check if the objects in list are primitive values
                          // TODO what if this is an interface, would there be any problems?
+                         // TODO delete this print stmt
                          if(Runtime.working_debug)
                            System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] About to get an element.");
                          Object element = iter.next();
-                         if(element.getClass().isInterface())
-                           System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] The element is an interface.");
+                         // TODO delete this print stmt
+                         System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got one element");
                          element.getClass();
+                         // TODO delete this print stmt
+                         System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got the element's class"); // + element.getClass().getTypeName()
                          listOfElements.add(element);
+                         // TODO delete this print stmt
+                         System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Added the element to list of elements");
+                         // TODO delete this print stmt
                          if(Runtime.working_debug)
                            System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got an element from the list");
 					   }
