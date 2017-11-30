@@ -1362,16 +1362,20 @@ public abstract class DaikonVariableInfo
 				   Class<?> fieldArgClass = (Class<?>) fieldArgType;
 				   if (!fieldArgClass.isPrimitive()){
 					   if(Runtime.working_debug)
-						   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive: " + fieldArgClass.getTypeName());
+					      System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Content of collection is not primitive: " + fieldArgClass.getTypeName());
 					   // Go over each object (e.g. in a list) and get its fields.
 					   for (Iterator<?> iter = ((Iterable) listInstance).iterator(); iter.hasNext(); ) {
-						   //TODO check if the objects in list are primitive values
-                           //TODO what if this is an interface, would there be any problems?
-						   Object element = iter.next();
-						   element.getClass();
-						   listOfElements.add(element);
-						   if(Runtime.working_debug)
-                             System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got an element from the list");
+					     // TODO check if the objects in list are primitive values
+                         // TODO what if this is an interface, would there be any problems?
+                         if(Runtime.working_debug)
+                           System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] About to get an element.");
+                         Object element = iter.next();
+                         if(element.getClass().isInterface())
+                           System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] The element is an interface.");
+                         element.getClass();
+                         listOfElements.add(element);
+                         if(Runtime.working_debug)
+                           System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got an element from the list");
 					   }
 				   }
 			   }
