@@ -1373,7 +1373,7 @@ public abstract class DaikonVariableInfo
                          Object element = iter.next();
                          // TODO delete this print stmt
                          System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got one element");
-                         element.getClass();
+                         //element.getClass();
                          // TODO delete this print stmt
                          System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] Got the element's class"); // + element.getClass().getTypeName()
                          listOfElements.add(element);
