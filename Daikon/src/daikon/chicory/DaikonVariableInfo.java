@@ -1335,12 +1335,12 @@ public abstract class DaikonVariableInfo
 	   
 	   if(listInstance instanceof Collection){
 		   if(Runtime.working_debug)
-			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] I got the list ..." + field.getName());
+			   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] I got the list type ..." + field.getName());
 	   }
 	   
 	   Type genericFieldType = field.getGenericType();
 	   if(Runtime.working_debug)
-		   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] My print " + genericFieldType);
+		   System.out.println("\t\t\t\t\t[Chicory.DaikonVariableInfo.getListElements()] List<Type>: " + genericFieldType);
 	   
 	   if(genericFieldType instanceof ParameterizedType){
 		   ParameterizedType aType = (ParameterizedType) genericFieldType;
