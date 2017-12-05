@@ -35,7 +35,7 @@ public class Runtime {
   public static final boolean settings_debug = false;
 
   /** working debug to show the actual instrumentation process on console */
-  public static final boolean working_debug = true;
+  public static final boolean working_debug = false;
 
   /**
    * Flag indicating that a dtrace record is currently being written used to prevent a call to
