@@ -1,5 +1,0 @@
-Importnat_reg_expresions
-
-//To select all the traces (ignoring the ppt and parent declarations)
-
-^(?!.*(ppt|parent)).*:::(EXIT.*|OBJECT|ENTER)$
